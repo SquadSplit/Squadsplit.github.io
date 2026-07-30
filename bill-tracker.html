@@ -1,0 +1,2789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Bill Tracker 🧾</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --bg:#0b0b18;--card:#13132a;--card2:#1a1a35;--border:#2a2a50;
+  --accent1:#ff6b6b;--accent2:#ffd93d;--accent3:#6bcb77;--accent4:#4d96ff;--accent5:#ff922b;
+  --purple:#b06aff;--text:#f0f0ff;--muted:#7777aa;--red:#ff6b6b;--green:#6bcb77;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+.bg-mesh{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 600px 400px at 10% 20%,rgba(77,150,255,.08) 0%,transparent 70%),
+  radial-gradient(ellipse 500px 500px at 90% 80%,rgba(176,106,255,.08) 0%,transparent 70%),
+  radial-gradient(ellipse 400px 300px at 50% 50%,rgba(255,217,61,.05) 0%,transparent 70%);}
+.screen{display:none;position:relative;z-index:1;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;}
+#screen-login{align-items:center;justify-content:center;padding:24px;}
+.login-box{width:100%;max-width:420px;background:var(--card);border:1px solid var(--border);border-radius:24px;padding:36px 28px;box-shadow:0 24px 80px rgba(0,0,0,.5);animation:slideUp .5s ease;}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.login-logo{text-align:center;margin-bottom:28px;}
+.login-logo .logo-icon{font-size:3.5rem;display:block;animation:bounce 2s ease-in-out infinite;}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.login-logo h1{font-family:'Fredoka One',cursive;font-size:2rem;background:linear-gradient(135deg,#4d96ff,#b06aff,#ff92d0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-top:4px;}
+.login-logo p{color:var(--muted);font-size:.82rem;margin-top:4px;}
+.step{display:none;}.step.active{display:block;animation:fadeIn .3s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.form-label{display:block;font-size:.78rem;font-weight:800;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;}
+.form-input{width:100%;background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:14px 16px;color:var(--text);font-family:'Nunito',sans-serif;font-size:.95rem;outline:none;transition:border-color .2s;margin-bottom:16px;}
+.form-input:focus{border-color:var(--accent4);}.form-input::placeholder{color:var(--muted);}
+.otp-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:16px;}
+.otp-box{background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:14px 0;text-align:center;font-size:1.3rem;font-weight:900;color:var(--text);outline:none;transition:border-color .2s;width:100%;}
+.otp-box:focus{border-color:var(--accent4);box-shadow:0 0 12px rgba(77,150,255,.25);}
+.btn{width:100%;padding:15px;border-radius:14px;border:none;font-family:'Fredoka One',cursive;font-size:1.1rem;cursor:pointer;transition:all .2s;}
+.btn-primary{background:linear-gradient(135deg,#4d96ff,#b06aff);color:#fff;box-shadow:0 4px 20px rgba(77,150,255,.3);margin-bottom:8px;}
+.btn-primary:hover:not(:disabled){transform:translateY(-2px);}.btn-primary:disabled{opacity:.5;cursor:not-allowed;}
+.btn-ghost{background:var(--card2);color:var(--muted);border:1px solid var(--border);font-family:'Nunito',sans-serif;font-size:.85rem;font-weight:700;padding:12px;}
+.btn-ghost:hover{color:var(--text);}
+.error-msg{background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.3);border-radius:10px;padding:10px 14px;font-size:.8rem;color:var(--red);margin-bottom:12px;display:none;}
+.success-msg{background:rgba(107,203,119,.12);border:1px solid rgba(107,203,119,.3);border-radius:10px;padding:10px 14px;font-size:.8rem;color:var(--green);margin-bottom:12px;display:none;}
+.timer-text{text-align:center;font-size:.78rem;color:var(--muted);margin-bottom:12px;}
+.timer-text span{color:var(--accent4);font-weight:800;}
+.not-registered{text-align:center;padding:20px 0;}
+.not-registered .big-emoji{font-size:2.6rem;display:block;margin-bottom:10px;}
+#screen-app{padding-bottom:80px;}
+.app-header{background:linear-gradient(135deg,#0a1a3e,#1a0a2e);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.app-header h2{font-family:'Fredoka One',cursive;font-size:1.3rem;background:linear-gradient(135deg,#4d96ff,#ffd93d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.app-header p{font-size:.7rem;color:var(--muted);margin-top:1px;}
+.header-right{display:flex;align-items:center;gap:8px;}
+.btn-admin-panel{background:linear-gradient(135deg,#b06aff,#4d96ff);color:#fff;border:none;border-radius:12px;padding:7px 14px;font-family:'Fredoka One',cursive;font-size:.82rem;cursor:pointer;letter-spacing:.3px;box-shadow:0 2px 12px rgba(176,106,255,.35);}
+.btn-admin-panel:hover{transform:scale(1.03);}
+.user-pill{display:flex;align-items:center;gap:6px;background:var(--card2);border-radius:20px;padding:6px 10px;border:1px solid var(--border);cursor:pointer;}
+.av-sm{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.85rem;}
+.uname{font-size:.75rem;font-weight:800;}
+.page{display:none;padding:16px;}.page.active{display:block;animation:fadeIn .25s ease;}
+.section-title{font-family:'Fredoka One',cursive;font-size:1.25rem;color:var(--accent4);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.card{background:var(--card);border-radius:16px;border:1px solid var(--border);padding:16px;margin-bottom:12px;}
+.month-nav{display:flex;align-items:center;justify-content:space-between;background:var(--card);border-radius:16px;border:1px solid var(--border);padding:12px 16px;margin-bottom:14px;}
+.month-nav button{background:var(--card2);border:1px solid var(--border);color:var(--text);width:34px;height:34px;border-radius:10px;font-size:1rem;cursor:pointer;}
+.month-nav .mtitle{font-family:'Fredoka One',cursive;font-size:1rem;}
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.summary-grid .card{margin-bottom:0;text-align:center;padding:14px 10px;}
+.summary-grid .s-label{font-size:.66rem;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;font-weight:800;}
+.summary-grid .s-val{font-family:'Fredoka One',cursive;font-size:1.3rem;margin-top:4px;}
+.dhs{display:inline-flex;align-items:center;gap:2px;}
+.report-btn{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#6bcb77,#4d96ff);color:#fff;font-family:'Fredoka One',cursive;font-size:.98rem;cursor:pointer;margin-bottom:16px;box-shadow:0 4px 20px rgba(107,203,119,.25);}
+.report-btn:hover:not(:disabled){transform:translateY(-2px);}
+.report-btn:disabled{opacity:.6;cursor:not-allowed;}
+.exp-item-card{background:var(--card2);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;border:1px solid var(--border);gap:10px;}
+.exp-name{font-weight:800;font-size:.88rem;}.exp-meta{font-size:.68rem;color:var(--muted);margin-top:2px;}
+.exp-icon{font-size:1.3rem;width:36px;height:36px;background:var(--card);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.card-chip{display:inline-block;font-size:.62rem;font-weight:800;padding:2px 8px;border-radius:8px;margin-top:3px;}
+.fg{margin-bottom:14px;}
+.fg label{display:block;font-size:.75rem;font-weight:800;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;}
+.fg input,.fg select{width:100%;background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:12px 14px;color:var(--text);font-family:'Nunito',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s;}
+.fg input:focus,.fg select:focus{border-color:var(--accent4);}.fg select option{background:var(--card2);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.btn-add{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#6bcb77,#4d96ff);color:#fff;font-family:'Fredoka One',cursive;font-size:1.05rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 20px rgba(107,203,119,.25);}
+.btn-add:hover{transform:translateY(-2px);}
+.cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.card-tile{background:var(--card2);border-radius:14px;border:1px solid var(--border);padding:14px 12px;text-align:center;position:relative;}
+.card-tile .cdot{width:30px;height:30px;border-radius:50%;margin:0 auto 8px;}
+.card-tile .cname{font-weight:800;font-size:.85rem;}
+.card-tile .cdel{position:absolute;top:6px;right:8px;background:none;border:none;color:var(--muted);font-size:.9rem;cursor:pointer;}
+.owed-row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:12px;margin-bottom:8px;border-left:4px solid var(--red);background:var(--card2);}
+.owed-row.settle{border-color:var(--green);}
+.b-left{display:flex;flex-direction:column;}.b-name{font-weight:800;font-size:.88rem;}.b-sub{font-size:.68rem;color:var(--muted);margin-top:2px;}
+.b-amt{font-weight:800;font-size:.95rem;}.b-amt.neg{color:var(--red);}.b-amt.pos{color:var(--green);}
+.empty-state{text-align:center;padding:30px 10px;color:var(--muted);}
+.empty-state span{font-size:2rem;display:block;margin-bottom:8px;}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);display:flex;z-index:50;padding:6px 4px;}
+.nav-btn{flex:1;background:none;border:none;color:var(--muted);padding:8px 4px;text-align:center;cursor:pointer;border-radius:12px;transition:all .15s;}
+.nav-btn .ni{font-size:1.25rem;display:block;}
+.nav-btn .nl{font-size:.62rem;font-weight:800;margin-top:2px;}
+.nav-btn.active{color:var(--accent4);background:rgba(77,150,255,.1);}
+.admin-overlay{position:fixed;inset:0;background:var(--bg);z-index:200;display:none;flex-direction:column;}
+.admin-overlay.active{display:flex;}
+.admin-top{background:linear-gradient(135deg,#1a0a2e,#0a1a3e);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.admin-top h2{font-family:'Fredoka One',cursive;font-size:1.15rem;color:var(--accent1);}
+.close-admin{background:var(--card2);border:1px solid var(--border);color:var(--text);width:34px;height:34px;border-radius:10px;font-size:1rem;cursor:pointer;}
+.admin-tabs{display:flex;gap:6px;padding:10px 16px;overflow-x:auto;border-bottom:1px solid var(--border);}
+.admin-tab-btn{background:var(--card2);border:1px solid var(--border);color:var(--muted);padding:8px 14px;border-radius:10px;font-size:.78rem;font-weight:800;cursor:pointer;white-space:nowrap;}
+.admin-tab-btn.active{background:linear-gradient(135deg,#b06aff,#4d96ff);color:#fff;border-color:transparent;}
+.admin-body{flex:1;overflow-y:auto;padding:16px;}
+.admin-tab-page{display:none;}.admin-tab-page.active{display:block;}
+.user-row{display:flex;align-items:center;justify-content:space-between;background:var(--card2);border-radius:12px;padding:10px 12px;margin-bottom:8px;border:1px solid var(--border);}
+.user-row .u-left{display:flex;align-items:center;gap:10px;}
+.grp-badge{font-size:.6rem;font-weight:800;padding:2px 8px;border-radius:7px;text-transform:uppercase;}
+.grp-squad{background:rgba(255,217,61,.15);color:var(--accent2);}
+.grp-general{background:rgba(77,150,255,.15);color:var(--accent4);}
+.admin-badge2{background:rgba(255,107,107,.2);color:var(--accent1);font-size:.58rem;font-weight:800;padding:1px 6px;border-radius:6px;margin-left:4px;}
+.icon-btn{background:none;border:none;color:var(--muted);font-size:.95rem;cursor:pointer;padding:4px 8px;}
+.icon-btn:hover{color:var(--red);}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 18px;font-size:.82rem;font-weight:700;z-index:999;box-shadow:0 8px 30px rgba(0,0,0,.5);display:none;}
+</style>
+</head>
+<body>
+<div class="bg-mesh"></div>
+
+<!-- ═══ LOGIN ═══ -->
+<div class="screen active" id="screen-login">
+  <div class="login-box">
+    <div class="login-logo">
+      <span class="logo-icon">🧾</span>
+      <h1>Bill Tracker</h1>
+      <p>Your own spending, private &amp; simple · 🇦🇪 AED</p>
+    </div>
+
+    <div class="error-msg" id="login-error"></div>
+    <div class="success-msg" id="login-success"></div>
+
+    <div class="step active" id="step-email">
+      <label class="form-label">Your email</label>
+      <input type="email" class="form-input" id="email-input" placeholder="you@example.com" autocomplete="email">
+      <button class="btn btn-primary" id="btn-send-otp" onclick="sendOTP()">Send Code →</button>
+      <p style="text-align:center;font-size:.72rem;color:var(--muted);">Only emails already added by your admin can sign in</p>
+    </div>
+
+    <div class="step" id="step-otp">
+      <label class="form-label">Enter the 6-digit code</label>
+      <div class="otp-grid" id="otp-grid"></div>
+      <p class="timer-text" id="timer-text"></p>
+      <button class="btn btn-primary" id="btn-verify" onclick="verifyOTP()">Verify &amp; Enter →</button>
+      <button class="btn btn-ghost" onclick="backToEmail()">← Use a different email</button>
+      <div style="background:rgba(77,150,255,.08);border:1px solid rgba(77,150,255,.25);border-radius:12px;padding:12px 14px;margin-top:14px;font-size:.72rem;color:var(--muted);line-height:1.5;">
+        📭 <b style="color:var(--accent4);">Don't see it after a minute?</b> Check your Spam / Junk folder — look for a sender named <b>"Squad Splitter"</b>. Found it there? Tap <b>Not Spam / Not Junk</b> once — every code after that arrives much faster.
+      </div>
+    </div>
+
+    <div class="step" id="step-not-registered">
+      <div class="not-registered">
+        <span class="big-emoji">🔒</span>
+        <p style="font-weight:800;margin-bottom:6px;">Not added yet</p>
+        <p style="font-size:.82rem;color:var(--muted);margin-bottom:20px;">This email hasn't been added to Bill Tracker. Ask your admin to add you first.</p>
+      </div>
+      <button class="btn btn-ghost" onclick="backToEmail()">← Try another email</button>
+    </div>
+
+    <div class="step" id="step-conn-error">
+      <div class="not-registered">
+        <span class="big-emoji">⚠️</span>
+        <p style="font-weight:800;margin-bottom:6px;">Couldn't verify your account</p>
+        <p style="font-size:.82rem;color:var(--muted);margin-bottom:20px;">Usually just a slow connection. Tap retry — you won't need to re-enter the code.</p>
+      </div>
+      <button class="btn btn-primary" onclick="retryTryEnter()">🔄 Retry</button>
+      <button class="btn btn-ghost" onclick="backToEmail()">← Start over</button>
+    </div>
+
+    <div class="step" id="step-pick-account">
+      <label class="form-label">Whose account are you managing?</label>
+      <p style="text-align:center;font-size:.78rem;color:var(--muted);margin-bottom:14px;">You've been given delegate access to enter data for someone else.</p>
+      <div id="pick-account-list" style="margin-bottom:10px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div class="screen" id="screen-app">
+  <div class="app-header">
+    <div>
+      <h2>🧾 Bill Tracker</h2>
+      <p id="header-sub">Your private dashboard</p>
+    </div>
+    <div class="header-right">
+      <a href="index.html" id="link-to-squad" style="display:none;text-decoration:none;background:var(--card2);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:7px 12px;font-family:'Fredoka One',cursive;font-size:.78rem;">💸 Squad Splitter</a>
+      <button class="icon-btn" id="btn-notif" onclick="openNotifPanel()" style="position:relative;font-size:1.15rem;padding:4px 7px;" title="Notifications">🔔<span id="notif-badge" style="display:none;position:absolute;top:0;right:0;background:var(--red);color:#fff;font-size:.55rem;font-weight:800;border-radius:8px;padding:1px 4px;min-width:14px;line-height:1.3;"></span></button>
+      <button class="btn-admin-panel" id="btn-open-admin" style="display:none;" onclick="openAdmin()">⚙️ Admin</button>
+      <div class="user-pill" id="user-pill-btn" onclick="openUserMenu()" title="Tap for account options">
+        <div class="av-sm" id="me-avatar" style="background:var(--accent4);"></div>
+        <span class="uname" id="me-name"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOME -->
+  <div class="page active" id="page-home">
+    <div id="due-soon-banner"></div>
+    <div class="month-nav">
+      <button onclick="changeMonth(-1)">‹</button>
+      <span class="mtitle" id="month-title"></span>
+      <button onclick="changeMonth(1)">›</button>
+    </div>
+
+    <div class="admin-tabs" style="padding:0 0 12px;border:none;">
+      <button class="admin-tab-btn active" onclick="switchHomeTab('spent')" id="htab-spent">💵 Spent</button>
+      <button class="admin-tab-btn" onclick="switchHomeTab('owe')" id="htab-owe">⚖️ You Owe</button>
+      <button class="admin-tab-btn" onclick="switchHomeTab('owedtome')" id="htab-owedtome">🔁 Owed to You</button>
+    </div>
+
+    <button class="report-btn" id="btn-email-report" onclick="viewMyReport()">📊 View my report for this month</button>
+
+    <div class="admin-tab-page active" id="hometab-spent">
+      <div class="card" style="text-align:center;">
+        <div class="s-label">Spent this month</div>
+        <div class="s-val" id="sum-spent" style="font-size:1.6rem;">—</div>
+      </div>
+      <div class="section-title" style="font-size:1rem;">📅 This month's spending</div>
+      <div id="expense-list"></div>
+    </div>
+
+    <div class="admin-tab-page" id="hometab-owe">
+      <div class="card" style="text-align:center;">
+        <div class="s-label">You owe overall</div>
+        <div class="s-val" id="sum-owe" style="font-size:1.6rem;">—</div>
+      </div>
+      <div class="card">
+        <div class="fg">
+          <label>Record a payment you made to the admin</label>
+          <input type="number" id="settle-amount" placeholder="Amount (AED)" step="0.01" min="0">
+        </div>
+        <button class="btn-add" onclick="recordSettlement()">Record Payment</button>
+      </div>
+      <div class="section-title" style="font-size:1rem;">Owed to admin</div>
+      <div id="owed-list"></div>
+      <div class="section-title" style="font-size:1rem;margin-top:14px;">Payment history</div>
+      <div id="settle-list"></div>
+      <div class="section-title" style="font-size:1.1rem;margin-top:22px;">🤝 People you owe</div>
+      <div id="payee-balance-list"></div>
+    </div>
+
+    <div class="admin-tab-page" id="hometab-owedtome">
+      <div class="card" style="text-align:center;">
+        <div class="s-label">Owed to you</div>
+        <div class="s-val" id="sum-owedtome" style="font-size:1.6rem;">—</div>
+      </div>
+      <div id="owed-to-me-list"></div>
+    </div>
+  </div>
+
+  <!-- ADD EXPENSE -->
+  <div class="page" id="page-add">
+    <div class="section-title">➕ Add</div>
+    <div class="admin-tabs" style="padding:0 0 12px;border:none;">
+      <button class="admin-tab-btn active" onclick="switchAddTab('spend')" id="atab-spend">💵 Personal Spend</button>
+      <button class="admin-tab-btn" onclick="switchAddTab('payee')" id="atab-payee">🤝 Party Ledger</button>
+    </div>
+
+    <div class="admin-tab-page active" id="addtab-spend">
+      <div class="card">
+        <div class="fg">
+          <label>What was it for</label>
+          <input type="text" id="add-desc" placeholder="e.g. Groceries, Fuel, Lunch">
+        </div>
+        <div class="form-row">
+          <div class="fg">
+            <label>Amount (AED)</label>
+            <input type="number" id="add-amount" placeholder="0.00" step="0.01" min="0">
+          </div>
+          <div class="fg">
+            <label>Date</label>
+            <input type="date" id="add-date">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="fg">
+            <label>Card used</label>
+            <select id="add-card"></select>
+          </div>
+          <div class="fg">
+            <label>Category</label>
+            <select id="add-category">
+              <option value="food">🍔 Food</option>
+              <option value="transport">🚗 Transport</option>
+              <option value="shopping">🛍️ Shopping</option>
+              <option value="bills">🧾 Bills</option>
+              <option value="entertainment">🎬 Entertainment</option>
+              <option value="health">💊 Health</option>
+              <option value="other" selected>📦 Other</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-add" onclick="addExpense()">Save Spend</button>
+      </div>
+    </div>
+
+    <div class="admin-tab-page" id="addtab-payee">
+      <div class="card">
+        <div class="fg">
+          <label>Who do you owe</label>
+          <select id="pe-payee" onchange="peSelectionChanged()"></select>
+        </div>
+        <div class="fg" id="pe-new-wrap" style="display:none;">
+          <label>Their name</label>
+          <input type="text" id="pe-new-payee" placeholder="e.g. Landlord, Electricity Co.">
+        </div>
+        <div class="form-row">
+          <div class="fg">
+            <label>Amount (AED)</label>
+            <input type="number" id="pe-amount" placeholder="0.00" step="0.01" min="0">
+          </div>
+          <div class="fg">
+            <label>Date</label>
+            <input type="date" id="pe-date">
+          </div>
+        </div>
+        <div class="fg">
+          <label>Type</label>
+          <select id="pe-type">
+            <option value="owe">I now owe them this</option>
+            <option value="paid">I paid them this</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Note (optional)</label>
+          <input type="text" id="pe-note" placeholder="What's this for?">
+        </div>
+        <button class="btn-add" onclick="addPayeeEntry()">Save Entry</button>
+        <p style="text-align:center;font-size:.68rem;color:var(--muted);margin-top:10px;">Only parties added in the 🎉 Party tab show up here. Add someone new any time from either place.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARDS -->
+  <div class="page" id="page-cards">
+    <div class="section-title">💳 Your cards</div>
+    <div class="cards-grid" id="cards-grid"></div>
+    <div class="card">
+      <div class="fg">
+        <label>Add a new card</label>
+        <input type="text" id="new-card-name" placeholder="e.g. HDFC Debit, Cash, Amex">
+      </div>
+      <div class="fg">
+        <label>Bill due day (optional — enables reminders)</label>
+        <input type="number" id="new-card-dueday" min="1" max="31" placeholder="e.g. 15">
+      </div>
+      <button class="btn-add" onclick="addCard()">Add Card</button>
+      <p style="text-align:center;font-size:.68rem;color:var(--muted);margin-top:10px;">Just a label — never enter a real card number here</p>
+    </div>
+  </div>
+
+  <!-- PARTY (replaces the old separate Owed page — its content now lives in Home's tabs) -->
+  <div class="page" id="page-party">
+    <div class="section-title">🎉 Your parties</div>
+    <p style="font-size:.72rem;color:var(--muted);margin-top:-8px;margin-bottom:14px;">People or businesses you might owe money to — add them here once, then pick them any time from ➕ Add → Party Ledger.</p>
+    <div class="cards-grid" id="party-grid"></div>
+    <div class="card">
+      <div class="fg">
+        <label>Name</label>
+        <input type="text" id="new-party-name" placeholder="e.g. Landlord, Sara, Electricity Co.">
+      </div>
+      <div class="fg">
+        <label>Email (optional)</label>
+        <input type="email" id="new-party-email" placeholder="their@email.com — leave blank if none">
+      </div>
+      <button class="btn-add" onclick="addParty()">Add Party</button>
+      <p style="text-align:center;font-size:.68rem;color:var(--muted);margin-top:10px;">If you add their email and it belongs to someone already using this app, they'll see this relationship under their own "🔁 Owed to You" tab and can log entries or settle up too.</p>
+    </div>
+
+    <div class="section-title" style="margin-top:24px;">🗑️ Deleted history</div>
+    <p style="font-size:.72rem;color:var(--muted);margin-top:-8px;margin-bottom:14px;">Anything deleted from a shared ledger — yours or logged against you — stays here with who, when, and why.</p>
+    <div id="deleted-history-list"></div>
+  </div>
+
+  <div class="bottom-nav">
+    <button class="nav-btn active" onclick="switchPage('home')" id="nav-home"><span class="ni">🏠</span><span class="nl">Home</span></button>
+    <button class="nav-btn" onclick="switchPage('add')" id="nav-add"><span class="ni">➕</span><span class="nl">Add</span></button>
+    <button class="nav-btn" onclick="switchPage('cards')" id="nav-cards"><span class="ni">💳</span><span class="nl">Cards</span></button>
+    <button class="nav-btn" onclick="switchPage('party')" id="nav-party"><span class="ni">🎉</span><span class="nl">Party</span></button>
+  </div>
+</div>
+
+
+<!-- ═══ ADMIN OVERLAY ═══ -->
+<div class="admin-overlay" id="admin-overlay">
+  <div class="admin-top">
+    <h2>⚙️ Admin — Bill Tracker</h2>
+    <button class="close-admin" onclick="closeAdmin()">✕</button>
+  </div>
+  <div class="admin-tabs">
+    <button class="admin-tab-btn active" onclick="switchAdminTab('users')" id="atab-users">👥 Users</button>
+    <button class="admin-tab-btn" onclick="switchAdminTab('owed')" id="atab-owed">⚖️ Owed</button>
+    <button class="admin-tab-btn" onclick="switchAdminTab('spending')" id="atab-spending">📊 Spending</button>
+    <button class="admin-tab-btn" onclick="switchAdminTab('reports')" id="atab-reports">📧 Reports</button>
+  </div>
+  <div class="admin-body">
+
+    <div class="admin-tab-page active" id="atp-users">
+      <div class="card">
+        <div class="fg"><label>Email</label><input type="email" id="nu-email" placeholder="person@example.com"></div>
+        <div class="fg"><label>Name</label><input type="text" id="nu-name" placeholder="Full name"></div>
+        <div class="form-row">
+          <div class="fg">
+            <label>Group</label>
+            <select id="nu-group">
+              <option value="general">General user</option>
+              <option value="squad_split">Squad Split</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label>Admin?</label>
+            <select id="nu-admin"><option value="false">No</option><option value="true">Yes</option></select>
+          </div>
+        </div>
+        <button class="btn-add" onclick="createUser()">+ Add User</button>
+        <div class="fg" style="margin-top:14px;"><label>Delegate this account to (optional)</label><input type="email" id="nu-delegate" placeholder="assistant@example.com — leave blank for none"></div>
+        <p style="font-size:.68rem;color:var(--muted);margin-top:-8px;margin-bottom:10px;">Whoever logs in with this email can enter data on this person's behalf. Only fill this in when adding/editing the person it applies to.</p>
+      </div>
+      <button class="btn btn-ghost" style="margin-bottom:14px;" onclick="importFromSquad()">⬇️ Import everyone from Squad Members</button>
+      <div id="admin-users-list"></div>
+    </div>
+
+    <div class="admin-tab-page" id="atp-owed">
+      <div class="card">
+        <div class="fg"><label>Person</label><select id="ow-user"></select></div>
+        <div class="form-row">
+          <div class="fg"><label>Amount (AED)</label><input type="number" id="ow-amount" step="0.01"></div>
+          <div class="fg"><label>Month</label><input type="month" id="ow-month"></div>
+        </div>
+        <div class="fg"><label>Note</label><input type="text" id="ow-note" placeholder="What's this for?"></div>
+        <button class="btn-add" onclick="adminAddOwed()">+ Add Owed Entry</button>
+      </div>
+      <div id="admin-owed-list"></div>
+    </div>
+
+    <div class="admin-tab-page" id="atp-spending">
+      <div class="fg"><label>View spending for</label><select id="sp-user" onchange="loadAdminSpending()"></select></div>
+      <div id="admin-spending-list"></div>
+    </div>
+
+    <div class="admin-tab-page" id="atp-reports">
+      <div class="card">
+        <p style="font-size:.85rem;margin-bottom:12px;">Reports also go out automatically on the 1st of every month (via a scheduled job — see SETUP.md). Use this to send everyone's report right now instead of waiting.</p>
+        <p style="text-align:center;font-size:.7rem;color:var(--muted);margin-top:4px;">Tap 📊 next to any user above to view their report — no bulk send needed anymore.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ USER MENU (switch account / log out) ═══ -->
+<div class="admin-overlay" id="user-menu-overlay" style="z-index:220;">
+  <div class="admin-top">
+    <h2 id="user-menu-title">👤 Account</h2>
+    <button class="close-admin" onclick="closeUserMenu()">✕</button>
+  </div>
+  <div class="admin-body" id="user-menu-list"></div>
+</div>
+
+<!-- ═══ SWITCH ACCOUNT (delegate access) ═══ -->
+<div class="admin-overlay" id="switch-overlay" style="z-index:230;">
+  <div class="admin-top">
+    <h2>🔀 Switch Account</h2>
+    <button class="close-admin" onclick="closeSwitcher()">✕</button>
+  </div>
+  <div class="admin-body">
+    <p style="font-size:.78rem;color:var(--muted);margin-bottom:14px;">Pick which account you want to view and enter data for.</p>
+    <div id="switch-account-list"></div>
+  </div>
+</div>
+
+<!-- ═══ REPORT VIEWER (in-app, replaces the old emailed report) ═══ -->
+<div class="admin-overlay" id="report-overlay" style="z-index:245;">
+  <div class="admin-top">
+    <h2>📊 Report</h2>
+    <button class="close-admin" onclick="closeReport()">✕</button>
+  </div>
+  <div class="admin-body" id="report-body">Loading…</div>
+</div>
+
+<!-- ═══ NOTIFICATIONS ═══ -->
+<div class="admin-overlay" id="notif-overlay" style="z-index:240;">
+  <div class="admin-top">
+    <h2>🔔 Notifications</h2>
+    <button class="close-admin" onclick="closeNotifPanel()">✕</button>
+  </div>
+  <div class="admin-body">
+    <button class="btn btn-ghost" style="margin-bottom:12px;" onclick="markAllNotifRead()">✓ Mark all as read</button>
+    <div id="notif-list"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG (same Supabase project as Squad Splitter) ──────────
+const SUPABASE_URL = 'https://lznnetxeklmdrykxtsbm.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6bm5ldHhla2xtZHJ5a3h0c2JtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MTIxMDMsImV4cCI6MjA4ODk4ODEwM30.cD_n9iCvTTkwgtwh2Qt8Ux9iJR2OfkgCutC2eif8JQo';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const CAT_ICONS = {food:'🍔',transport:'🚗',shopping:'🛍️',bills:'🧾',entertainment:'🎬',health:'💊',other:'📦'};
+const CARD_COLORS = ['#4d96ff','#ff6b6b','#ff92d0','#ffd93d','#6bcb77','#b06aff','#ff922b','#4dd0e1'];
+
+// ── STATE ────────────────────────────────────
+let me = null;               // row from app_users — who actually logged in
+let managing = null;         // row from app_users — whose account we're viewing (may be delegated)
+let currentEmail = '';
+let viewMonth = new Date().toISOString().slice(0,7);
+let myCards = [], myExpenses = [], myOwed = [], mySettlements = [], myPayees = [], myPayeeEntries = [], myCardPayments = [];
+let allUsers = [];
+let timerInterval = null;
+
+function dhs(n){ return `<span class="dhs">${(Number(n)||0).toFixed(2)} <small>AED</small></span>`; }
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.style.display='block'; setTimeout(()=>t.style.display='none',2600); }
+function showErr(id,msg){ const e=document.getElementById(id); e.textContent=msg; e.style.display='block'; setTimeout(()=>e.style.display='none',4000); }
+
+// ── INIT ─────────────────────────────────────
+// v5.0 fix: this used to call sb.auth.getSession() exactly once and only
+// route in if it happened to already have the session ready. On a hard
+// refresh, getSession() can occasionally resolve before the client has
+// fully restored the session from localStorage, which silently dumped a
+// genuinely logged-in person back on the login screen. onAuthStateChange
+// is the pattern Supabase recommends specifically to avoid this race: it
+// fires once the client is truly ready (with the session, if any), and
+// again on any later change — so it's now the primary source of truth,
+// with a short fallback purely as a safety net.
+let _routedIn = false;
+async function routeFromSession(session){
+  if (_routedIn) return;
+  if (!session?.user?.email) return;
+  _routedIn = true;
+  currentEmail = session.user.email.toLowerCase();
+  sessionStorage.setItem('bt_email', currentEmail);
+  await tryEnter();
+}
+window.onload = async () => {
+  document.getElementById('add-date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('pe-date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('ow-month').value = viewMonth;
+  buildOTPBoxes();
+  sb.auth.onAuthStateChange((_event, session) => { routeFromSession(session); });
+  setTimeout(async () => {
+    if (_routedIn) return;
+    const { data: { session } } = await sb.auth.getSession();
+    await routeFromSession(session);
+  }, 500);
+};
+
+// ── LOGIN: send/verify OTP (Supabase Auth, same pattern as Squad Splitter) ──
+async function sendOTP(){
+  const email = document.getElementById('email-input').value.trim();
+  if(!email || !email.includes('@')){ showErr('login-error','Enter a valid email'); return; }
+  currentEmail = email.toLowerCase();
+  const btn = document.getElementById('btn-send-otp');
+  btn.disabled = true; btn.textContent = 'Sending…';
+  const { error } = await sb.auth.signInWithOtp({ email: currentEmail, options:{ shouldCreateUser:true, emailRedirectTo: window.location.origin+window.location.pathname } });
+  btn.disabled = false; btn.textContent = 'Send Code →';
+  if(error){ showErr('login-error', error.message); return; }
+  document.getElementById('step-email').classList.remove('active');
+  document.getElementById('step-otp').classList.add('active');
+  document.getElementById('otp-grid').querySelector('input').focus();
+  startTimer();
+}
+function buildOTPBoxes(){
+  const grid = document.getElementById('otp-grid');
+  grid.innerHTML = '';
+  for(let i=0;i<6;i++){
+    const inp = document.createElement('input');
+    inp.className='otp-box'; inp.maxLength=1; inp.inputMode='numeric';
+    inp.addEventListener('input',(e)=>{ if(e.target.value && i<5) grid.children[i+1].focus(); });
+    inp.addEventListener('keydown',(e)=>{ if(e.key==='Backspace' && !e.target.value && i>0) grid.children[i-1].focus(); });
+    grid.appendChild(inp);
+  }
+}
+function startTimer(){
+  let s=60; const el=document.getElementById('timer-text');
+  clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{ s--; el.innerHTML = s>0 ? `Resend in <span>${s}s</span>` : `<a href="#" onclick="sendOTP();return false;" style="color:var(--accent4);font-weight:800;">Resend code</a>`; if(s<=0) clearInterval(timerInterval); },1000);
+}
+async function verifyOTP(){
+  const code = Array.from(document.querySelectorAll('.otp-box')).map(i=>i.value).join('');
+  if(code.length!==6){ showErr('login-error','Enter all 6 digits'); return; }
+  const btn = document.getElementById('btn-verify');
+  btn.disabled=true; btn.textContent='Verifying…';
+  const { error } = await sb.auth.verifyOtp({ email: currentEmail, token: code, type:'email' });
+  btn.disabled=false; btn.textContent='Verify & Enter →';
+  if(error){ showErr('login-error','Wrong or expired code'); return; }
+  sessionStorage.setItem('bt_email', currentEmail);
+  await tryEnter();
+}
+function backToEmail(){
+  document.getElementById('step-otp').classList.remove('active');
+  document.getElementById('step-not-registered').classList.remove('active');
+  document.getElementById('step-email').classList.add('active');
+  clearInterval(timerInterval);
+}
+async function tryEnter(){
+  const [ownRes, delRes] = await Promise.all([
+    sb.from('app_users').select('*').ilike('email', currentEmail).maybeSingle(),
+    sb.from('app_users').select('*').ilike('delegate_email', currentEmail)
+  ]);
+  if (ownRes.error || delRes.error) {
+    console.error('tryEnter lookup failed:', ownRes.error || delRes.error);
+    document.querySelectorAll('#screen-login .step').forEach(s=>s.classList.remove('active'));
+    document.getElementById('step-conn-error').classList.add('active');
+    return;
+  }
+  const own = ownRes.data || null;
+  const delegated = delRes.data || [];
+  if(!own && delegated.length===0){
+    document.getElementById('step-otp').classList.remove('active');
+    document.getElementById('step-not-registered').classList.add('active');
+    return;
+  }
+  if(delegated.length===0){
+    me = own; managing = own;
+    await enterApp();
+    return;
+  }
+  // Has delegate access to at least one account — let them choose.
+  const options = [];
+  if(own) options.push({...own, _label:'Your own account'});
+  delegated.forEach(d=>options.push({...d, _label:'Delegated — '+d.name}));
+  me = own || delegated[0]; // "me" = own identity if it exists, else fall back
+  window._accountOptions = options;
+  renderAccountList('pick-account-list');
+  document.getElementById('step-otp').classList.remove('active');
+  document.getElementById('step-pick-account').classList.add('active');
+}
+async function retryTryEnter(){
+  document.getElementById('step-conn-error').classList.remove('active');
+  document.getElementById('step-otp').classList.add('active');
+  await tryEnter();
+}
+function renderAccountList(containerId){
+  const options = window._accountOptions || [];
+  const list = document.getElementById(containerId);
+  list.innerHTML = options.map((o,i)=>`
+    <button class="btn btn-ghost" style="display:flex;align-items:center;gap:10px;text-align:left;margin-bottom:8px;" onclick="chooseAccount(${i})">
+      <span style="font-size:1.3rem;">${o.emoji||'😎'}</span>
+      <span><b style="display:block;">${o.name}</b><span style="font-size:.72rem;color:var(--muted);">${o._label}</span></span>
+    </button>`).join('');
+}
+async function chooseAccount(i){
+  managing = window._accountOptions[i];
+  document.getElementById('switch-overlay')?.classList.remove('active');
+  await enterApp();
+}
+function openUserMenu(){
+  const hasDelegates = (window._accountOptions||[]).length > 1;
+  document.getElementById('user-menu-title').textContent = '👤 ' + (managing?.name || 'Account');
+  document.getElementById('user-menu-list').innerHTML = `
+    ${hasDelegates ? `<button class="btn btn-ghost" style="width:100%;margin-bottom:8px;" onclick="closeUserMenu();openSwitcher();">🔀 Switch account</button>` : ''}
+    <button class="btn btn-ghost" style="width:100%;color:var(--red);" onclick="closeUserMenu();logout();">🚪 Log out</button>
+  `;
+  document.getElementById('user-menu-overlay').classList.add('active');
+}
+function closeUserMenu(){ document.getElementById('user-menu-overlay').classList.remove('active'); }
+function openSwitcher(){
+  renderAccountList('switch-account-list');
+  document.getElementById('switch-overlay').classList.add('active');
+}
+function closeSwitcher(){ document.getElementById('switch-overlay').classList.remove('active'); }
+
+// ── NOTIFICATIONS ────────────────────────────
+let notifRows = [];
+async function loadNotifications(){
+  const { data, error } = await sb.from('bill_notifications')
+    .select('*').ilike('user_email', managing.email)
+    .order('created_at', { ascending:false }).limit(50);
+  if(error){ console.error('loadNotifications:', error); return; }
+  notifRows = data || [];
+  const unread = notifRows.filter(n=>!n.is_read).length;
+  const badge = document.getElementById('notif-badge');
+  if(unread>0){ badge.style.display='block'; badge.textContent = unread>9?'9+':unread; }
+  else { badge.style.display='none'; }
+}
+function openNotifPanel(){
+  renderNotifPanel();
+  document.getElementById('notif-overlay').classList.add('active');
+}
+function closeNotifPanel(){ document.getElementById('notif-overlay').classList.remove('active'); }
+function renderNotifPanel(){
+  const el = document.getElementById('notif-list');
+  if(notifRows.length===0){ el.innerHTML = '<p style="text-align:center;color:var(--muted);padding:30px 0;">No notifications yet 🎉</p>'; return; }
+  el.innerHTML = notifRows.map(n=>`
+    <div style="background:${n.is_read?'var(--card2)':'rgba(255,138,61,.12)'};border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;">
+      <div style="font-weight:700;font-size:.82rem;margin-bottom:3px;">${n.is_read?'':'🟠 '}${escapeHtml(n.title)}</div>
+      <div style="font-size:.76rem;color:var(--muted);">${escapeHtml(n.message)}</div>
+      <div style="font-size:.68rem;color:var(--muted);margin-top:6px;">${new Date(n.created_at).toLocaleString()}</div>
+    </div>`).join('');
+  markAllNotifRead(true);
+}
+async function markAllNotifRead(silent){
+  const unreadIds = notifRows.filter(n=>!n.is_read).map(n=>n.id);
+  if(unreadIds.length===0) return;
+  await sb.from('bill_notifications').update({is_read:true}).in('id', unreadIds);
+  notifRows.forEach(n=>n.is_read=true);
+  document.getElementById('notif-badge').style.display='none';
+  if(!silent) renderNotifPanel();
+}
+async function logout(){
+  if(!confirm('Log out?')) return;
+  await sb.auth.signOut();
+  sessionStorage.removeItem('bt_email');
+  location.reload();
+}
+
+// ── ENTER APP ────────────────────────────────
+async function enterApp(){
+  document.getElementById('screen-login').classList.remove('active');
+  document.getElementById('screen-app').classList.add('active');
+  document.getElementById('me-avatar').textContent = managing.emoji || '😎';
+  document.getElementById('me-avatar').style.background = managing.color || '#4d96ff';
+  document.getElementById('me-name').textContent = managing.name + (managing.email!==me.email ? ' (delegated)' : '');
+  document.getElementById('header-sub').textContent = managing.group_type==='squad_split' ? 'Squad member · private tracker' : 'Your private dashboard';
+  if(managing.group_type==='squad_split') document.getElementById('link-to-squad').style.display='inline-block';
+  if(me.is_admin) document.getElementById('btn-open-admin').style.display='inline-block';
+  await loadMyData();
+  await loadOwedToMe();
+  await loadNotifications();
+  await loadDeletedHistory();
+  renderDueSoonBanner();
+}
+
+// ── IN-APP "REMINDER" (replaces the old emailed reminder) ──
+// Shown right at the top of Home the moment the app is opened — the
+// closest equivalent to a push/email nudge without needing either.
+function renderDueSoonBanner(){
+  const el = document.getElementById('due-soon-banner');
+  if(!el) return;
+  const dueSoon = (myCardPayments||[]).filter(p=>p.status!=='paid').map(p=>{
+    const days = Math.round((new Date(p.due_date+'T00:00:00') - new Date(new Date().toDateString()))/86400000);
+    return { ...p, days };
+  }).filter(p=>p.days<=7).sort((a,b)=>a.days-b.days);
+  if(!dueSoon.length){ el.innerHTML=''; return; }
+  el.innerHTML = dueSoon.map(p=>{
+    const card = myCards.find(c=>c.id===p.card_id);
+    const overdue = p.days<0;
+    return `<div style="background:${overdue?'rgba(255,107,107,.15)':'rgba(255,146,43,.15)'};border:1px solid ${overdue?'var(--red)':'var(--accent5)'};border-radius:12px;padding:10px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:.8rem;"><b>${overdue?'⚠️ Overdue':'💳 Due soon'}:</b> ${escapeHtml(card?.card_name||'Card')} · ${dhs(p.amount_due)} · ${overdue?Math.abs(p.days)+'d overdue':(p.days===0?'today':'in '+p.days+'d')}</span>
+      <button class="icon-btn" onclick="switchPage('cards')" style="font-size:.9rem;">→</button>
+    </div>`;
+  }).join('');
+}
+
+// ── DELETED HISTORY (replaces the old emailed deletion notice) ──
+let deletedHistoryRows = [];
+async function loadDeletedHistory(){
+  const [{data:mine,error:e1},{data:againstMe,error:e2}] = await Promise.all([
+    sb.from('bill_deleted_history').select('*').ilike('owner_email', managing.email),
+    sb.from('bill_deleted_history').select('*').ilike('party_email', managing.email),
+  ]);
+  if(e1||e2){ console.error('loadDeletedHistory:', e1||e2); return; }
+  const seen = new Set();
+  deletedHistoryRows = [...(mine||[]), ...(againstMe||[])]
+    .filter(h=>{ if(seen.has(h.id)) return false; seen.add(h.id); return true; })
+    .sort((a,b)=> new Date(b.deleted_at) - new Date(a.deleted_at));
+  renderDeletedHistory();
+}
+function renderDeletedHistory(){
+  const el = document.getElementById('deleted-history-list');
+  if(!el) return;
+  if(!deletedHistoryRows.length){ el.innerHTML = '<div class="empty-state"><span>🗑️</span>Nothing deleted yet</div>'; return; }
+  el.innerHTML = deletedHistoryRows.map(h=>`
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <b>${dhs(h.amount)}${h.entry_type?' · '+escapeHtml(h.entry_type):''}</b>
+        <span style="font-size:.68rem;color:var(--muted);">${new Date(h.deleted_at).toLocaleDateString()}</span>
+      </div>
+      ${h.note?`<div style="font-size:.74rem;color:var(--muted);margin-top:2px;">${escapeHtml(h.note)}</div>`:''}
+      <div style="font-size:.7rem;color:var(--muted);margin-top:8px;line-height:1.6;">
+        <div>Originally created: ${h.original_created_at?new Date(h.original_created_at).toLocaleDateString():'—'}</div>
+        <div>Deleted by ${escapeHtml(h.deleted_by_email)} on ${new Date(h.deleted_at).toLocaleString()}</div>
+        <div style="color:var(--accent5);margin-top:4px;"><b>Reason:</b> ${escapeHtml(h.reason)}</div>
+      </div>
+    </div>`).join('');
+}
+
+// Computes the due date for a given billing day, rolled forward to the next
+// occurrence on/after `from`. Clamps to the last real day of short months
+// (e.g. due_day 31 in February -> Feb 28/29) instead of overflowing into
+// the next month, which is the same overflow class of bug as the calendar
+// fix above, just in date-math form.
+function nextDueDate(dueDay, from=new Date()){
+  const clampDay=(y,m)=>Math.min(dueDay, new Date(y, m+1, 0).getDate());
+  let y=from.getFullYear(), m=from.getMonth();
+  let d=new Date(y, m, clampDay(y,m));
+  d.setHours(0,0,0,0);
+  const today=new Date(from); today.setHours(0,0,0,0);
+  if(d < today){ m+=1; d=new Date(y, m, clampDay(y,m)); }
+  return d;
+}
+function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+
+async function ensureCardPaymentRows(){
+  const cardsWithDue = myCards.filter(c=>c.due_day);
+  if(cardsWithDue.length===0) return;
+  const rows = cardsWithDue.map(c=>{
+    const due = nextDueDate(c.due_day);
+    const month = due.getFullYear()+'-'+String(due.getMonth()+1).padStart(2,'0');
+    const spent = myExpenses.filter(x=>x.card_id===c.id && x.month===month).reduce((a,x)=>a+Number(x.amount),0);
+    return { card_id:c.id, user_email:managing.email, month, due_date:ymd(due), amount_due:spent };
+  });
+  // upsert without clobbering amount_due/status the user may have already edited/paid for this cycle
+  const { data: existing } = await sb.from('bill_card_payments').select('card_id,month,status,amount_due')
+    .ilike('user_email', managing.email).in('month', [...new Set(rows.map(r=>r.month))]);
+  const existingKey = new Set((existing||[]).map(r=>r.card_id+'|'+r.month));
+  const toInsert = rows.filter(r=>!existingKey.has(r.card_id+'|'+r.month));
+  if(toInsert.length) await sb.from('bill_card_payments').insert(toInsert);
+}
+
+async function loadMyData(){
+  const [c,e,o,s,p,pe] = await Promise.all([
+    sb.from('bill_cards').select('*').ilike('user_email', managing.email).order('created_at'),
+    sb.from('bill_expenses').select('*').ilike('user_email', managing.email).order('date',{ascending:false}),
+    sb.from('bill_owed').select('*').ilike('user_email', managing.email).order('created_at',{ascending:false}),
+    sb.from('bill_settlements').select('*').ilike('user_email', managing.email).order('created_at',{ascending:false}),
+    sb.from('bill_payees').select('*').ilike('user_email', managing.email).order('created_at'),
+    sb.from('bill_payee_entries').select('*').ilike('user_email', managing.email).order('date',{ascending:false}),
+  ]);
+  myCards = c.data||[]; myExpenses = e.data||[]; myOwed = o.data||[]; mySettlements = s.data||[];
+  myPayees = p.data||[]; myPayeeEntries = pe.data||[];
+  await ensureCardPaymentRows();
+  const cp = await sb.from('bill_card_payments').select('*').ilike('user_email', managing.email).order('due_date');
+  myCardPayments = cp.data||[];
+  fillCardSelect();
+  renderCards();
+  renderPartyGrid();
+  renderDueSoonBanner();
+  renderHome(); // always refresh the dashboard, regardless of which page/tab is currently showing
+}
+
+// ── NAV ──────────────────────────────────────
+function switchPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.getElementById('nav-'+name).classList.add('active');
+  if(name==='home') renderHome();
+}
+function switchHomeTab(name){
+  document.querySelectorAll('#htab-spent,#htab-owe,#htab-owedtome').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#hometab-spent,#hometab-owe,#hometab-owedtome').forEach(p=>p.classList.remove('active'));
+  document.getElementById('htab-'+name).classList.add('active');
+  document.getElementById('hometab-'+name).classList.add('active');
+}
+function changeMonth(d){
+  // NOTE: must use local getFullYear()/getMonth(), never toISOString() here.
+  // toISOString() converts to UTC — in any timezone ahead of UTC (e.g. UAE,
+  // UTC+4), local midnight on the 1st becomes the previous day in UTC, which
+  // silently shifts the computed month back by one. That made "next month"
+  // appear frozen and "previous month" jump back two months instead of one.
+  const [y,m]=viewMonth.split('-').map(Number);
+  const nd=new Date(y,m-1+d,1);
+  viewMonth = nd.getFullYear()+'-'+String(nd.getMonth()+1).padStart(2,'0');
+  renderHome();
+}
+
+// ── HOME: 3 tabs — Spent / You Owe / Owed to You ─────────────
+function renderHome(){
+  const MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const [y,m]=viewMonth.split('-').map(Number);
+  document.getElementById('month-title').textContent = `${MN[m-1]} ${y}`;
+
+  // -- Tab 1: Spent this month --
+  const monthExp = myExpenses.filter(x=>x.month===viewMonth);
+  const spent = monthExp.reduce((a,x)=>a+Number(x.amount),0);
+  document.getElementById('sum-spent').innerHTML = dhs(spent);
+  const list=document.getElementById('expense-list');
+  list.innerHTML = monthExp.length ? monthExp.sort((a,b)=>b.date.localeCompare(a.date)).map(x=>{
+    const card = myCards.find(c=>c.id===x.card_id);
+    return `<div class="exp-item-card">
+      <div class="exp-icon">${CAT_ICONS[x.category]||'📦'}</div>
+      <div style="flex:1;">
+        <div class="exp-name">${escapeHtml(x.description)}</div>
+        <div class="exp-meta">${x.date}${card?` · <span class="card-chip" style="background:${card.color}33;color:${card.color};">${escapeHtml(card.card_name)}</span>`:''}</div>
+      </div>
+      <div style="font-weight:800;">${dhs(x.amount)}</div>
+    </div>`;
+  }).join('') : `<div class="empty-state"><span>🧾</span>No spending logged for this month yet</div>`;
+
+  // -- Tab 2: You Owe (admin + parties) --
+  const totalOwed = myOwed.reduce((a,x)=>a+Number(x.amount),0);
+  const totalSettled = mySettlements.reduce((a,x)=>a+Number(x.amount),0);
+  const bal = totalOwed-totalSettled;
+  const sumOweEl=document.getElementById('sum-owe');
+  sumOweEl.innerHTML = dhs(Math.max(bal,0));
+  sumOweEl.style.color = bal>0 ? 'var(--red)' : 'var(--green)';
+
+  const oList=document.getElementById('owed-list');
+  oList.innerHTML = myOwed.length ? myOwed.map(o=>`
+    <div class="owed-row"><div class="b-left"><div class="b-name">${escapeHtml(o.note||'Owed amount')}</div><div class="b-sub">${o.month}</div></div><div class="b-amt neg">${dhs(o.amount)}</div>${me.is_admin?`<button class="icon-btn" onclick="deleteOwedEntry(${o.id})" title="Delete (mistake?)">🗑️</button>`:''}</div>
+  `).join('') : `<div class="empty-state"><span>✅</span>Nothing added yet</div>`;
+
+  const sList=document.getElementById('settle-list');
+  sList.innerHTML = mySettlements.length ? mySettlements.map(s=>`
+    <div class="owed-row settle"><div class="b-left"><div class="b-name">Payment made</div><div class="b-sub">${s.month}</div></div><div class="b-amt pos">${dhs(s.amount)}</div></div>
+  `).join('') : `<div class="empty-state"><span>💸</span>No payments recorded yet</div>`;
+  renderPayeeBalances();
+
+  // -- Tab 3: Owed to You --
+  const owedToMeTotal = owedToMeRows.reduce((a,r)=>a+Math.max(r.balance,0),0);
+  document.getElementById('sum-owedtome').innerHTML = dhs(owedToMeTotal);
+  renderOwedToMe();
+}
+
+// Builds the same report the old email used to send, as an HTML string
+// rendered in-app instead. Works for viewing your own report (any user)
+// or, for an admin, anyone's (RLS already allows this — bill_* tables
+// permit self OR admin reads, and the shared Squad Splitter tables have
+// always been fully open, so no new policies were needed for this).
+async function buildReportHTML(email, month){
+  const [{data:userRow},{data:members}] = await Promise.all([
+    sb.from('app_users').select('*').ilike('email',email).maybeSingle(),
+    sb.from('members_config').select('*'),
+  ]);
+  const name = userRow?.name || email;
+  let sections = '';
+  const sec = (title,inner)=>`<div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;">
+    <div style="font-weight:800;margin-bottom:8px;">${title}</div>${inner}</div>`;
+  const tbl = (headers,rowsHtml)=>`<table style="width:100%;border-collapse:collapse;font-size:.78rem;">
+    <tr style="color:var(--muted);text-align:left;">${headers.map(h=>`<th style="padding:4px 0;">${h}</th>`).join('')}</tr>
+    ${rowsHtml || `<tr><td colspan="${headers.length}" style="padding:8px 0;color:var(--muted);">Nothing this month.</td></tr>`}</table>`;
+
+  const member = (members||[]).find(m=>(m.email||'').toLowerCase()===email.toLowerCase());
+  if(member){
+    const [{data:allExp},{data:prevBals},{data:settles}] = await Promise.all([
+      sb.from('expenses').select('*'), sb.from('prev_balances').select('*'), sb.from('settlements').select('*'),
+    ]);
+    const monthExp = (allExp||[]).filter(e=>e.month===month);
+    let net=0;
+    for(const e of allExp||[]){
+      const share=Number(e.amount)/(e.split_between?.length||1);
+      if(e.paid_by===member.id) net+=Number(e.amount);
+      if(e.split_between?.includes(member.id)) net-=share;
+    }
+    for(const p of prevBals||[]){ if(p.to_member===member.id) net+=Number(p.amount); if(p.from_member===member.id) net-=Number(p.amount); }
+    for(const s of settles||[]){ if(s.to_member===member.id) net-=Number(s.amount); if(s.from_member===member.id) net+=Number(s.amount); }
+    const rows = monthExp.map(e=>{
+      const payer=(members||[]).find(m=>m.id===e.paid_by);
+      return `<tr><td>${e.date}</td><td>${escapeHtml(e.name)}</td><td>${escapeHtml(payer?.name||'—')}</td><td style="text-align:right;">${dhs(e.amount)}</td></tr>`;
+    }).join('');
+    sections += sec('💸 Squad Splitter', `<p style="margin:0 0 8px;"><b>${net<0?'You owe the squad':'The squad owes you'}: ${dhs(Math.abs(net))}</b></p>${tbl(['Date','What','Paid by','Amount'],rows)}`);
+  }
+
+  const [{data:exp},{data:owed},{data:settle},{data:cards}] = await Promise.all([
+    sb.from('bill_expenses').select('*').ilike('user_email',email).eq('month',month).order('date'),
+    sb.from('bill_owed').select('*').ilike('user_email',email),
+    sb.from('bill_settlements').select('*').ilike('user_email',email),
+    sb.from('bill_cards').select('*').ilike('user_email',email),
+  ]);
+  const cardName = id => (cards||[]).find(c=>c.id===id)?.card_name || '—';
+  const spentThisMonth = (exp||[]).reduce((a,x)=>a+Number(x.amount),0);
+  const totalOwed = (owed||[]).reduce((a,x)=>a+Number(x.amount),0);
+  const totalSettled = (settle||[]).reduce((a,x)=>a+Number(x.amount),0);
+  const expRows = (exp||[]).map(x=>`<tr><td>${x.date}</td><td>${escapeHtml(x.description)}</td><td>${escapeHtml(cardName(x.card_id))}</td><td style="text-align:right;">${dhs(x.amount)}</td></tr>`).join('');
+  sections += sec('🧾 Bill Tracker', `<p style="margin:0 0 8px;">Spent this month: <b>${dhs(spentThisMonth)}</b> · Owed to admin: <b>${dhs(Math.max(totalOwed-totalSettled,0))}</b></p>${tbl(['Date','What','Card','Amount'],expRows)}`);
+
+  const [{data:myParties}] = await Promise.all([ sb.from('bill_payees').select('*').ilike('user_email',email) ]);
+  const myPartyIds=(myParties||[]).map(p=>p.id);
+  const {data:myPartyEntries} = myPartyIds.length ? await sb.from('bill_payee_entries').select('*').in('payee_id',myPartyIds) : {data:[]};
+  const oweRows=(myParties||[]).map(p=>{
+    const es=(myPartyEntries||[]).filter(e=>e.payee_id===p.id);
+    const bal=es.filter(e=>e.entry_type==='owe').reduce((a,x)=>a+Number(x.amount),0)-es.filter(e=>e.entry_type==='paid').reduce((a,x)=>a+Number(x.amount),0);
+    return bal>0?`<tr><td>${escapeHtml(p.party_name)}</td><td style="text-align:right;">${dhs(bal)}</td></tr>`:'';
+  }).join('');
+
+  const {data:linkedToMe} = await sb.from('bill_payees').select('*').ilike('party_email',email);
+  const linkedIds=(linkedToMe||[]).map(p=>p.id);
+  const {data:theirEntries} = linkedIds.length ? await sb.from('bill_payee_entries').select('*').in('payee_id',linkedIds) : {data:[]};
+  const owedToMeRows=(linkedToMe||[]).map(p=>{
+    const es=(theirEntries||[]).filter(e=>e.payee_id===p.id);
+    const bal=es.filter(e=>e.entry_type==='owe').reduce((a,x)=>a+Number(x.amount),0)-es.filter(e=>e.entry_type==='paid').reduce((a,x)=>a+Number(x.amount),0);
+    return bal>0?`<tr><td>${escapeHtml(p.user_email)}</td><td style="text-align:right;">${dhs(bal)}</td></tr>`:'';
+  }).join('');
+  if(oweRows||owedToMeRows){
+    sections += sec('🎉 Party Ledger',
+      (oweRows?`<p style="margin:0 0 4px;font-size:.78rem;"><b>People you owe:</b></p>${tbl(['Who','Amount'],oweRows)}`:'')+
+      (owedToMeRows?`<p style="margin:10px 0 4px;font-size:.78rem;"><b>🔁 Owed to you:</b></p>${tbl(['Who','Amount'],owedToMeRows)}`:''));
+  }
+
+  return `<p style="color:var(--muted);font-size:.8rem;margin-top:0;">Hi ${escapeHtml(name)} — here's ${month}, generated live from your data.</p>${sections}`;
+}
+async function openReport(email, month){
+  document.getElementById('report-overlay').classList.add('active');
+  document.getElementById('report-body').innerHTML = 'Loading…';
+  try{
+    document.getElementById('report-body').innerHTML = await buildReportHTML(email, month || viewMonth);
+  }catch(e){
+    document.getElementById('report-body').innerHTML = '<p style="color:var(--red);">Could not build the report — try again.</p>';
+  }
+}
+function closeReport(){ document.getElementById('report-overlay').classList.remove('active'); }
+async function viewMyReport(){ await openReport(managing.email, viewMonth); }
+async function viewUserReport(email){ await openReport(email, viewMonth); }
+
+// ── ADD EXPENSE ───────────────────────────────
+function fillCardSelect(){
+  const sel=document.getElementById('add-card');
+  sel.innerHTML = myCards.length ? myCards.map(c=>`<option value="${c.id}">${escapeHtml(c.card_name)}</option>`).join('') : `<option value="">Add a card first →</option>`;
+}
+async function addExpense(){
+  const desc=document.getElementById('add-desc').value.trim();
+  const amount=parseFloat(document.getElementById('add-amount').value);
+  const date=document.getElementById('add-date').value;
+  const cardId=document.getElementById('add-card').value;
+  const category=document.getElementById('add-category').value;
+  if(!desc||!amount||amount<=0||!date){ toast('Fill in description, amount and date'); return; }
+  const month=date.slice(0,7);
+  const { error } = await sb.from('bill_expenses').insert({ user_email:managing.email, description:desc, amount, card_id:cardId||null, category, date, month });
+  if(error){ toast('Could not save — try again'); return; }
+  document.getElementById('add-desc').value=''; document.getElementById('add-amount').value='';
+  toast('Spend saved ✓');
+  await loadMyData();
+  viewMonth = month;
+  switchPage('home');
+  switchHomeTab('spent');
+}
+
+// ── CARDS ─────────────────────────────────────
+function renderCards(){
+  const grid=document.getElementById('cards-grid');
+  grid.innerHTML = myCards.length ? myCards.map(c=>{
+    let dueBlock = '';
+    if(c.due_day){
+      const pay = myCardPayments.filter(p=>p.card_id===c.id).sort((a,b)=>a.due_date.localeCompare(b.due_date))[0];
+      if(pay){
+        const days = Math.round((new Date(pay.due_date+'T00:00:00') - new Date(new Date().toDateString()))/86400000);
+        const isPaid = pay.status==='paid';
+        const isOverdue = !isPaid && days<0;
+        const color = isPaid?'var(--green)':isOverdue?'var(--red)':(days<=7?'#ff8a3d':'var(--muted)');
+        const label = isPaid?'Paid ✓':isOverdue?`Overdue ${Math.abs(days)}d`:(days===0?'Due today':`Due in ${days}d`);
+        dueBlock = `
+          <div style="font-size:.68rem;color:${color};font-weight:800;margin-top:5px;">${label}</div>
+          <div style="font-size:.66rem;color:var(--muted);">${pay.due_date} · Est. ${dhs(pay.amount_due)}</div>
+          ${!isPaid?`<button class="btn btn-ghost" style="padding:3px 8px;font-size:.63rem;margin-top:5px;width:100%;" onclick="markCardPaid(${pay.id})">✓ Mark paid</button>`:''}`;
+      }
+    } else {
+      dueBlock = `<div style="font-size:.62rem;color:var(--muted);margin-top:5px;">No due date set</div>`;
+    }
+    return `
+    <div class="card-tile">
+      <button class="cdel" onclick="deleteCard(${c.id})">✕</button>
+      <div class="cdot" style="background:${c.color};"></div>
+      <div class="cname">${escapeHtml(c.card_name)}</div>
+      ${dueBlock}
+    </div>`;
+  }).join('') : `<div class="empty-state" style="grid-column:1/-1;"><span>💳</span>No cards yet — add one below</div>`;
+}
+async function addCard(){
+  const name=document.getElementById('new-card-name').value.trim();
+  if(!name){ toast('Enter a card name'); return; }
+  const dueDayRaw = document.getElementById('new-card-dueday').value;
+  const due_day = dueDayRaw ? Math.min(31, Math.max(1, parseInt(dueDayRaw,10))) : null;
+  const color=CARD_COLORS[myCards.length % CARD_COLORS.length];
+  const { error } = await sb.from('bill_cards').insert({ user_email:managing.email, card_name:name, color, due_day, reminder_enabled: !!due_day });
+  if(error){ toast('Could not add card'); return; }
+  document.getElementById('new-card-name').value='';
+  document.getElementById('new-card-dueday').value='';
+  toast('Card added ✓');
+  await loadMyData();
+}
+async function markCardPaid(paymentId){
+  const { error } = await sb.from('bill_card_payments').update({ status:'paid', paid_at:new Date().toISOString() }).eq('id', paymentId);
+  if(error){ toast('Could not update — try again'); return; }
+  toast('Marked as paid ✓');
+  await loadMyData();
+}
+async function deleteCard(id){
+  if(!confirm('Remove this card? Past spends stay, just unlinked.')) return;
+  await sb.from('bill_cards').delete().eq('id',id);
+  await loadMyData();
+}
+async function deleteOwedEntry(id){
+  const reason = prompt('Why are you deleting this entry? (this will be shown to the other person)');
+  if(reason===null) return; // cancelled
+  if(!reason.trim()){ toast('A reason is required so the other person knows why'); return; }
+  const { data, error } = await sb.rpc('delete_owed_entry', { p_id:id, p_reason:reason.trim() });
+  if(error || !data?.ok){ toast('Could not delete — ' + (data?.error || 'try again')); return; }
+  toast('Deleted — they\'ll see it in their notifications & history ✓');
+  await loadMyData();
+  await loadDeletedHistory();
+}
+async function recordSettlement(){
+  const amount=parseFloat(document.getElementById('settle-amount').value);
+  if(!amount||amount<=0){ toast('Enter an amount'); return; }
+  const { error } = await sb.from('bill_settlements').insert({ user_email:managing.email, amount, month:viewMonth });
+  if(error){ toast('Could not save'); return; }
+  document.getElementById('settle-amount').value='';
+  toast('Payment recorded ✓');
+  await loadMyData();
+}
+
+// ── ADD PAGE SUB-TABS ─────────────────────────
+function switchAddTab(name){
+  document.getElementById('atab-spend').classList.toggle('active', name==='spend');
+  document.getElementById('atab-payee').classList.toggle('active', name==='payee');
+  document.getElementById('addtab-spend').classList.toggle('active', name==='spend');
+  document.getElementById('addtab-payee').classList.toggle('active', name==='payee');
+  if(name==='payee') fillPayeeSelect();
+}
+
+// ── PARTY (who I might owe — managed like Cards) ──────────────
+function renderPartyGrid(){
+  const grid=document.getElementById('party-grid');
+  if(!grid) return;
+  grid.innerHTML = myPayees.length ? myPayees.map(p=>`
+    <div class="card-tile">
+      <button class="cdel" onclick="deleteParty(${p.id})">✕</button>
+      <div class="cdot" style="background:${p.color};"></div>
+      <div class="cname">${escapeHtml(p.party_name)}</div>
+      ${p.party_email?`<div style="font-size:.6rem;color:var(--muted);margin-top:2px;">${escapeHtml(p.party_email)}</div>`:''}
+    </div>`).join('') : `<div class="empty-state" style="grid-column:1/-1;"><span>🎉</span>No parties yet — add one below</div>`;
+}
+async function addParty(){
+  const name=document.getElementById('new-party-name').value.trim();
+  const partyEmail=document.getElementById('new-party-email').value.trim().toLowerCase();
+  if(!name){ toast('Enter a name'); return; }
+  const color=CARD_COLORS[myPayees.length % CARD_COLORS.length];
+  const { error } = await sb.from('bill_payees').insert({ user_email:managing.email, party_name:name, party_email:partyEmail||null, color });
+  if(error){ toast('Could not add party'); return; }
+  document.getElementById('new-party-name').value=''; document.getElementById('new-party-email').value='';
+  toast('Party added ✓');
+  await loadMyData();
+}
+async function deleteParty(id){
+  if(!confirm('Remove this party? Past entries stay, just unlinked.')) return;
+  await sb.from('bill_payees').delete().eq('id',id);
+  await loadMyData();
+}
+function fillPayeeSelect(){
+  const sel=document.getElementById('pe-payee');
+  let html = '<option value="">— choose —</option>';
+  if(myPayees.length){
+    html += myPayees.map(p=>`<option value="${p.id}">${escapeHtml(p.party_name)}</option>`).join('');
+  }
+  html += `<option value="new">➕ Someone new</option>`;
+  sel.innerHTML = html;
+  document.getElementById('pe-new-wrap').style.display='none';
+}
+function peSelectionChanged(){
+  const v = document.getElementById('pe-payee').value;
+  document.getElementById('pe-new-wrap').style.display = (v==='new') ? 'block' : 'none';
+}
+async function addPayeeEntry(){
+  const selection = document.getElementById('pe-payee').value;
+  const newName = document.getElementById('pe-new-payee').value.trim();
+  const amount = parseFloat(document.getElementById('pe-amount').value);
+  const date = document.getElementById('pe-date').value;
+  const entry_type = document.getElementById('pe-type').value;
+  const note = document.getElementById('pe-note').value.trim();
+  if(!amount||amount<=0||!date){ toast('Fill in amount and date'); return; }
+  if(!selection){ toast('Pick who you owe'); return; }
+  if(selection==='new' && !newName){ toast('Type their name'); return; }
+
+  let payeeId;
+  if(selection==='new'){
+    const color=CARD_COLORS[myPayees.length % CARD_COLORS.length];
+    const { data, error } = await sb.from('bill_payees').insert({ user_email:managing.email, party_name:newName, color }).select().maybeSingle();
+    if(error||!data){ toast('Could not add party'); return; }
+    payeeId = data.id;
+  } else {
+    payeeId = selection;
+  }
+
+  const month = date.slice(0,7);
+  const { error } = await sb.from('bill_payee_entries').insert({ user_email:managing.email, payee_id:payeeId, amount, entry_type, note, date, month, entered_by_email:managing.email });
+  if(error){ toast('Could not save entry'); return; }
+  document.getElementById('pe-new-payee').value=''; document.getElementById('pe-amount').value=''; document.getElementById('pe-note').value='';
+  toast('Saved ✓');
+  await loadMyData();
+  switchPage('home');
+  switchHomeTab('owe');
+}
+function renderPayeeBalances(){
+  const el=document.getElementById('payee-balance-list');
+  if(!el) return;
+  if(!myPayees.length){ el.innerHTML = `<div class="empty-state"><span>🤝</span>No parties yet — add one from 🎉 Party</div>`; return; }
+  el.innerHTML = myPayees.map(p=>{
+    const entries = myPayeeEntries.filter(e=>e.payee_id===p.id);
+    const owe = entries.filter(e=>e.entry_type==='owe').reduce((a,x)=>a+Number(x.amount),0);
+    const paid = entries.filter(e=>e.entry_type==='paid').reduce((a,x)=>a+Number(x.amount),0);
+    const bal = owe-paid;
+    const entryRows = entries.slice(0,5).map(e=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:.72rem;color:var(--muted);">
+        <span>${e.date} · ${e.entry_type==='owe'?'owed':'paid'} · ${dhs(e.amount)}${e.note?' · '+escapeHtml(e.note):''}</span>
+        <button class="icon-btn" onclick="deletePayeeEntry(${e.id})" title="Delete (mistake?)">🗑️</button>
+      </div>`).join('');
+    return `<div class="owed-row" style="border-color:${p.color};flex-direction:column;align-items:stretch;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="b-left"><div class="b-name">${escapeHtml(p.party_name)}</div><div class="b-sub">${entries.length} entr${entries.length===1?'y':'ies'}</div></div>
+        <div class="b-amt ${bal>0?'neg':'pos'}">${dhs(Math.max(bal,0))}</div>
+      </div>
+      ${entryRows}
+    </div>`;
+  }).join('');
+}
+async function deletePayeeEntry(id){
+  const reason = prompt('Why are you deleting this entry? (shown to the other person)');
+  if(reason===null) return; // cancelled
+  if(!reason.trim()){ toast('A reason is required so the other person knows why'); return; }
+  const { data, error } = await sb.rpc('delete_payee_entry', { p_entry_id:id, p_reason:reason.trim() });
+  if(error || !data?.ok){ toast('Could not delete — ' + (data?.error || 'try again')); return; }
+  toast('Deleted — they\'ll see it in their notifications & history ✓');
+  await loadMyData();
+  await loadOwedToMe();
+  await loadDeletedHistory();
+}
+
+// ── REVERSE VIEW: other people who logged ME as their party ──
+// v5.0: this used to be read-only (balance + count only). It now carries
+// full entry detail + payeeId so the "owed to you" side can also add
+// entries and delete them, not just view a total.
+let owedToMeRows = [];
+async function loadOwedToMe(){
+  const { data: linkedPayees } = await sb.from('bill_payees').select('*').ilike('party_email', managing.email);
+  if(!linkedPayees || !linkedPayees.length){ owedToMeRows = []; renderHome(); return; }
+  const ids = linkedPayees.map(p=>p.id);
+  const [{ data: entries }, { data: names }] = await Promise.all([
+    sb.from('bill_payee_entries').select('*').in('payee_id', ids).order('date',{ascending:false}),
+    sb.from('app_users').select('email,name').in('email', linkedPayees.map(p=>p.user_email))
+  ]);
+  const nameMap = Object.fromEntries((names||[]).map(u=>[u.email.toLowerCase(), u.name]));
+  owedToMeRows = linkedPayees.map(p=>{
+    const es = (entries||[]).filter(e=>e.payee_id===p.id);
+    const owe = es.filter(e=>e.entry_type==='owe').reduce((a,x)=>a+Number(x.amount),0);
+    const paid = es.filter(e=>e.entry_type==='paid').reduce((a,x)=>a+Number(x.amount),0);
+    return { payeeId:p.id, fromEmail:p.user_email, fromName: nameMap[p.user_email.toLowerCase()] || p.user_email, balance: owe-paid, entries: es };
+  });
+  renderHome();
+}
+function renderOwedToMe(){
+  const el=document.getElementById('owed-to-me-list');
+  if(!el) return;
+  if(!owedToMeRows.length){ el.innerHTML = `<div class="empty-state"><span>🔁</span>No one has logged owing you anything yet</div>`; return; }
+  el.innerHTML = owedToMeRows.map(r=>{
+    const entryRows = r.entries.slice(0,5).map(e=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:.72rem;color:var(--muted);">
+        <span>${e.date} · ${e.entry_type==='owe'?'they logged owing':'settled'} · ${dhs(e.amount)}${e.note?' · '+escapeHtml(e.note):''}</span>
+        <button class="icon-btn" onclick="deletePayeeEntry(${e.id})" title="Delete (mistake?)">🗑️</button>
+      </div>`).join('');
+    return `<div class="owed-row settle" style="flex-direction:column;align-items:stretch;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="b-left"><div class="b-name">${escapeHtml(r.fromName)}</div><div class="b-sub">${r.entries.length} entr${r.entries.length===1?'y':'ies'}</div></div>
+        <div class="b-amt ${r.balance>0?'pos':'neg'}">${dhs(Math.max(r.balance,0))}</div>
+      </div>
+      ${entryRows}
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="btn btn-ghost" style="flex:1;padding:6px;font-size:.7rem;" onclick="openQuickEntry(${r.payeeId},'owe')">➕ Log entry</button>
+        ${r.balance>0?`<button class="btn btn-ghost" style="flex:1;padding:6px;font-size:.7rem;" onclick="openQuickEntry(${r.payeeId},'paid')">✅ Settle up</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+// Lets the "owed to" side (the party) log an entry directly into the
+// ledger owner's relationship — e.g. record a cash payment received, or
+// note an extra amount now owed — without needing the ower to do it.
+async function openQuickEntry(payeeId, entryType){
+  const row = owedToMeRows.find(r=>r.payeeId===payeeId);
+  if(!row) return;
+  const amountStr = prompt(entryType==='paid' ? `Settling up with ${row.fromName} — amount received:` : `Log an amount ${row.fromName} now owes you:`);
+  if(amountStr===null) return;
+  const amount = parseFloat(amountStr);
+  if(!amount || amount<=0){ toast('Enter a valid amount'); return; }
+  const note = prompt('Add a note (optional):') || '';
+  const date = new Date().toISOString().slice(0,10);
+  const { error } = await sb.from('bill_payee_entries').insert({
+    user_email: row.fromEmail, payee_id: payeeId, amount, entry_type: entryType,
+    note, date, month: date.slice(0,7), entered_by_email: managing.email
+  });
+  if(error){ toast('Could not save — try again'); return; }
+  toast('Saved ✓');
+  await loadMyData();
+  await loadOwedToMe();
+}
+
+// ── ADMIN ──────────────────────────────────────
+async function openAdmin(){
+  document.getElementById('admin-overlay').classList.add('active');
+  await loadAllUsers();
+}
+function closeAdmin(){ document.getElementById('admin-overlay').classList.remove('active'); }
+function switchAdminTab(name){
+  document.querySelectorAll('.admin-tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.admin-tab-page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('atab-'+name).classList.add('active');
+  document.getElementById('atp-'+name).classList.add('active');
+}
+
+async function loadAllUsers(){
+  const { data } = await sb.from('app_users').select('*').order('created_at');
+  allUsers = data||[];
+  renderAdminUsers();
+  const opts = allUsers.map(u=>`<option value="${u.email}">${escapeHtml(u.name)} (${u.email})</option>`).join('');
+  document.getElementById('ow-user').innerHTML = opts;
+  document.getElementById('sp-user').innerHTML = opts;
+  if(allUsers.length) loadAdminSpending();
+}
+function renderAdminUsers(){
+  const el=document.getElementById('admin-users-list');
+  el.innerHTML = allUsers.length ? allUsers.map(u=>`
+    <div class="user-row">
+      <div class="u-left">
+        <div class="av-sm" style="background:${u.color};">${u.emoji}</div>
+        <div>
+          <div style="font-weight:800;font-size:.85rem;">${escapeHtml(u.name)} ${u.is_admin?'<span class="admin-badge2">ADMIN</span>':''}</div>
+          <div style="font-size:.68rem;color:var(--muted);">${u.email}</div>
+          ${u.delegate_email?`<div style="font-size:.65rem;color:var(--accent2);">🔑 delegate: ${escapeHtml(u.delegate_email)}</div>`:''}
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <span class="grp-badge ${u.group_type==='squad_split'?'grp-squad':'grp-general'}">${u.group_type==='squad_split'?'Squad':'General'}</span>
+        <button class="icon-btn" title="View this person's report" onclick="adminSendOneReport('${u.email}')">📊</button>
+        <button class="icon-btn" title="Set/change delegate" onclick="setDelegate(${u.id},'${u.email}')">🔑</button>
+        <button class="icon-btn" onclick="deleteUser(${u.id})">🗑️</button>
+      </div>
+    </div>`).join('') : `<div class="empty-state"><span>👥</span>No one added yet</div>`;
+}
+async function setDelegate(id,email){
+  const val=prompt(`Delegate ${email}'s account to which email? (leave blank to remove delegate access)`,'');
+  if(val===null) return;
+  const delegate_email = val.trim() ? val.trim().toLowerCase() : null;
+  const { error } = await sb.from('app_users').update({ delegate_email }).eq('id',id);
+  if(error){ toast('Could not update'); return; }
+  toast(delegate_email?'Delegate set ✓':'Delegate removed ✓');
+  await loadAllUsers();
+}
+async function adminSendOneReport(email){
+  await openReport(email, viewMonth);
+}
+async function createUser(){
+  const email=document.getElementById('nu-email').value.trim().toLowerCase();
+  const name=document.getElementById('nu-name').value.trim();
+  const group_type=document.getElementById('nu-group').value;
+  const is_admin=document.getElementById('nu-admin').value==='true';
+  const delegate_email=document.getElementById('nu-delegate').value.trim().toLowerCase()||null;
+  if(!email||!name){ toast('Enter email and name'); return; }
+  const emoji=['😎','🦁','🐯','🦊','🐺','🎯','🚀','💎'][allUsers.length%8];
+  const color=CARD_COLORS[allUsers.length%CARD_COLORS.length];
+  const { error } = await sb.from('app_users').insert({ email, name, group_type, is_admin, emoji, color, delegate_email });
+  if(error){ toast(error.code==='23505'?'That email is already added':'Could not add user'); return; }
+  document.getElementById('nu-email').value=''; document.getElementById('nu-name').value=''; document.getElementById('nu-delegate').value='';
+  toast('User added ✓');
+  await loadAllUsers();
+}
+async function deleteUser(id){
+  if(!confirm('Remove this person from Bill Tracker? Their data stays but they can no longer log in.')) return;
+  await sb.from('app_users').delete().eq('id',id);
+  await loadAllUsers();
+}
+async function importFromSquad(){
+  const { data, error } = await sb.from('members_config').select('*');
+  if(error || !data){ toast('Could not read Squad members'); return; }
+  const toAdd = data.filter(m=>m.email && !allUsers.some(u=>u.email.toLowerCase()===m.email.toLowerCase()));
+  if(!toAdd.length){ toast('Nothing new to import'); return; }
+  const rows = toAdd.map(m=>({ email:m.email.toLowerCase(), name:m.name, group_type:'squad_split', is_admin:!!m.is_admin, emoji:m.emoji||'😎', color:m.color||'#4d96ff' }));
+  const { error: insErr } = await sb.from('app_users').insert(rows);
+  if(insErr){ toast('Import failed'); return; }
+  toast(`Imported ${rows.length} squad member(s) ✓`);
+  await loadAllUsers();
+}
+
+async function adminAddOwed(){
+  const user_email=document.getElementById('ow-user').value;
+  const amount=parseFloat(document.getElementById('ow-amount').value);
+  const month=document.getElementById('ow-month').value || viewMonth;
+  const note=document.getElementById('ow-note').value.trim();
+  if(!user_email||!amount){ toast('Pick a person and amount'); return; }
+  const { error } = await sb.from('bill_owed').insert({ user_email, amount, month, note });
+  if(error){ toast('Could not add'); return; }
+  document.getElementById('ow-amount').value=''; document.getElementById('ow-note').value='';
+  toast('Owed entry added ✓');
+  loadAdminOwedList();
+}
+async function loadAdminOwedList(){
+  const { data } = await sb.from('bill_owed').select('*').order('created_at',{ascending:false}).limit(50);
+  const el=document.getElementById('admin-owed-list');
+  el.innerHTML = (data||[]).map(o=>`
+    <div class="owed-row"><div class="b-left"><div class="b-name">${escapeHtml(o.user_email)}</div><div class="b-sub">${escapeHtml(o.note||'')} · ${o.month}</div></div><div class="b-amt neg">${dhs(o.amount)}</div></div>
+  `).join('') || `<div class="empty-state"><span>⚖️</span>No entries yet</div>`;
+}
+document.addEventListener('DOMContentLoaded',()=>{ /* placeholder no-op to keep load order simple */ });
+
+async function loadAdminSpending(){
+  const email=document.getElementById('sp-user').value;
+  if(!email) return;
+  const { data } = await sb.from('bill_expenses').select('*').ilike('user_email',email).order('date',{ascending:false}).limit(60);
+  const el=document.getElementById('admin-spending-list');
+  el.innerHTML = (data||[]).length ? data.map(x=>`
+    <div class="exp-item-card"><div class="exp-icon">${CAT_ICONS[x.category]||'📦'}</div><div style="flex:1;"><div class="exp-name">${escapeHtml(x.description)}</div><div class="exp-meta">${x.date}</div></div><div style="font-weight:800;">${dhs(x.amount)}</div></div>
+  `).join('') : `<div class="empty-state"><span>📊</span>No spending logged yet</div>`;
+}
+
+
+// load owed list when that admin tab is first opened
+const _origSwitchAdminTab = switchAdminTab;
+switchAdminTab = function(name){ _origSwitchAdminTab(name); if(name==='owed') loadAdminOwedList(); };
+
+function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s??''; return d.innerHTML; }
+</script>
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Bill Tracker 🧾</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.9"></script>
+<style>
+:root {
+  --bg:#0b0b18;--card:#13132a;--card2:#1a1a35;--border:#2a2a50;
+  --accent1:#ff6b6b;--accent2:#ffd93d;--accent3:#6bcb77;--accent4:#4d96ff;--accent5:#ff922b;
+  --purple:#b06aff;--text:#f0f0ff;--muted:#7777aa;--red:#ff6b6b;--green:#6bcb77;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+.bg-mesh{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 600px 400px at 10% 20%,rgba(77,150,255,.08) 0%,transparent 70%),
+  radial-gradient(ellipse 500px 500px at 90% 80%,rgba(176,106,255,.08) 0%,transparent 70%),
+  radial-gradient(ellipse 400px 300px at 50% 50%,rgba(255,217,61,.05) 0%,transparent 70%);}
+.screen{display:none;position:relative;z-index:1;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;}
+#screen-login{align-items:center;justify-content:center;padding:24px;}
+.login-box{width:100%;max-width:420px;background:var(--card);border:1px solid var(--border);border-radius:24px;padding:36px 28px;box-shadow:0 24px 80px rgba(0,0,0,.5);animation:slideUp .5s ease;}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.login-logo{text-align:center;margin-bottom:28px;}
+.login-logo .logo-icon{font-size:3.5rem;display:block;animation:bounce 2s ease-in-out infinite;}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.login-logo h1{font-family:'Fredoka One',cursive;font-size:2rem;background:linear-gradient(135deg,#4d96ff,#b06aff,#ff92d0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-top:4px;}
+.login-logo p{color:var(--muted);font-size:.82rem;margin-top:4px;}
+.step{display:none;}.step.active{display:block;animation:fadeIn .3s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.form-label{display:block;font-size:.78rem;font-weight:800;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;}
+.form-input{width:100%;background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:14px 16px;color:var(--text);font-family:'Nunito',sans-serif;font-size:.95rem;outline:none;transition:border-color .2s;margin-bottom:16px;}
+.form-input:focus{border-color:var(--accent4);}.form-input::placeholder{color:var(--muted);}
+.otp-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:16px;}
+.otp-box{background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:14px 0;text-align:center;font-size:1.3rem;font-weight:900;color:var(--text);outline:none;transition:border-color .2s;width:100%;}
+.otp-box:focus{border-color:var(--accent4);box-shadow:0 0 12px rgba(77,150,255,.25);}
+.btn{width:100%;padding:15px;border-radius:14px;border:none;font-family:'Fredoka One',cursive;font-size:1.1rem;cursor:pointer;transition:all .2s;}
+.btn-primary{background:linear-gradient(135deg,#4d96ff,#b06aff);color:#fff;box-shadow:0 4px 20px rgba(77,150,255,.3);margin-bottom:8px;}
+.btn-primary:hover:not(:disabled){transform:translateY(-2px);}.btn-primary:disabled{opacity:.5;cursor:not-allowed;}
+.btn-ghost{background:var(--card2);color:var(--muted);border:1px solid var(--border);font-family:'Nunito',sans-serif;font-size:.85rem;font-weight:700;padding:12px;}
+.btn-ghost:hover{color:var(--text);}
+.error-msg{background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.3);border-radius:10px;padding:10px 14px;font-size:.8rem;color:var(--red);margin-bottom:12px;display:none;}
+.success-msg{background:rgba(107,203,119,.12);border:1px solid rgba(107,203,119,.3);border-radius:10px;padding:10px 14px;font-size:.8rem;color:var(--green);margin-bottom:12px;display:none;}
+.timer-text{text-align:center;font-size:.78rem;color:var(--muted);margin-bottom:12px;}
+.timer-text span{color:var(--accent4);font-weight:800;}
+.not-registered{text-align:center;padding:20px 0;}
+.not-registered .big-emoji{font-size:2.6rem;display:block;margin-bottom:10px;}
+#screen-app{padding-bottom:80px;}
+.app-header{background:linear-gradient(135deg,#0a1a3e,#1a0a2e);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.app-header h2{font-family:'Fredoka One',cursive;font-size:1.3rem;background:linear-gradient(135deg,#4d96ff,#ffd93d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.app-header p{font-size:.7rem;color:var(--muted);margin-top:1px;}
+.header-right{display:flex;align-items:center;gap:8px;}
+.btn-admin-panel{background:linear-gradient(135deg,#b06aff,#4d96ff);color:#fff;border:none;border-radius:12px;padding:7px 14px;font-family:'Fredoka One',cursive;font-size:.82rem;cursor:pointer;letter-spacing:.3px;box-shadow:0 2px 12px rgba(176,106,255,.35);}
+.btn-admin-panel:hover{transform:scale(1.03);}
+.user-pill{display:flex;align-items:center;gap:6px;background:var(--card2);border-radius:20px;padding:6px 10px;border:1px solid var(--border);cursor:pointer;}
+.av-sm{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.85rem;}
+.uname{font-size:.75rem;font-weight:800;}
+.page{display:none;padding:16px;}.page.active{display:block;animation:fadeIn .25s ease;}
+.section-title{font-family:'Fredoka One',cursive;font-size:1.25rem;color:var(--accent4);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.card{background:var(--card);border-radius:16px;border:1px solid var(--border);padding:16px;margin-bottom:12px;}
+.month-nav{display:flex;align-items:center;justify-content:space-between;background:var(--card);border-radius:16px;border:1px solid var(--border);padding:12px 16px;margin-bottom:14px;}
+.month-nav button{background:var(--card2);border:1px solid var(--border);color:var(--text);width:34px;height:34px;border-radius:10px;font-size:1rem;cursor:pointer;}
+.month-nav .mtitle{font-family:'Fredoka One',cursive;font-size:1rem;}
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.summary-grid .card{margin-bottom:0;text-align:center;padding:14px 10px;}
+.summary-grid .s-label{font-size:.66rem;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;font-weight:800;}
+.summary-grid .s-val{font-family:'Fredoka One',cursive;font-size:1.3rem;margin-top:4px;}
+.dhs{display:inline-flex;align-items:center;gap:2px;}
+.report-btn{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#6bcb77,#4d96ff);color:#fff;font-family:'Fredoka One',cursive;font-size:.98rem;cursor:pointer;margin-bottom:16px;box-shadow:0 4px 20px rgba(107,203,119,.25);}
+.report-btn:hover:not(:disabled){transform:translateY(-2px);}
+.report-btn:disabled{opacity:.6;cursor:not-allowed;}
+.exp-item-card{background:var(--card2);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;border:1px solid var(--border);gap:10px;}
+.exp-name{font-weight:800;font-size:.88rem;}.exp-meta{font-size:.68rem;color:var(--muted);margin-top:2px;}
+.exp-icon{font-size:1.3rem;width:36px;height:36px;background:var(--card);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.card-chip{display:inline-block;font-size:.62rem;font-weight:800;padding:2px 8px;border-radius:8px;margin-top:3px;}
+.fg{margin-bottom:14px;}
+.fg label{display:block;font-size:.75rem;font-weight:800;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;}
+.fg input,.fg select{width:100%;background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:12px 14px;color:var(--text);font-family:'Nunito',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s;}
+.fg input:focus,.fg select:focus{border-color:var(--accent4);}.fg select option{background:var(--card2);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.btn-add{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#6bcb77,#4d96ff);color:#fff;font-family:'Fredoka One',cursive;font-size:1.05rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 20px rgba(107,203,119,.25);}
+.btn-add:hover{transform:translateY(-2px);}
+.cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.card-tile{background:var(--card2);border-radius:14px;border:1px solid var(--border);padding:14px 12px;text-align:center;position:relative;}
+.card-tile .cdot{width:30px;height:30px;border-radius:50%;margin:0 auto 8px;}
+.card-tile .cname{font-weight:800;font-size:.85rem;}
+.card-tile .cdel{position:absolute;top:6px;right:8px;background:none;border:none;color:var(--muted);font-size:.9rem;cursor:pointer;}
+.owed-row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:12px;margin-bottom:8px;border-left:4px solid var(--red);background:var(--card2);}
+.owed-row.settle{border-color:var(--green);}
+.b-left{display:flex;flex-direction:column;}.b-name{font-weight:800;font-size:.88rem;}.b-sub{font-size:.68rem;color:var(--muted);margin-top:2px;}
+.b-amt{font-weight:800;font-size:.95rem;}.b-amt.neg{color:var(--red);}.b-amt.pos{color:var(--green);}
+.empty-state{text-align:center;padding:30px 10px;color:var(--muted);}
+.empty-state span{font-size:2rem;display:block;margin-bottom:8px;}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);display:flex;z-index:50;padding:6px 4px;}
+.nav-btn{flex:1;background:none;border:none;color:var(--muted);padding:8px 4px;text-align:center;cursor:pointer;border-radius:12px;transition:all .15s;}
+.nav-btn .ni{font-size:1.25rem;display:block;}
+.nav-btn .nl{font-size:.62rem;font-weight:800;margin-top:2px;}
+.nav-btn.active{color:var(--accent4);background:rgba(77,150,255,.1);}
+.admin-overlay{position:fixed;inset:0;background:var(--bg);z-index:200;display:none;flex-direction:column;}
+.admin-overlay.active{display:flex;}
+.admin-top{background:linear-gradient(135deg,#1a0a2e,#0a1a3e);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.admin-top h2{font-family:'Fredoka One',cursive;font-size:1.15rem;color:var(--accent1);}
+.close-admin{background:var(--card2);border:1px solid var(--border);color:var(--text);width:34px;height:34px;border-radius:10px;font-size:1rem;cursor:pointer;}
+.admin-tabs{display:flex;gap:6px;padding:10px 16px;overflow-x:auto;border-bottom:1px solid var(--border);}
+.admin-tab-btn{background:var(--card2);border:1px solid var(--border);color:var(--muted);padding:8px 14px;border-radius:10px;font-size:.78rem;font-weight:800;cursor:pointer;white-space:nowrap;}
+.admin-tab-btn.active{background:linear-gradient(135deg,#b06aff,#4d96ff);color:#fff;border-color:transparent;}
+.admin-body{flex:1;overflow-y:auto;padding:16px;}
+.admin-tab-page{display:none;}.admin-tab-page.active{display:block;}
+.user-row{display:flex;align-items:center;justify-content:space-between;background:var(--card2);border-radius:12px;padding:10px 12px;margin-bottom:8px;border:1px solid var(--border);}
+.user-row .u-left{display:flex;align-items:center;gap:10px;}
+.grp-badge{font-size:.6rem;font-weight:800;padding:2px 8px;border-radius:7px;text-transform:uppercase;}
+.grp-squad{background:rgba(255,217,61,.15);color:var(--accent2);}
+.grp-general{background:rgba(77,150,255,.15);color:var(--accent4);}
+.admin-badge2{background:rgba(255,107,107,.2);color:var(--accent1);font-size:.58rem;font-weight:800;padding:1px 6px;border-radius:6px;margin-left:4px;}
+.icon-btn{background:none;border:none;color:var(--muted);font-size:.95rem;cursor:pointer;padding:4px 8px;}
+.icon-btn:hover{color:var(--red);}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 18px;font-size:.82rem;font-weight:700;z-index:999;box-shadow:0 8px 30px rgba(0,0,0,.5);display:none;}
+
+/* Notification bell */
+.notif-wrap{position:relative;}
+.notif-bell{background:var(--card2);border:1px solid var(--border);border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:1rem;cursor:pointer;position:relative;}
+.notif-badge{position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;border-radius:10px;min-width:16px;height:16px;font-size:.6rem;display:none;align-items:center;justify-content:center;padding:0 3px;font-weight:800;}
+.notif-panel{display:none;position:absolute;top:42px;right:0;width:280px;max-height:340px;overflow-y:auto;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:10px;z-index:200;box-shadow:0 12px 40px rgba(0,0,0,.5);}
+.notif-panel.open{display:block;}
+.notif-item{padding:8px 6px;border-bottom:1px solid var(--border);}
+.notif-item:last-child{border-bottom:none;}
+.notif-item.unread{background:rgba(77,150,255,.08);border-radius:8px;}
+
+/* Header switch-account button */
+.switch-acct-btn{display:none;background:var(--card2);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:7px 10px;font-family:'Fredoka One',cursive;font-size:.72rem;cursor:pointer;align-items:center;gap:4px;}
+
+/* Small action buttons used on card tiles / balance rows */
+.btn-tiny{background:linear-gradient(135deg,#b06aff,#4d96ff);color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:.68rem;font-weight:800;cursor:pointer;}
+.btn-tiny.ghost{background:var(--card);border:1px solid var(--border);color:var(--text);}
+
+/* Due-date badges on card tiles */
+.due-badge{display:inline-block;border-radius:8px;padding:3px 8px;font-size:.68rem;font-weight:800;margin-top:8px;}
+.due-badge.due-ok{background:rgba(107,203,119,.15);color:var(--green);}
+.due-badge.due-soon{background:rgba(255,217,61,.15);color:#ffd93d;}
+.due-badge.due-late{background:rgba(255,107,107,.15);color:var(--red);}
+
+/* Reusable modal overlay (delete-reason, switch-account, quick-entry) */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;width:100%;max-width:360px;max-height:80vh;overflow-y:auto;}
+.modal-box h3{font-family:'Fredoka One',cursive;font-size:1.05rem;margin-bottom:12px;}
+.modal-box textarea{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px;color:var(--text);font-family:inherit;font-size:.85rem;min-height:70px;resize:vertical;}
+.modal-actions{display:flex;gap:8px;margin-top:14px;}
+.modal-actions .btn{flex:1;}
+</style>
+</head>
+<body>
+<div class="bg-mesh"></div>
+
+<!-- ═══ LOGIN ═══ -->
+<div class="screen active" id="screen-login">
+  <div class="login-box">
+    <div class="login-logo">
+      <span class="logo-icon">🧾</span>
+      <h1>Bill Tracker</h1>
+      <p>Your own spending, private &amp; simple · 🇦🇪 AED</p>
+    </div>
+
+    <div class="error-msg" id="login-error"></div>
+    <div class="success-msg" id="login-success"></div>
+
+    <div class="step active" id="step-email">
+      <label class="form-label">Your email</label>
+      <input type="email" class="form-input" id="email-input" placeholder="you@example.com" autocomplete="email">
+      <button class="btn btn-primary" id="btn-send-otp" onclick="sendOTP()">Send Code →</button>
+      <p style="text-align:center;font-size:.72rem;color:var(--muted);">Only emails already added by your admin can sign in</p>
+    </div>
+
+    <div class="step" id="step-otp">
+      <label class="form-label">Enter the 6-digit code</label>
+      <div class="otp-grid" id="otp-grid"></div>
+      <p class="timer-text" id="timer-text"></p>
+      <button class="btn btn-primary" id="btn-verify" onclick="verifyOTP()">Verify &amp; Enter →</button>
+      <button class="btn btn-ghost" onclick="backToEmail()">← Use a different email</button>
+      <div style="background:rgba(77,150,255,.08);border:1px solid rgba(77,150,255,.25);border-radius:12px;padding:12px 14px;margin-top:14px;font-size:.72rem;color:var(--muted);line-height:1.5;">
+        📭 <b style="color:var(--accent4);">Don't see it after a minute?</b> Check your Spam / Junk folder — look for a sender named <b>"Squad Splitter"</b>. Found it there? Tap <b>Not Spam / Not Junk</b> once — every code after that arrives much faster.
+      </div>
+    </div>
+
+    <div class="step" id="step-not-registered">
+      <div class="not-registered">
+        <span class="big-emoji">🔒</span>
+        <p style="font-weight:800;margin-bottom:6px;">Not added yet</p>
+        <p style="font-size:.82rem;color:var(--muted);margin-bottom:20px;">This email hasn't been added to Bill Tracker. Ask your admin to add you first.</p>
+      </div>
+      <button class="btn btn-ghost" onclick="backToEmail()">← Try another email</button>
+    </div>
+
+    <div class="step" id="step-pick-account">
+      <label class="form-label">Whose account are you managing?</label>
+      <p style="text-align:center;font-size:.78rem;color:var(--muted);margin-bottom:14px;">You've been given delegate access to enter data for someone else.</p>
+      <div id="pick-account-list" style="margin-bottom:10px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div class="screen" id="screen-app">
+  <div class="app-header">
+    <div>
+      <h2>🧾 Bill Tracker</h2>
+      <p id="header-sub">Your private dashboard</p>
+    </div>
+    <div class="header-right">
+      <a href="index.html" id="link-to-squad" style="display:none;text-decoration:none;background:var(--card2);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:7px 12px;font-family:'Fredoka One',cursive;font-size:.78rem;">💸 Squad Splitter</a>
+      <button class="switch-acct-btn" id="btn-switch-account" onclick="openSwitchAccount()" title="Switch between your own and delegated accounts">🔀 Switch</button>
+      <div class="notif-wrap">
+        <button class="notif-bell" onclick="toggleNotifPanel()" title="Notifications">🔔<span class="notif-badge" id="notif-badge"></span></button>
+        <div class="notif-panel" id="notif-panel">
+          <div style="font-weight:800;font-size:.8rem;margin-bottom:6px;">Notifications</div>
+          <div id="notif-list"></div>
+        </div>
+      </div>
+      <button class="btn-admin-panel" id="btn-open-admin" style="display:none;" onclick="openAdmin()">⚙️ Admin</button>
+      <div class="user-pill" onclick="logout()" title="Tap to log out">
+        <div class="av-sm" id="me-avatar" style="background:var(--accent4);"></div>
+        <span class="uname" id="me-name"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOME -->
+  <div class="page active" id="page-home">
+    <div class="month-nav">
+      <button onclick="changeMonth(-1)">‹</button>
+      <span class="mtitle" id="month-title"></span>
+      <button onclick="changeMonth(1)">›</button>
+    </div>
+
+    <div class="admin-tabs" style="padding:0 0 12px;border:none;">
+      <button class="admin-tab-btn active" onclick="switchHomeTab('spent')" id="htab-spent">💵 Spent</button>
+      <button class="admin-tab-btn" onclick="switchHomeTab('owe')" id="htab-owe">⚖️ You Owe</button>
+      <button class="admin-tab-btn" onclick="switchHomeTab('owedtome')" id="htab-owedtome">🔁 Owed to You</button>
+    </div>
+
+    <button class="report-btn" id="btn-email-report" onclick="emailMyReport()">📧 Email me this month's report</button>
+
+    <div class="admin-tab-page active" id="hometab-spent">
+      <div class="card" style="text-align:center;">
+        <div class="s-label">Spent this month</div>
+        <div class="s-val" id="sum-spent" style="font-size:1.6rem;">—</div>
+      </div>
+      <div class="section-title" style="font-size:1rem;">📅 This month's spending</div>
+      <div id="expense-list"></div>
+    </div>
+
+    <div class="admin-tab-page" id="hometab-owe">
+      <div class="card" style="text-align:center;">
+        <div class="s-label">You owe overall</div>
+        <div class="s-val" id="sum-owe" style="font-size:1.6rem;">—</div>
+      </div>
+      <div class="card">
+        <div class="fg">
+          <label>Record a payment you made to the admin</label>
+          <input type="number" id="settle-amount" placeholder="Amount (AED)" step="0.01" min="0">
+        </div>
+        <button class="btn-add" onclick="recordSettlement()">Record Payment</button>
+      </div>
+      <div class="section-title" style="font-size:1rem;">Owed to admin</div>
+      <div id="owed-list"></div>
+      <div class="section-title" style="font-size:1rem;margin-top:14px;">Payment history</div>
+      <div id="settle-list"></div>
+      <div class="section-title" style="font-size:1.1rem;margin-top:22px;">🤝 People you owe</div>
+      <div id="payee-balance-list"></div>
+    </div>
+
+    <div class="admin-tab-page" id="hometab-owedtome">
+      <div class="card" style="text-align:center;">
+        <div class="s-label">Owed to you</div>
+        <div class="s-val" id="sum-owedtome" style="font-size:1.6rem;">—</div>
+      </div>
+      <div id="owed-to-me-list"></div>
+    </div>
+  </div>
+
+  <!-- ADD EXPENSE -->
+  <div class="page" id="page-add">
+    <div class="section-title">➕ Add</div>
+    <div class="admin-tabs" style="padding:0 0 12px;border:none;">
+      <button class="admin-tab-btn active" onclick="switchAddTab('spend')" id="atab-spend">💵 Personal Spend</button>
+      <button class="admin-tab-btn" onclick="switchAddTab('payee')" id="atab-payee">🤝 Party Ledger</button>
+    </div>
+
+    <div class="admin-tab-page active" id="addtab-spend">
+      <div class="card">
+        <div class="fg">
+          <label>What was it for</label>
+          <input type="text" id="add-desc" placeholder="e.g. Groceries, Fuel, Lunch">
+        </div>
+        <div class="form-row">
+          <div class="fg">
+            <label>Amount (AED)</label>
+            <input type="number" id="add-amount" placeholder="0.00" step="0.01" min="0">
+          </div>
+          <div class="fg">
+            <label>Date</label>
+            <input type="date" id="add-date">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="fg">
+            <label>Card used</label>
+            <select id="add-card"></select>
+          </div>
+          <div class="fg">
+            <label>Category</label>
+            <select id="add-category">
+              <option value="food">🍔 Food</option>
+              <option value="transport">🚗 Transport</option>
+              <option value="shopping">🛍️ Shopping</option>
+              <option value="bills">🧾 Bills</option>
+              <option value="entertainment">🎬 Entertainment</option>
+              <option value="health">💊 Health</option>
+              <option value="other" selected>📦 Other</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-add" onclick="addExpense()">Save Spend</button>
+      </div>
+    </div>
+
+    <div class="admin-tab-page" id="addtab-payee">
+      <div class="card">
+        <div class="fg">
+          <label>Who do you owe</label>
+          <select id="pe-payee" onchange="peSelectionChanged()"></select>
+        </div>
+        <div class="fg" id="pe-new-wrap" style="display:none;">
+          <label>Their name</label>
+          <input type="text" id="pe-new-payee" placeholder="e.g. Landlord, Electricity Co.">
+        </div>
+        <div class="form-row">
+          <div class="fg">
+            <label>Amount (AED)</label>
+            <input type="number" id="pe-amount" placeholder="0.00" step="0.01" min="0">
+          </div>
+          <div class="fg">
+            <label>Date</label>
+            <input type="date" id="pe-date">
+          </div>
+        </div>
+        <div class="fg">
+          <label>Type</label>
+          <select id="pe-type">
+            <option value="owe">I now owe them this</option>
+            <option value="paid">I paid them this</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Note (optional)</label>
+          <input type="text" id="pe-note" placeholder="What's this for?">
+        </div>
+        <button class="btn-add" onclick="addPayeeEntry()">Save Entry</button>
+        <p style="text-align:center;font-size:.68rem;color:var(--muted);margin-top:10px;">Only parties added in the 🎉 Party tab show up here. Add someone new any time from either place.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARDS -->
+  <div class="page" id="page-cards">
+    <div class="section-title">💳 Your cards</div>
+    <div class="cards-grid" id="cards-grid"></div>
+    <div class="card">
+      <div class="fg">
+        <label>Add a new card</label>
+        <input type="text" id="new-card-name" placeholder="e.g. HDFC Debit, Cash, Amex">
+      </div>
+      <div class="fg">
+        <label>Due day of month (optional — turns on the 7-day reminder email)</label>
+        <input type="number" id="new-card-due" min="1" max="31" placeholder="e.g. 15">
+      </div>
+      <button class="btn-add" onclick="addCard()">Add Card</button>
+      <p style="text-align:center;font-size:.68rem;color:var(--muted);margin-top:10px;">Just a label — never enter a real card number here</p>
+    </div>
+  </div>
+
+  <!-- PARTY (replaces the old separate Owed page — its content now lives in Home's tabs) -->
+  <div class="page" id="page-party">
+    <div class="section-title">🎉 Your parties</div>
+    <p style="font-size:.72rem;color:var(--muted);margin-top:-8px;margin-bottom:14px;">People or businesses you might owe money to — add them here once, then pick them any time from ➕ Add → Party Ledger.</p>
+    <div class="cards-grid" id="party-grid"></div>
+    <div class="card">
+      <div class="fg">
+        <label>Name</label>
+        <input type="text" id="new-party-name" placeholder="e.g. Landlord, Sara, Electricity Co.">
+      </div>
+      <div class="fg">
+        <label>Email (optional)</label>
+        <input type="email" id="new-party-email" placeholder="their@email.com — leave blank if none">
+      </div>
+      <button class="btn-add" onclick="addParty()">Add Party</button>
+      <p style="text-align:center;font-size:.68rem;color:var(--muted);margin-top:10px;">If you add their email, they'll get their own copy of anything you log about them when reports go out — and if that email happens to belong to someone already using this app, they'll also see it under their own "🔁 Owed to You" tab.</p>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <button class="nav-btn active" onclick="switchPage('home')" id="nav-home"><span class="ni">🏠</span><span class="nl">Home</span></button>
+    <button class="nav-btn" onclick="switchPage('add')" id="nav-add"><span class="ni">➕</span><span class="nl">Add</span></button>
+    <button class="nav-btn" onclick="switchPage('cards')" id="nav-cards"><span class="ni">💳</span><span class="nl">Cards</span></button>
+    <button class="nav-btn" onclick="switchPage('party')" id="nav-party"><span class="ni">🎉</span><span class="nl">Party</span></button>
+  </div>
+</div>
+
+
+<!-- ═══ ADMIN OVERLAY ═══ -->
+<div class="admin-overlay" id="admin-overlay">
+  <div class="admin-top">
+    <h2>⚙️ Admin — Bill Tracker</h2>
+    <button class="close-admin" onclick="closeAdmin()">✕</button>
+  </div>
+  <div class="admin-tabs">
+    <button class="admin-tab-btn active" onclick="switchAdminTab('users')" id="atab-users">👥 Users</button>
+    <button class="admin-tab-btn" onclick="switchAdminTab('owed')" id="atab-owed">⚖️ Owed</button>
+    <button class="admin-tab-btn" onclick="switchAdminTab('spending')" id="atab-spending">📊 Spending</button>
+    <button class="admin-tab-btn" onclick="switchAdminTab('reports')" id="atab-reports">📧 Reports</button>
+  </div>
+  <div class="admin-body">
+
+    <div class="admin-tab-page active" id="atp-users">
+      <div class="card">
+        <div class="fg"><label>Email</label><input type="email" id="nu-email" placeholder="person@example.com"></div>
+        <div class="fg"><label>Name</label><input type="text" id="nu-name" placeholder="Full name"></div>
+        <div class="form-row">
+          <div class="fg">
+            <label>Group</label>
+            <select id="nu-group">
+              <option value="general">General user</option>
+              <option value="squad_split">Squad Split</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label>Admin?</label>
+            <select id="nu-admin"><option value="false">No</option><option value="true">Yes</option></select>
+          </div>
+        </div>
+        <button class="btn-add" onclick="createUser()">+ Add User</button>
+        <div class="fg" style="margin-top:14px;"><label>Delegate this account to (optional)</label><input type="email" id="nu-delegate" placeholder="assistant@example.com — leave blank for none"></div>
+        <p style="font-size:.68rem;color:var(--muted);margin-top:-8px;margin-bottom:10px;">Whoever logs in with this email can enter data on this person's behalf. Only fill this in when adding/editing the person it applies to.</p>
+      </div>
+      <button class="btn btn-ghost" style="margin-bottom:14px;" onclick="importFromSquad()">⬇️ Import everyone from Squad Members</button>
+      <div id="admin-users-list"></div>
+    </div>
+
+    <div class="admin-tab-page" id="atp-owed">
+      <div class="card">
+        <div class="fg"><label>Person</label><select id="ow-user"></select></div>
+        <div class="form-row">
+          <div class="fg"><label>Amount (AED)</label><input type="number" id="ow-amount" step="0.01"></div>
+          <div class="fg"><label>Month</label><input type="month" id="ow-month"></div>
+        </div>
+        <div class="fg"><label>Note</label><input type="text" id="ow-note" placeholder="What's this for?"></div>
+        <button class="btn-add" onclick="adminAddOwed()">+ Add Owed Entry</button>
+      </div>
+      <div id="admin-owed-list"></div>
+    </div>
+
+    <div class="admin-tab-page" id="atp-spending">
+      <div class="fg"><label>View spending for</label><select id="sp-user" onchange="loadAdminSpending()"></select></div>
+      <div id="admin-spending-list"></div>
+    </div>
+
+    <div class="admin-tab-page" id="atp-reports">
+      <div class="card">
+        <p style="font-size:.85rem;margin-bottom:12px;">Reports also go out automatically on the 1st of every month (via a scheduled job — see SETUP.md). Use this to send everyone's report right now instead of waiting.</p>
+        <button class="btn-add" onclick="sendAllReports()">📧 Send Everyone's Report Now</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Switch account (own vs delegated) — reachable any time, no logout needed -->
+<div class="modal-overlay" id="switch-account-modal">
+  <div class="modal-box">
+    <h3>🔀 Switch account</h3>
+    <div id="switch-account-list"></div>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeSwitchAccount()">Cancel</button></div>
+  </div>
+</div>
+
+<!-- Delete with reason — required whenever a shared money entry is removed -->
+<div class="modal-overlay" id="delete-reason-modal">
+  <div class="modal-box">
+    <h3>🗑️ Delete this entry?</h3>
+    <p style="font-size:.8rem;color:var(--muted);margin-bottom:10px;" id="delete-reason-context"></p>
+    <label style="font-size:.72rem;color:var(--muted);display:block;margin-bottom:6px;">Reason (the other person will see this)</label>
+    <textarea id="delete-reason-input" placeholder="e.g. entered twice by mistake"></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn btn-primary" style="background:var(--red);" onclick="confirmDeleteWithReason()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Quick entry — lets the OWED side log a transaction directly -->
+<div class="modal-overlay" id="quick-entry-modal">
+  <div class="modal-box">
+    <h3 id="qe-title">Log an entry</h3>
+    <div class="fg"><label>Amount (AED)</label><input type="number" id="qe-amount" step="0.01" min="0"></div>
+    <div class="fg"><label>Type</label>
+      <select id="qe-type"><option value="owe">They owe this</option><option value="paid">They paid this</option></select>
+    </div>
+    <div class="fg"><label>Date</label><input type="date" id="qe-date"></div>
+    <div class="fg"><label>Note (optional)</label><input type="text" id="qe-note" placeholder="e.g. dinner split"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeQuickEntry()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitQuickEntry()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG (same Supabase project as Squad Splitter) ──────────
+const SUPABASE_URL = 'https://lznnetxeklmdrykxtsbm.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6bm5ldHhla2xtZHJ5a3h0c2JtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MTIxMDMsImV4cCI6MjA4ODk4ODEwM30.cD_n9iCvTTkwgtwh2Qt8Ux9iJR2OfkgCutC2eif8JQo';
+// Explicit, matching auth config — MUST be identical in index.html so a
+// session started on either page is recognized on the other. A shared
+// custom storageKey makes that sharing intentional/explicit rather than
+// relying on both files independently computing the same default.
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'squadsplit-auth-v1' }
+});
+const CAT_ICONS = {food:'🍔',transport:'🚗',shopping:'🛍️',bills:'🧾',entertainment:'🎬',health:'💊',other:'📦'};
+const CARD_COLORS = ['#4d96ff','#ff6b6b','#ff92d0','#ffd93d','#6bcb77','#b06aff','#ff922b','#4dd0e1'];
+
+// ── DATE HELPERS — always use the browser's LOCAL calendar date, never
+// toISOString() on a locally-built Date (that silently shifts to UTC and
+// can land on the wrong day/month for anyone east of Greenwich, e.g. UAE) ──
+function localDateStr(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function localMonthStr(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+// Escapes ILIKE wildcards (%, _) in a user-controlled string so an email
+// containing an underscore can't accidentally pattern-match someone else's.
+function escLike(s){ return String(s||'').replace(/[%_\\]/g,m=>'\\'+m); }
+
+// ── STATE ────────────────────────────────────
+let me = null;               // row from app_users — who actually logged in
+let managing = null;         // row from app_users — whose account we're viewing (may be delegated)
+let currentEmail = '';
+let viewMonth = localMonthStr(new Date());
+let myCards = [], myExpenses = [], myOwed = [], mySettlements = [], myPayees = [], myPayeeEntries = [];
+let myCardPayments = [];
+let allUsers = [];
+let timerInterval = null;
+let notifications = [];
+
+function dhs(n){ return `<span class="dhs">${(Number(n)||0).toFixed(2)} <small>AED</small></span>`; }
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.style.display='block'; setTimeout(()=>t.style.display='none',2600); }
+function showErr(id,msg){ const e=document.getElementById(id); e.textContent=msg; e.style.display='block'; setTimeout(()=>e.style.display='none',4000); }
+
+// ── INIT ─────────────────────────────────────
+// Everything is wrapped so ONE unexpected error (a missing element, a slow
+// network) can never silently strand the user on the login screen without
+// any explanation — that "looks like" a login bug but is really an
+// unhandled crash. If something does go wrong, we log it and still show
+// the login form so the person isn't stuck looking at a blank page.
+window.onload = async () => {
+  try{
+    document.getElementById('add-date').value = localDateStr(new Date());
+    document.getElementById('pe-date').value = localDateStr(new Date());
+    document.getElementById('ow-month').value = viewMonth;
+    buildOTPBoxes();
+
+    // Same login as Squad Splitter — if there's already a verified session
+    // (from either page), skip straight in instead of asking for OTP again.
+    // We check both getSession() (fast, cached) AND wait briefly on
+    // onAuthStateChange's initial event, which is the more reliable signal
+    // that supabase-js has fully finished reading localStorage — belt and
+    // braces against the "refresh sometimes shows login" class of bug.
+    const settled = await Promise.race([
+      sb.auth.getSession().then(r=>r.data.session),
+      new Promise(res=>{
+        const { data:sub } = sb.auth.onAuthStateChange((event, session)=>{
+          if(event==='INITIAL_SESSION' || event==='SIGNED_IN'){ sub.subscription.unsubscribe(); res(session); }
+        });
+        setTimeout(()=>res(undefined), 3000); // never hang forever offline
+      })
+    ]);
+    const session = settled || (await sb.auth.getSession()).data.session;
+    if (session?.user?.email) {
+      currentEmail = session.user.email.toLowerCase();
+      sessionStorage.setItem('bt_email', currentEmail);
+      await tryEnter();
+    }
+  }catch(e){
+    console.error('Startup error:', e);
+    showErr('login-error','Something went wrong loading your session — please log in again.');
+  }
+};
+
+// ── LOGIN: send/verify OTP (Supabase Auth, same pattern as Squad Splitter) ──
+async function sendOTP(){
+  const email = document.getElementById('email-input').value.trim();
+  if(!email || !email.includes('@')){ showErr('login-error','Enter a valid email'); return; }
+  currentEmail = email.toLowerCase();
+  const btn = document.getElementById('btn-send-otp');
+  btn.disabled = true; btn.textContent = 'Sending…';
+  const { error } = await sb.auth.signInWithOtp({ email: currentEmail, options:{ shouldCreateUser:true, emailRedirectTo: window.location.origin+window.location.pathname } });
+  btn.disabled = false; btn.textContent = 'Send Code →';
+  if(error){ showErr('login-error', error.message); return; }
+  document.getElementById('step-email').classList.remove('active');
+  document.getElementById('step-otp').classList.add('active');
+  document.getElementById('otp-grid').querySelector('input').focus();
+  startTimer();
+}
+function buildOTPBoxes(){
+  const grid = document.getElementById('otp-grid');
+  grid.innerHTML = '';
+  for(let i=0;i<6;i++){
+    const inp = document.createElement('input');
+    inp.className='otp-box'; inp.maxLength=1; inp.inputMode='numeric';
+    inp.addEventListener('input',(e)=>{ if(e.target.value && i<5) grid.children[i+1].focus(); });
+    inp.addEventListener('keydown',(e)=>{ if(e.key==='Backspace' && !e.target.value && i>0) grid.children[i-1].focus(); });
+    grid.appendChild(inp);
+  }
+}
+function startTimer(){
+  let s=60; const el=document.getElementById('timer-text');
+  clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{ s--; el.innerHTML = s>0 ? `Resend in <span>${s}s</span>` : `<a href="#" onclick="sendOTP();return false;" style="color:var(--accent4);font-weight:800;">Resend code</a>`; if(s<=0) clearInterval(timerInterval); },1000);
+}
+async function verifyOTP(){
+  const code = Array.from(document.querySelectorAll('.otp-box')).map(i=>i.value).join('');
+  if(code.length!==6){ showErr('login-error','Enter all 6 digits'); return; }
+  const btn = document.getElementById('btn-verify');
+  btn.disabled=true; btn.textContent='Verifying…';
+  const { error } = await sb.auth.verifyOtp({ email: currentEmail, token: code, type:'email' });
+  btn.disabled=false; btn.textContent='Verify & Enter →';
+  if(error){ showErr('login-error','Wrong or expired code'); return; }
+  sessionStorage.setItem('bt_email', currentEmail);
+  await tryEnter();
+}
+function backToEmail(){
+  document.getElementById('step-otp').classList.remove('active');
+  document.getElementById('step-not-registered').classList.remove('active');
+  document.getElementById('step-email').classList.add('active');
+  clearInterval(timerInterval);
+}
+async function tryEnter(){
+  const [ownRes, delRes] = await Promise.all([
+    sb.from('app_users').select('*').ilike('email', escLike(currentEmail)).maybeSingle(),
+    sb.from('app_users').select('*').ilike('delegate_email', escLike(currentEmail))
+  ]);
+  const own = ownRes.data || null;
+  const delegated = delRes.data || [];
+  if(!own && delegated.length===0){
+    document.getElementById('step-otp').classList.remove('active');
+    document.getElementById('step-not-registered').classList.add('active');
+    return;
+  }
+  // Build the full list of accounts this login can act as — kept around
+  // (even when there's only one) so the header's "Switch account" control
+  // knows whether there's anything to switch to.
+  const options = [];
+  if(own) options.push({...own, _label:'Your own account'});
+  delegated.forEach(d=>options.push({...d, _label:'Delegated — '+d.name}));
+  window._accountOptions = options;
+  me = own || delegated[0];
+
+  if(delegated.length===0){
+    managing = own;
+    await enterApp();
+    return;
+  }
+  // Has delegate access to at least one account — let them choose.
+  renderAccountList('pick-account-list', (i)=>{ chooseAccount(i); });
+  document.getElementById('step-otp').classList.remove('active');
+  document.getElementById('step-pick-account').classList.add('active');
+}
+function renderAccountList(containerId, onPick){
+  const list = document.getElementById(containerId);
+  list.innerHTML = window._accountOptions.map((o,i)=>`
+    <button class="btn btn-ghost" style="display:flex;align-items:center;gap:10px;text-align:left;margin-bottom:8px;" onclick="(${onPick.toString()})(${i})">
+      <span style="font-size:1.3rem;">${o.emoji||'😎'}</span>
+      <span><b style="display:block;">${o.name}</b><span style="font-size:.72rem;color:var(--muted);">${o._label}</span></span>
+    </button>`).join('');
+}
+async function chooseAccount(i){
+  managing = window._accountOptions[i];
+  await enterApp();
+}
+// ── SWITCH ACCOUNT — same account list, callable any time post-login,
+// without logging out. This is the control that was missing before. ──
+function openSwitchAccount(){
+  renderAccountList('switch-account-list', (i)=>{ switchAccount(i); });
+  document.getElementById('switch-account-modal').classList.add('open');
+}
+function closeSwitchAccount(){ document.getElementById('switch-account-modal').classList.remove('open'); }
+async function switchAccount(i){
+  managing = window._accountOptions[i];
+  closeSwitchAccount();
+  toast(`Now managing ${managing.name}'s account`);
+  await refreshManagingUI();
+}
+function updateSwitcherVisibility(){
+  const btn = document.getElementById('btn-switch-account');
+  if(!btn) return;
+  btn.style.display = (window._accountOptions && window._accountOptions.length>1) ? 'inline-flex' : 'none';
+}
+async function logout(){
+  if(!confirm('Log out?')) return;
+  await sb.auth.signOut();
+  sessionStorage.removeItem('bt_email');
+  location.reload();
+}
+
+// ── ENTER APP ────────────────────────────────
+async function enterApp(){
+  document.getElementById('screen-login').classList.remove('active');
+  document.getElementById('screen-app').classList.add('active');
+  if(me.is_admin) document.getElementById('btn-open-admin').style.display='inline-block';
+  await refreshManagingUI();
+}
+
+// Everything that depends on WHICH account is being managed — split out
+// so switching accounts mid-session (no logout) can just re-run this.
+async function refreshManagingUI(){
+  document.getElementById('me-avatar').textContent = managing.emoji || '😎';
+  document.getElementById('me-avatar').style.background = managing.color || '#4d96ff';
+  document.getElementById('me-name').textContent = managing.name + (managing.email!==me.email ? ' (delegated)' : '');
+  document.getElementById('header-sub').textContent = managing.group_type==='squad_split' ? 'Squad member · private tracker' : 'Your private dashboard';
+  const squadLink = document.getElementById('link-to-squad');
+  if(managing.group_type==='squad_split'){
+    squadLink.style.display='inline-block';
+    // Carries the managed identity across to Squad Splitter too, so a
+    // delegate viewing a squad member's Bill Tracker sees that SAME
+    // member's Squad Splitter view, not their own (index.html verifies
+    // this delegate relationship itself before honoring it).
+    squadLink.href = 'index.html?as=' + encodeURIComponent(managing.email);
+  } else {
+    squadLink.style.display='none';
+  }
+  updateSwitcherVisibility();
+  await loadMyData();
+  await loadOwedToMe();
+  await loadNotifications();
+}
+
+async function loadMyData(){
+  const [c,e,o,s,p,pe,cp] = await Promise.all([
+    sb.from('bill_cards').select('*').ilike('user_email', escLike(managing.email)).order('created_at'),
+    sb.from('bill_expenses').select('*').ilike('user_email', escLike(managing.email)).order('date',{ascending:false}),
+    sb.from('bill_owed').select('*').ilike('user_email', escLike(managing.email)).order('created_at',{ascending:false}),
+    sb.from('bill_settlements').select('*').ilike('user_email', escLike(managing.email)).order('created_at',{ascending:false}),
+    sb.from('bill_payees').select('*').ilike('user_email', escLike(managing.email)).order('created_at'),
+    sb.from('bill_payee_entries').select('*').ilike('user_email', escLike(managing.email)).order('date',{ascending:false}),
+    sb.from('bill_card_payments').select('*').ilike('user_email', escLike(managing.email)),
+  ]);
+  myCards = c.data||[]; myExpenses = e.data||[]; myOwed = o.data||[]; mySettlements = s.data||[];
+  myPayees = p.data||[]; myPayeeEntries = pe.data||[]; myCardPayments = cp.data||[];
+  fillCardSelect();
+  renderCards();
+  renderPartyGrid();
+  renderHome(); // always refresh the dashboard, regardless of which page/tab is currently showing
+}
+
+// ── NAV ──────────────────────────────────────
+function switchPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.getElementById('nav-'+name).classList.add('active');
+  if(name==='home') renderHome();
+}
+function switchHomeTab(name){
+  document.querySelectorAll('#htab-spent,#htab-owe,#htab-owedtome').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#hometab-spent,#hometab-owe,#hometab-owedtome').forEach(p=>p.classList.remove('active'));
+  document.getElementById('htab-'+name).classList.add('active');
+  document.getElementById('hometab-'+name).classList.add('active');
+}
+function changeMonth(d){
+  const [y,m]=viewMonth.split('-').map(Number);
+  const nd=new Date(y,m-1+d,1);
+  viewMonth = localMonthStr(nd);
+  renderHome();
+}
+
+// ── NOTIFICATIONS ──────────────────────────────
+// Lets the OTHER side of a shared entry find out something changed —
+// used right now for deletions, but the table is general-purpose.
+async function loadNotifications(){
+  const { data } = await sb.from('bill_notifications').select('*').ilike('recipient_email', escLike(managing.email)).order('created_at',{ascending:false}).limit(30);
+  notifications = data||[];
+  renderNotifications();
+  const unread = notifications.filter(n=>!n.is_read).length;
+  if(unread>0) toast(`🔔 You have ${unread} new notification${unread===1?'':'s'}`);
+}
+function renderNotifications(){
+  const unread = notifications.filter(n=>!n.is_read).length;
+  const badge=document.getElementById('notif-badge');
+  if(badge){ badge.style.display = unread>0 ? 'flex':'none'; badge.textContent = unread>9?'9+':String(unread); }
+  const list=document.getElementById('notif-list');
+  if(!list) return;
+  list.innerHTML = notifications.length ? notifications.map(n=>`
+    <div class="notif-item ${n.is_read?'':'unread'}">
+      <div style="font-weight:800;font-size:.8rem;">${escapeHtml(n.title)}</div>
+      <div style="font-size:.74rem;color:var(--muted);margin-top:2px;">${escapeHtml(n.message)}</div>
+      <div style="font-size:.62rem;color:var(--muted);margin-top:4px;">${new Date(n.created_at).toLocaleString()}</div>
+    </div>`).join('') : `<div class="empty-state"><span>🔔</span>Nothing yet</div>`;
+}
+async function toggleNotifPanel(){
+  const panel=document.getElementById('notif-panel');
+  panel.classList.toggle('open');
+  if(!panel.classList.contains('open')) return;
+  const unreadIds = notifications.filter(n=>!n.is_read).map(n=>n.id);
+  if(unreadIds.length){
+    await sb.from('bill_notifications').update({ is_read:true }).in('id',unreadIds);
+    notifications.forEach(n=>n.is_read=true);
+    renderNotifications();
+  }
+}
+
+// ── DELETE WITH REASON — one shared flow for every money entry that
+// affects someone else. Requires a reason, then (when there IS another
+// registered person on the other side of the entry) notifies them with
+// that reason before the row is removed. ──
+let _pendingDelete=null;
+function requestDelete(kind,id,counterpartEmail,contextLabel){
+  _pendingDelete = { kind, id, counterpartEmail, contextLabel };
+  document.getElementById('delete-reason-context').textContent = contextLabel;
+  document.getElementById('delete-reason-input').value='';
+  document.getElementById('delete-reason-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('delete-reason-input').focus(),50);
+}
+function closeDeleteModal(){ document.getElementById('delete-reason-modal').classList.remove('open'); _pendingDelete=null; }
+async function confirmDeleteWithReason(){
+  if(!_pendingDelete) return;
+  const reason=document.getElementById('delete-reason-input').value.trim();
+  if(!reason){ toast('Please enter a short reason — the other side will see it'); return; }
+  const { kind, id, counterpartEmail, contextLabel } = _pendingDelete;
+  const table = kind==='payee_entry' ? 'bill_payee_entries' : 'bill_owed';
+  if(counterpartEmail){
+    await sb.from('bill_notifications').insert({
+      recipient_email: counterpartEmail.toLowerCase(),
+      title: '🗑️ An entry was deleted',
+      message: `${managing.name} deleted "${contextLabel}" — reason: ${reason}`,
+    });
+  }
+  const { error } = await sb.from(table).delete().eq('id', id);
+  closeDeleteModal();
+  if(error){ toast('Could not delete'); return; }
+  toast('Deleted ✓ — the other side has been notified');
+  await loadMyData();
+  await loadOwedToMe();
+}
+
+// ── HOME: 3 tabs — Spent / You Owe / Owed to You ─────────────
+function renderHome(){
+  const MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const [y,m]=viewMonth.split('-').map(Number);
+  document.getElementById('month-title').textContent = `${MN[m-1]} ${y}`;
+
+  // -- Tab 1: Spent this month --
+  const monthExp = myExpenses.filter(x=>x.month===viewMonth);
+  const spent = monthExp.reduce((a,x)=>a+Number(x.amount),0);
+  document.getElementById('sum-spent').innerHTML = dhs(spent);
+  const list=document.getElementById('expense-list');
+  list.innerHTML = monthExp.length ? monthExp.sort((a,b)=>b.date.localeCompare(a.date)).map(x=>{
+    const card = myCards.find(c=>c.id===x.card_id);
+    return `<div class="exp-item-card">
+      <div class="exp-icon">${CAT_ICONS[x.category]||'📦'}</div>
+      <div style="flex:1;">
+        <div class="exp-name">${escapeHtml(x.description)}</div>
+        <div class="exp-meta">${x.date}${card?` · <span class="card-chip" style="background:${card.color}33;color:${card.color};">${escapeHtml(card.card_name)}</span>`:''}</div>
+      </div>
+      <div style="font-weight:800;">${dhs(x.amount)}</div>
+    </div>`;
+  }).join('') : `<div class="empty-state"><span>🧾</span>No spending logged for this month yet</div>`;
+
+  // -- Tab 2: You Owe (admin + parties) --
+  const totalOwed = myOwed.reduce((a,x)=>a+Number(x.amount),0);
+  const totalSettled = mySettlements.reduce((a,x)=>a+Number(x.amount),0);
+  const bal = totalOwed-totalSettled;
+  const sumOweEl=document.getElementById('sum-owe');
+  sumOweEl.innerHTML = dhs(Math.max(bal,0));
+  sumOweEl.style.color = bal>0 ? 'var(--red)' : 'var(--green)';
+
+  const oList=document.getElementById('owed-list');
+  oList.innerHTML = myOwed.length ? myOwed.map(o=>`
+    <div class="owed-row"><div class="b-left"><div class="b-name">${escapeHtml(o.note||'Owed amount')}</div><div class="b-sub">${o.month}</div></div><div class="b-amt neg">${dhs(o.amount)}</div>${me.is_admin?`<button class="icon-btn" onclick="deleteOwedEntry(${o.id})" title="Delete (mistake?)">🗑️</button>`:''}</div>
+  `).join('') : `<div class="empty-state"><span>✅</span>Nothing added yet</div>`;
+
+  const sList=document.getElementById('settle-list');
+  sList.innerHTML = mySettlements.length ? mySettlements.map(s=>`
+    <div class="owed-row settle"><div class="b-left"><div class="b-name">Payment made</div><div class="b-sub">${s.month}</div></div><div class="b-amt pos">${dhs(s.amount)}</div></div>
+  `).join('') : `<div class="empty-state"><span>💸</span>No payments recorded yet</div>`;
+  renderPayeeBalances();
+
+  // -- Tab 3: Owed to You --
+  const owedToMeTotal = owedToMeRows.reduce((a,r)=>a+Math.max(r.balance,0),0);
+  document.getElementById('sum-owedtome').innerHTML = dhs(owedToMeTotal);
+  renderOwedToMe();
+}
+
+async function emailMyReport(){
+  const btn=document.getElementById('btn-email-report');
+  btn.disabled=true; btn.textContent='Sending…';
+  const { data, error } = await sb.functions.invoke('send-report', { body:{ type:'combined', month: viewMonth } });
+  btn.disabled=false; btn.textContent="📧 Email me this month's report";
+  if(error){ toast('Could not send report — check SETUP.md'); return; }
+  toast('Report on its way to your inbox 📧');
+}
+
+// ── ADD EXPENSE ───────────────────────────────
+function fillCardSelect(){
+  const sel=document.getElementById('add-card');
+  sel.innerHTML = myCards.length ? myCards.map(c=>`<option value="${c.id}">${escapeHtml(c.card_name)}</option>`).join('') : `<option value="">Add a card first →</option>`;
+}
+async function addExpense(){
+  const desc=document.getElementById('add-desc').value.trim();
+  const amount=parseFloat(document.getElementById('add-amount').value);
+  const date=document.getElementById('add-date').value;
+  const cardId=document.getElementById('add-card').value;
+  const category=document.getElementById('add-category').value;
+  if(!desc||!amount||amount<=0||!date){ toast('Fill in description, amount and date'); return; }
+  const month=date.slice(0,7);
+  const { error } = await sb.from('bill_expenses').insert({ user_email:managing.email, description:desc, amount, card_id:cardId||null, category, date, month });
+  if(error){ toast('Could not save — try again'); return; }
+  document.getElementById('add-desc').value=''; document.getElementById('add-amount').value='';
+  toast('Spend saved ✓');
+  await loadMyData();
+  viewMonth = month;
+  switchPage('home');
+  switchHomeTab('spent');
+}
+
+// ── CARDS ─────────────────────────────────────
+// Due-date math always uses LOCAL calendar days (see localDateStr/localMonthStr
+// above) and clamps to the real last day of the month (so "due day 31" behaves
+// sensibly in a 30-day month or February).
+function clampDay(y,m,day){ const last=new Date(y,m+1,0).getDate(); return Math.min(day,last); }
+function nextDueDate(due_day, from=new Date()){
+  const today=new Date(from.getFullYear(),from.getMonth(),from.getDate());
+  let cand=new Date(today.getFullYear(),today.getMonth(),clampDay(today.getFullYear(),today.getMonth(),due_day));
+  if(cand<today) cand=new Date(today.getFullYear(),today.getMonth()+1,clampDay(today.getFullYear(),today.getMonth()+1,due_day));
+  return cand;
+}
+function cardCycleInfo(card){
+  if(!card.due_day) return null;
+  const due=nextDueDate(card.due_day);
+  const today=new Date(due.getFullYear(),due.getMonth(),due.getDate()); // placeholder, recomputed below
+  const now=new Date(); now.setHours(0,0,0,0);
+  const daysRemaining=Math.round((due-now)/86400000);
+  const month=localMonthStr(due);
+  const payment=myCardPayments.find(p=>p.card_id===card.id && p.month===month);
+  const computedAmount=myExpenses.filter(x=>x.card_id===card.id && x.month===month).reduce((a,x)=>a+Number(x.amount),0);
+  const amount=(payment&&payment.statement_amount!=null)?Number(payment.statement_amount):computedAmount;
+  return { due, month, daysRemaining, status:payment?.status||'unpaid', amount };
+}
+function renderCards(){
+  const grid=document.getElementById('cards-grid');
+  grid.innerHTML = myCards.length ? myCards.map(c=>{
+    const cyc = cardCycleInfo(c);
+    let badge='';
+    if(cyc){
+      const paid = cyc.status==='paid';
+      const cls = paid?'due-ok':(cyc.daysRemaining<0?'due-late':(cyc.daysRemaining<=7?'due-soon':'due-ok'));
+      const label = paid ? '✅ Paid' : (cyc.daysRemaining<0 ? `⚠️ ${Math.abs(cyc.daysRemaining)}d overdue` : cyc.daysRemaining===0 ? '⏰ Due today' : `⏰ Due in ${cyc.daysRemaining}d`);
+      badge = `
+        <div class="due-badge ${cls}">${label}</div>
+        <div style="font-size:.66rem;color:var(--muted);margin-top:4px;">${cyc.due.toLocaleDateString('en-GB',{day:'numeric',month:'short'})} · ${dhs(cyc.amount)}</div>
+        <button class="btn-tiny" style="margin-top:6px;" onclick="toggleCardPaid(${c.id},'${cyc.month}',${!paid})">${paid?'Mark unpaid':'Mark paid'}</button>
+        <button class="btn-tiny ghost" style="margin-top:4px;" onclick="editCardDueDay(${c.id},${c.due_day})">✏️ Due day</button>`;
+    } else {
+      badge = `<button class="btn-tiny ghost" style="margin-top:6px;" onclick="editCardDueDay(${c.id},null)">+ Set due day</button>`;
+    }
+    return `<div class="card-tile">
+      <button class="cdel" onclick="deleteCard(${c.id})">✕</button>
+      <div class="cdot" style="background:${c.color};"></div>
+      <div class="cname">${escapeHtml(c.card_name)}</div>
+      ${badge}
+    </div>`;
+  }).join('') : `<div class="empty-state" style="grid-column:1/-1;"><span>💳</span>No cards yet — add one below</div>`;
+}
+async function addCard(){
+  const name=document.getElementById('new-card-name').value.trim();
+  const dueVal=document.getElementById('new-card-due').value;
+  if(!name){ toast('Enter a card name'); return; }
+  const due_day = dueVal? Math.max(1,Math.min(31,parseInt(dueVal,10))) : null;
+  const color=CARD_COLORS[myCards.length % CARD_COLORS.length];
+  const { error } = await sb.from('bill_cards').insert({ user_email:managing.email, card_name:name, color, due_day });
+  if(error){ toast('Could not add card'); return; }
+  document.getElementById('new-card-name').value=''; document.getElementById('new-card-due').value='';
+  toast('Card added ✓');
+  await loadMyData();
+}
+async function editCardDueDay(cardId,current){
+  const val=prompt('Due day of month (1–31). Leave blank to turn off reminders for this card.', current||'');
+  if(val===null) return;
+  const due_day = val.trim()==='' ? null : Math.max(1,Math.min(31,parseInt(val,10)||1));
+  const { error } = await sb.from('bill_cards').update({ due_day }).eq('id',cardId);
+  if(error){ toast('Could not update'); return; }
+  toast(due_day?'Due day set ✓':'Reminder turned off');
+  await loadMyData();
+}
+async function toggleCardPaid(cardId,month,makePaid){
+  const payload = { card_id:cardId, user_email:managing.email, month, status: makePaid?'paid':'unpaid', paid_at: makePaid? new Date().toISOString() : null };
+  const { error } = await sb.from('bill_card_payments').upsert(payload,{ onConflict:'card_id,month' });
+  if(error){ toast('Could not update'); return; }
+  toast(makePaid?'Marked as paid ✓':'Marked as unpaid');
+  await loadMyData();
+}
+async function deleteCard(id){
+  if(!confirm('Remove this card? Past spends stay, just unlinked.')) return;
+  await sb.from('bill_cards').delete().eq('id',id);
+  await loadMyData();
+}
+function deleteOwedEntry(id){
+  const row = myOwed.find(o=>o.id===id);
+  const counterpart = (managing.email.toLowerCase()!==me.email.toLowerCase()) ? managing.email : null;
+  requestDelete('owed', id, counterpart, `${row?.note||'Owed amount'} · ${row?.month||''} · ${Number(row?.amount||0).toFixed(2)} AED`);
+}
+async function recordSettlement(){
+  const amount=parseFloat(document.getElementById('settle-amount').value);
+  if(!amount||amount<=0){ toast('Enter an amount'); return; }
+  const { error } = await sb.from('bill_settlements').insert({ user_email:managing.email, amount, month:viewMonth });
+  if(error){ toast('Could not save'); return; }
+  document.getElementById('settle-amount').value='';
+  toast('Payment recorded ✓');
+  await loadMyData();
+}
+
+// ── ADD PAGE SUB-TABS ─────────────────────────
+function switchAddTab(name){
+  document.getElementById('atab-spend').classList.toggle('active', name==='spend');
+  document.getElementById('atab-payee').classList.toggle('active', name==='payee');
+  document.getElementById('addtab-spend').classList.toggle('active', name==='spend');
+  document.getElementById('addtab-payee').classList.toggle('active', name==='payee');
+  if(name==='payee') fillPayeeSelect();
+}
+
+// ── PARTY (who I might owe — managed like Cards) ──────────────
+function renderPartyGrid(){
+  const grid=document.getElementById('party-grid');
+  if(!grid) return;
+  grid.innerHTML = myPayees.length ? myPayees.map(p=>`
+    <div class="card-tile">
+      <button class="cdel" onclick="deleteParty(${p.id})">✕</button>
+      <div class="cdot" style="background:${p.color};"></div>
+      <div class="cname">${escapeHtml(p.party_name)}</div>
+      ${p.party_email?`<div style="font-size:.6rem;color:var(--muted);margin-top:2px;">${escapeHtml(p.party_email)}</div>`:''}
+    </div>`).join('') : `<div class="empty-state" style="grid-column:1/-1;"><span>🎉</span>No parties yet — add one below</div>`;
+}
+async function addParty(){
+  const name=document.getElementById('new-party-name').value.trim();
+  const partyEmail=document.getElementById('new-party-email').value.trim().toLowerCase();
+  if(!name){ toast('Enter a name'); return; }
+  const color=CARD_COLORS[myPayees.length % CARD_COLORS.length];
+  const { error } = await sb.from('bill_payees').insert({ user_email:managing.email, party_name:name, party_email:partyEmail||null, color });
+  if(error){ toast('Could not add party'); return; }
+  document.getElementById('new-party-name').value=''; document.getElementById('new-party-email').value='';
+  toast('Party added ✓');
+  await loadMyData();
+}
+async function deleteParty(id){
+  if(!confirm('Remove this party? Past entries stay, just unlinked.')) return;
+  await sb.from('bill_payees').delete().eq('id',id);
+  await loadMyData();
+}
+function fillPayeeSelect(){
+  const sel=document.getElementById('pe-payee');
+  let html = '<option value="">— choose —</option>';
+  if(myPayees.length){
+    html += myPayees.map(p=>`<option value="${p.id}">${escapeHtml(p.party_name)}</option>`).join('');
+  }
+  html += `<option value="new">➕ Someone new</option>`;
+  sel.innerHTML = html;
+  document.getElementById('pe-new-wrap').style.display='none';
+}
+function peSelectionChanged(){
+  const v = document.getElementById('pe-payee').value;
+  document.getElementById('pe-new-wrap').style.display = (v==='new') ? 'block' : 'none';
+}
+async function addPayeeEntry(){
+  const selection = document.getElementById('pe-payee').value;
+  const newName = document.getElementById('pe-new-payee').value.trim();
+  const amount = parseFloat(document.getElementById('pe-amount').value);
+  const date = document.getElementById('pe-date').value;
+  const entry_type = document.getElementById('pe-type').value;
+  const note = document.getElementById('pe-note').value.trim();
+  if(!amount||amount<=0||!date){ toast('Fill in amount and date'); return; }
+  if(!selection){ toast('Pick who you owe'); return; }
+  if(selection==='new' && !newName){ toast('Type their name'); return; }
+
+  let payeeId;
+  if(selection==='new'){
+    const color=CARD_COLORS[myPayees.length % CARD_COLORS.length];
+    const { data, error } = await sb.from('bill_payees').insert({ user_email:managing.email, party_name:newName, color }).select().maybeSingle();
+    if(error||!data){ toast('Could not add party'); return; }
+    payeeId = data.id;
+  } else {
+    payeeId = selection;
+  }
+
+  const month = date.slice(0,7);
+  const { error } = await sb.from('bill_payee_entries').insert({ user_email:managing.email, payee_id:payeeId, amount, entry_type, note, date, month, created_by_email:managing.email });
+  if(error){ toast('Could not save entry'); return; }
+  document.getElementById('pe-new-payee').value=''; document.getElementById('pe-amount').value=''; document.getElementById('pe-note').value='';
+  toast('Saved ✓');
+  await loadMyData();
+  switchPage('home');
+  switchHomeTab('owe');
+}
+function renderPayeeBalances(){
+  const el=document.getElementById('payee-balance-list');
+  if(!el) return;
+  if(!myPayees.length){ el.innerHTML = `<div class="empty-state"><span>🤝</span>No parties yet — add one from 🎉 Party</div>`; return; }
+  el.innerHTML = myPayees.map(p=>{
+    const entries = myPayeeEntries.filter(e=>e.payee_id===p.id);
+    const owe = entries.filter(e=>e.entry_type==='owe').reduce((a,x)=>a+Number(x.amount),0);
+    const paid = entries.filter(e=>e.entry_type==='paid').reduce((a,x)=>a+Number(x.amount),0);
+    const bal = owe-paid;
+    const entryRows = entries.slice(0,5).map(e=>{
+      const loggedByThem = e.created_by_email && p.party_email && e.created_by_email.toLowerCase()===p.party_email.toLowerCase();
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:.72rem;color:var(--muted);">
+        <span>${e.date} · ${e.entry_type==='owe'?'owed':'paid'} · ${dhs(e.amount)}${e.note?' · '+escapeHtml(e.note):''}${loggedByThem?' · <i>logged by them</i>':''}</span>
+        <button class="icon-btn" onclick="deletePayeeEntry(${e.id})" title="Delete (mistake?)">🗑️</button>
+      </div>`;
+    }).join('');
+    return `<div class="owed-row" style="border-color:${p.color};flex-direction:column;align-items:stretch;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="b-left"><div class="b-name">${escapeHtml(p.party_name)}</div><div class="b-sub">${entries.length} entr${entries.length===1?'y':'ies'}</div></div>
+        <div class="b-amt ${bal>0?'neg':'pos'}">${dhs(Math.max(bal,0))}</div>
+      </div>
+      ${entryRows}
+      ${bal>0?`<button class="btn-tiny ghost" style="margin-top:6px;align-self:flex-start;" onclick="settleUpParty(${p.id},${bal},false)">✅ Settle up (${bal.toFixed(2)} AED)</button>`:''}
+    </div>`;
+  }).join('');
+}
+// Works for an entry on EITHER side of the relationship — your own
+// party-ledger row, or one the linked party logged from their side.
+function deletePayeeEntry(id){
+  let row = myPayeeEntries.find(e=>e.id===id), payee, counterpart, ownSide=true;
+  if(row){
+    payee = myPayees.find(p=>p.id===row.payee_id);
+    counterpart = payee?.party_email || null;
+  } else {
+    row = owedToMeEntries.find(e=>e.id===id);
+    if(!row){ toast('Entry not found'); return; }
+    payee = owedToMePayees.find(p=>p.id===row.payee_id);
+    counterpart = payee?.user_email || null;
+    ownSide = false;
+  }
+  const who = ownSide ? payee?.party_name : (payee?.user_email||'this entry');
+  requestDelete('payee_entry', id, counterpart, `${who} · ${Number(row.amount).toFixed(2)} AED`);
+}
+// One-tap settlement — inserts a 'paid' entry for the full outstanding
+// balance. Works from either side: fromOtherSide=true means "I'm the one
+// who's owed, marking it settled from the Owed to You tab".
+async function settleUpParty(payeeId, balance, fromOtherSide){
+  if(!confirm(`Mark ${Number(balance).toFixed(2)} AED as settled?`)) return;
+  const ownerEmail = fromOtherSide ? (owedToMeRows.find(r=>r.payeeId===payeeId)?.fromEmail) : managing.email;
+  if(!ownerEmail){ toast('Could not find this relationship'); return; }
+  const today=localDateStr(new Date());
+  const { error } = await sb.from('bill_payee_entries').insert({
+    user_email:ownerEmail, payee_id:payeeId, amount:balance, entry_type:'paid',
+    note:'Settled up', date:today, month:today.slice(0,7), created_by_email:managing.email
+  });
+  if(error){ toast('Could not settle — try again'); return; }
+  toast('Settled ✓');
+  await loadMyData();
+  await loadOwedToMe();
+}
+
+// ── REVERSE VIEW: other people who logged ME as their party — now fully
+// interactive, not read-only: you can log entries and delete them from
+// this side too, exactly like the person who added you can. ──
+let owedToMeRows = [], owedToMeEntries = [], owedToMePayees = [];
+async function loadOwedToMe(){
+  const { data: linkedPayees } = await sb.from('bill_payees').select('*').ilike('party_email', escLike(managing.email));
+  owedToMePayees = linkedPayees || [];
+  if(!owedToMePayees.length){ owedToMeRows = []; owedToMeEntries = []; renderHome(); return; }
+  const ids = owedToMePayees.map(p=>p.id);
+  const [{ data: entries }, { data: everyone }] = await Promise.all([
+    sb.from('bill_payee_entries').select('*').in('payee_id', ids).order('date',{ascending:false}),
+    sb.from('app_users').select('email,name,emoji')
+  ]);
+  owedToMeEntries = entries || [];
+  owedToMeRows = owedToMePayees.map(p=>{
+    const es = owedToMeEntries.filter(e=>e.payee_id===p.id);
+    const owe = es.filter(e=>e.entry_type==='owe').reduce((a,x)=>a+Number(x.amount),0);
+    const paid = es.filter(e=>e.entry_type==='paid').reduce((a,x)=>a+Number(x.amount),0);
+    const debtor = (everyone||[]).find(u=>u.email.toLowerCase()===p.user_email.toLowerCase());
+    return { payeeId:p.id, fromEmail:p.user_email, fromName: debtor?.name || p.user_email, fromEmoji: debtor?.emoji || '👤', balance: owe-paid, count: es.length, entries: es };
+  });
+  renderHome();
+}
+function renderOwedToMe(){
+  const el=document.getElementById('owed-to-me-list');
+  if(!el) return;
+  if(!owedToMeRows.length){ el.innerHTML = `<div class="empty-state"><span>🔁</span>No one's logged owing you anything yet. If someone owes you, you can add them as a Party yourself (🎉 Party tab, their email optional) and log it here directly.</div>`; return; }
+  el.innerHTML = owedToMeRows.map(r=>{
+    const entryRows = r.entries.slice(0,8).map(e=>{
+      const loggedByYou = e.created_by_email && e.created_by_email.toLowerCase()===managing.email.toLowerCase();
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:.72rem;color:var(--muted);">
+        <span>${e.date} · ${e.entry_type==='owe'?'they owe':'they paid'} · ${dhs(e.amount)}${e.note?' · '+escapeHtml(e.note):''}${loggedByYou?' · <i>logged by you</i>':''}</span>
+        <button class="icon-btn" onclick="deletePayeeEntry(${e.id})" title="Delete (mistake?)">🗑️</button>
+      </div>`;
+    }).join('');
+    return `<div class="owed-row settle" style="flex-direction:column;align-items:stretch;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="b-left"><div class="b-name">${r.fromEmoji} ${escapeHtml(r.fromName)}</div><div class="b-sub">${r.count} entr${r.count===1?'y':'ies'}</div></div>
+        <div class="b-amt ${r.balance>0?'pos':'neg'}">${dhs(Math.max(r.balance,0))}</div>
+      </div>
+      ${entryRows}
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="btn-tiny" onclick="openAddFromOwedToMe(${r.payeeId})">+ Log entry</button>
+        ${r.balance>0?`<button class="btn-tiny ghost" onclick="settleUpParty(${r.payeeId},${r.balance},true)">✅ Settle up</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Quick entry modal — lets the OWED side log a transaction directly,
+// same underlying table, without needing the debtor to do it first. ──
+let _pendingOwedToMeAdd=null;
+function openAddFromOwedToMe(payeeId){
+  const row = owedToMeRows.find(r=>r.payeeId===payeeId);
+  if(!row) return;
+  _pendingOwedToMeAdd = { payeeId, ownerEmail: row.fromEmail };
+  document.getElementById('qe-title').textContent = `Log an entry — ${row.fromName}`;
+  document.getElementById('qe-amount').value=''; document.getElementById('qe-note').value='';
+  document.getElementById('qe-date').value = localDateStr(new Date());
+  document.getElementById('qe-type').value = 'owe';
+  document.getElementById('quick-entry-modal').classList.add('open');
+}
+function closeQuickEntry(){ document.getElementById('quick-entry-modal').classList.remove('open'); _pendingOwedToMeAdd=null; }
+async function submitQuickEntry(){
+  if(!_pendingOwedToMeAdd) return;
+  const amount=parseFloat(document.getElementById('qe-amount').value);
+  const date=document.getElementById('qe-date').value;
+  const entry_type=document.getElementById('qe-type').value;
+  const note=document.getElementById('qe-note').value.trim();
+  if(!amount||amount<=0||!date){ toast('Fill in amount and date'); return; }
+  const { error } = await sb.from('bill_payee_entries').insert({
+    user_email:_pendingOwedToMeAdd.ownerEmail, payee_id:_pendingOwedToMeAdd.payeeId,
+    amount, entry_type, note, date, month:date.slice(0,7), created_by_email:managing.email
+  });
+  if(error){ toast('Could not save — ask them to add you as a Party first'); return; }
+  closeQuickEntry();
+  toast('Saved ✓');
+  await loadOwedToMe();
+}
+
+// ── ADMIN ──────────────────────────────────────
+async function openAdmin(){
+  document.getElementById('admin-overlay').classList.add('active');
+  await loadAllUsers();
+}
+function closeAdmin(){ document.getElementById('admin-overlay').classList.remove('active'); }
+function switchAdminTab(name){
+  document.querySelectorAll('.admin-tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.admin-tab-page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('atab-'+name).classList.add('active');
+  document.getElementById('atp-'+name).classList.add('active');
+}
+
+async function loadAllUsers(){
+  const { data } = await sb.from('app_users').select('*').order('created_at');
+  allUsers = data||[];
+  renderAdminUsers();
+  const opts = allUsers.map(u=>`<option value="${u.email}">${escapeHtml(u.name)} (${u.email})</option>`).join('');
+  document.getElementById('ow-user').innerHTML = opts;
+  document.getElementById('sp-user').innerHTML = opts;
+  if(allUsers.length) loadAdminSpending();
+}
+function renderAdminUsers(){
+  const el=document.getElementById('admin-users-list');
+  el.innerHTML = allUsers.length ? allUsers.map(u=>`
+    <div class="user-row">
+      <div class="u-left">
+        <div class="av-sm" style="background:${u.color};">${u.emoji}</div>
+        <div>
+          <div style="font-weight:800;font-size:.85rem;">${escapeHtml(u.name)} ${u.is_admin?'<span class="admin-badge2">ADMIN</span>':''}</div>
+          <div style="font-size:.68rem;color:var(--muted);">${u.email}</div>
+          ${u.delegate_email?`<div style="font-size:.65rem;color:var(--accent2);">🔑 delegate: ${escapeHtml(u.delegate_email)}</div>`:''}
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <span class="grp-badge ${u.group_type==='squad_split'?'grp-squad':'grp-general'}">${u.group_type==='squad_split'?'Squad':'General'}</span>
+        <button class="icon-btn" title="Email this person's report" onclick="adminSendOneReport('${u.email}')">📧</button>
+        <button class="icon-btn" title="Set/change delegate" onclick="setDelegate(${u.id},'${u.email}')">🔑</button>
+        <button class="icon-btn" onclick="deleteUser(${u.id})">🗑️</button>
+      </div>
+    </div>`).join('') : `<div class="empty-state"><span>👥</span>No one added yet</div>`;
+}
+async function setDelegate(id,email){
+  const val=prompt(`Delegate ${email}'s account to which email? (leave blank to remove delegate access)`,'');
+  if(val===null) return;
+  const delegate_email = val.trim() ? val.trim().toLowerCase() : null;
+  const { error } = await sb.from('app_users').update({ delegate_email }).eq('id',id);
+  if(error){ toast('Could not update'); return; }
+  toast(delegate_email?'Delegate set ✓':'Delegate removed ✓');
+  await loadAllUsers();
+}
+async function adminSendOneReport(email){
+  if(!confirm(`Email ${email} their report now?`)) return;
+  const { error } = await sb.functions.invoke('send-report', { body:{ type:'combined', month: viewMonth, target_email: email } });
+  toast(error?'Send failed':'Report sent 📧');
+}
+async function createUser(){
+  const email=document.getElementById('nu-email').value.trim().toLowerCase();
+  const name=document.getElementById('nu-name').value.trim();
+  const group_type=document.getElementById('nu-group').value;
+  const is_admin=document.getElementById('nu-admin').value==='true';
+  const delegate_email=document.getElementById('nu-delegate').value.trim().toLowerCase()||null;
+  if(!email||!name){ toast('Enter email and name'); return; }
+  const emoji=['😎','🦁','🐯','🦊','🐺','🎯','🚀','💎'][allUsers.length%8];
+  const color=CARD_COLORS[allUsers.length%CARD_COLORS.length];
+  const { error } = await sb.from('app_users').insert({ email, name, group_type, is_admin, emoji, color, delegate_email });
+  if(error){ toast(error.code==='23505'?'That email is already added':'Could not add user'); return; }
+  document.getElementById('nu-email').value=''; document.getElementById('nu-name').value=''; document.getElementById('nu-delegate').value='';
+  toast('User added ✓');
+  await loadAllUsers();
+}
+async function deleteUser(id){
+  if(!confirm('Remove this person from Bill Tracker? Their data stays but they can no longer log in.')) return;
+  await sb.from('app_users').delete().eq('id',id);
+  await loadAllUsers();
+}
+async function importFromSquad(){
+  const { data, error } = await sb.from('members_config').select('*');
+  if(error || !data){ toast('Could not read Squad members'); return; }
+  const toAdd = data.filter(m=>m.email && !allUsers.some(u=>u.email.toLowerCase()===m.email.toLowerCase()));
+  if(!toAdd.length){ toast('Nothing new to import'); return; }
+  const rows = toAdd.map(m=>({ email:m.email.toLowerCase(), name:m.name, group_type:'squad_split', is_admin:!!m.is_admin, emoji:m.emoji||'😎', color:m.color||'#4d96ff' }));
+  const { error: insErr } = await sb.from('app_users').insert(rows);
+  if(insErr){ toast('Import failed'); return; }
+  toast(`Imported ${rows.length} squad member(s) ✓`);
+  await loadAllUsers();
+}
+
+async function adminAddOwed(){
+  const user_email=document.getElementById('ow-user').value;
+  const amount=parseFloat(document.getElementById('ow-amount').value);
+  const month=document.getElementById('ow-month').value || viewMonth;
+  const note=document.getElementById('ow-note').value.trim();
+  if(!user_email||!amount){ toast('Pick a person and amount'); return; }
+  const { error } = await sb.from('bill_owed').insert({ user_email, amount, month, note });
+  if(error){ toast('Could not add'); return; }
+  document.getElementById('ow-amount').value=''; document.getElementById('ow-note').value='';
+  toast('Owed entry added ✓');
+  loadAdminOwedList();
+}
+async function loadAdminOwedList(){
+  const { data } = await sb.from('bill_owed').select('*').order('created_at',{ascending:false}).limit(50);
+  const el=document.getElementById('admin-owed-list');
+  el.innerHTML = (data||[]).map(o=>`
+    <div class="owed-row"><div class="b-left"><div class="b-name">${escapeHtml(o.user_email)}</div><div class="b-sub">${escapeHtml(o.note||'')} · ${o.month}</div></div><div class="b-amt neg">${dhs(o.amount)}</div></div>
+  `).join('') || `<div class="empty-state"><span>⚖️</span>No entries yet</div>`;
+}
+document.addEventListener('DOMContentLoaded',()=>{ /* placeholder no-op to keep load order simple */ });
+
+async function loadAdminSpending(){
+  const email=document.getElementById('sp-user').value;
+  if(!email) return;
+  const { data } = await sb.from('bill_expenses').select('*').ilike('user_email',email).order('date',{ascending:false}).limit(60);
+  const el=document.getElementById('admin-spending-list');
+  el.innerHTML = (data||[]).length ? data.map(x=>`
+    <div class="exp-item-card"><div class="exp-icon">${CAT_ICONS[x.category]||'📦'}</div><div style="flex:1;"><div class="exp-name">${escapeHtml(x.description)}</div><div class="exp-meta">${x.date}</div></div><div style="font-weight:800;">${dhs(x.amount)}</div></div>
+  `).join('') : `<div class="empty-state"><span>📊</span>No spending logged yet</div>`;
+}
+async function sendAllReports(){
+  if(!confirm('Send every registered user their report right now?')) return;
+  const { error } = await sb.functions.invoke('send-report', { body:{ mode:'all_bill' } });
+  toast(error ? 'Send failed — check function logs' : 'Sending to everyone now 📨');
+}
+
+// load owed list when that admin tab is first opened
+const _origSwitchAdminTab = switchAdminTab;
+switchAdminTab = function(name){ _origSwitchAdminTab(name); if(name==='owed') loadAdminOwedList(); };
+
+function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s??''; return d.innerHTML; }
+</script>
+</body>
+</html>
