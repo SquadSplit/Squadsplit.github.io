@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Squad Splitter 💸</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.9"></script>
 <style>
 :root {
   --bg:#0b0b18;--card:#13132a;--card2:#1a1a35;--border:#2a2a50;
@@ -421,59 +421,66 @@ const COLORS=['#4d96ff','#ff6b6b','#ff92d0','#ffd93d','#6bcb77','#b06aff','#ff92
 let sb=null,isDemoMode=true;
 let currentUser=null,selectedId=null,currentEmail='';
 let timerInterval=null;
-let viewMonth=new Date().toISOString().slice(0,7);
+function localDateStr(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function localMonthStr(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function escLike(s){ return String(s||'').replace(/[%_\\]/g,m=>'\\'+m); }
+let viewMonth=localMonthStr(new Date());
 let MEMBERS=[];
 let expenses=[],prevBals=[],settlements=[];
+// If a delegate arrives here via a link from Bill Tracker while managing
+// someone else's account, that page passes ?as=<their email> so this page
+// can show THAT member's Squad Splitter view instead of the delegate's own
+// (which usually doesn't exist as a squad member at all). Verified against
+// the database below before ever being trusted.
+const IMPERSONATE_PARAM = new URLSearchParams(location.search).get('as');
 
 // ── SUPABASE TABLES NEEDED ──────────────────
 // expenses, prev_balances, settlements, members_config
 
 // ── INIT ────────────────────────────────────
-// v5.0 fix: previously called sb.auth.getSession() exactly once and only
-// routed in if the session happened to already be ready — on a hard
-// refresh this could resolve before the client finished restoring the
-// session from localStorage, silently leaving a logged-in person on the
-// login screen. onAuthStateChange is now the primary signal (fires once
-// the client is truly ready), with a short getSession() fallback as a
-// safety net.
-// ── SCREEN CONTROL — same defensive pattern as bill-tracker.html: sets
-// display directly so both screens can never be visible at once. ──
-function showScreen(name){ // 'login' | 'app'
-  const login=document.getElementById('screen-login'), app=document.getElementById('screen-app');
-  login.classList.toggle('active', name==='login');
-  app.classList.toggle('active', name==='app');
-  login.style.display = name==='login' ? 'flex' : 'none';
-  app.style.display = name==='app' ? 'flex' : 'none';
-}
-window.addEventListener('pageshow', (e)=>{ if(e.persisted) location.reload(); });
-
 window.onload=async()=>{
-  showScreen('login');
+ try{
   if(SUPABASE_URL!=='YOUR_SUPABASE_URL'){
-    try{sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);isDemoMode=false;}catch(e){isDemoMode=true;}
+    // Explicit, matching auth config — MUST equal bill-tracker.html's so a
+    // session started on either page is recognized on the other.
+    try{
+      sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{
+        auth:{ persistSession:true, autoRefreshToken:true, detectSessionInUrl:true, storageKey:'squadsplit-auth-v1' }
+      });
+      isDemoMode=false;
+    }catch(e){isDemoMode=true;}
   }
   await loadMembers();
   buildOTPBoxes();
+  // Security: never trust a cached "who's logged in" blob on its own — a
+  // stale copy could show wrong admin status if permissions changed since.
+  // The only real source of truth is a live, currently-valid Supabase
+  // session, re-checked fresh against the database every single load.
   if(!isDemoMode&&sb){
-    let routed=false;
-    const tryRoute=async(session)=>{
-      if(routed||!session?.user?.email) return;
-      routed=true;
+    const settled = await Promise.race([
+      sb.auth.getSession().then(r=>r.data.session),
+      new Promise(res=>{
+        const { data:sub } = sb.auth.onAuthStateChange((event,session)=>{
+          if(event==='INITIAL_SESSION'||event==='SIGNED_IN'){ sub.subscription.unsubscribe(); res(session); }
+        });
+        setTimeout(()=>res(undefined),3000);
+      })
+    ]);
+    const session = settled || (await sb.auth.getSession()).data.session;
+    if(session?.user?.email){
       currentEmail=session.user.email.toLowerCase();
       await routeAfterLogin(true);
-    };
-    sb.auth.onAuthStateChange((_evt,session)=>{ tryRoute(session); });
-    setTimeout(async()=>{
-      if(routed) return;
-      const{data:{session}}=await sb.auth.getSession();
-      if(session?.user?.email){ await tryRoute(session); }
-      else { sessionStorage.removeItem('sq_user'); } // no live session — any old cache is meaningless
-    },500);
+      return;
+    }
+    sessionStorage.removeItem('sq_user'); // no live session — any old cache is meaningless
     return;
   }
   // Demo mode only (no real backend to re-verify against)
   const s=sessionStorage.getItem('sq_user');
   if(s){currentUser=JSON.parse(s);await enterApp();}
+ }catch(e){
+   console.error('Startup error:', e);
+ }
 };
 
 // ── MEMBER CONFIG — persisted in Supabase OR localStorage ──
@@ -575,20 +582,34 @@ async function verifyOTP(){
 // ── ROUTE: decide Squad Splitter vs Bill Tracker vs not-registered ──
 // This is the single point that turns "a verified email" into "the right
 // screen" — looked up fresh from app_users every time, never guessed.
-async function routeAfterLogin(silent, _retried){
+async function routeAfterLogin(silent){
   if(isDemoMode||!sb){
     selectedId=MEMBERS[0]?.id||null;
     if(selectedId)finishLogin();else if(!silent)showStep(3);
     return;
   }
-  const{data,error}=await sb.from('app_users').select('*').ilike('email',currentEmail).maybeSingle();
-  if(error){
-    console.error('routeAfterLogin lookup error:',error);
-    if(!_retried){ setTimeout(()=>routeAfterLogin(silent,true), 700); return; }
-    if(!silent) showErr('err3','⚠️ Connection hiccup — please try again.');
-    return;
+  // If a delegate arrived here via a link from Bill Tracker while managing
+  // someone else's account, route using THAT account — but only once
+  // verified server-side that this login really does have delegate rights
+  // for it (never trust the URL param on its own).
+  let routeEmail = currentEmail, viewingAsDelegate = null;
+  if(IMPERSONATE_PARAM && IMPERSONATE_PARAM.toLowerCase()!==currentEmail){
+    const{data:delegateCheck}=await sb.from('app_users').select('email,name').ilike('email',escLike(IMPERSONATE_PARAM)).ilike('delegate_email',escLike(currentEmail)).maybeSingle();
+    if(delegateCheck){ routeEmail = IMPERSONATE_PARAM.toLowerCase(); viewingAsDelegate = delegateCheck.name; }
   }
-  if(!data){
+  const{data,error}=await sb.from('app_users').select('*').ilike('email',escLike(routeEmail)).maybeSingle();
+  if(error||!data){
+    // Not registered under their own email — but they might still have
+    // delegate access to someone else's account. Don't dead-end on "not
+    // added yet" when Bill Tracker's picker can actually get them in.
+    if(!viewingAsDelegate){
+      const{data:delegated}=await sb.from('app_users').select('id').ilike('delegate_email',escLike(currentEmail)).limit(1);
+      if(delegated && delegated.length){
+        sessionStorage.setItem('bt_email',currentEmail.toLowerCase());
+        window.location.href='bill-tracker.html';
+        return;
+      }
+    }
     if(!silent)showStep(3);
     return;
   }
@@ -599,20 +620,24 @@ async function routeAfterLogin(silent, _retried){
     return;
   }
   // squad_split — find their matching squad roster entry by email.
-  const m=MEMBERS.find(x=>(x.email||'').toLowerCase()===currentEmail.toLowerCase());
+  const m=MEMBERS.find(x=>(x.email||'').toLowerCase()===routeEmail.toLowerCase());
   if(!m){
     if(!silent)showErr('err3','⚠️ Marked as a squad member but not yet on the squad roster — ask your admin to add you in Members, or use the My Tracker link for your personal tracker.');
     return;
   }
   selectedId=m.id;
+  window._viewingAsDelegate = viewingAsDelegate;
   finishLogin();
 }
 
 function finishLogin(){
   const m=MEMBERS.find(x=>x.id===selectedId);
-  // Update email in members list
-  if(m.email!==currentEmail){m.email=currentEmail;saveMembersLocal();}
+  // Update email in members list — but never when we're viewing as a
+  // delegate, or this would overwrite the real member's email with the
+  // delegate's own.
+  if(m.email!==currentEmail && !window._viewingAsDelegate){m.email=currentEmail;saveMembersLocal();}
   currentUser={...m};
+  if(window._viewingAsDelegate) currentUser._delegatedLabel = window._viewingAsDelegate;
   sessionStorage.setItem('sq_user',JSON.stringify(currentUser));
   clearInterval(timerInterval);enterApp();
 }
@@ -644,10 +669,11 @@ function showStep(n){
 
 // ── APP ENTRY ───────────────────────────────
 async function enterApp(){
-  showScreen('app');
+  document.getElementById('screen-login').classList.remove('active');
+  document.getElementById('screen-app').classList.add('active');
   document.getElementById('hdr-name').textContent=currentUser.name;
   document.getElementById('hdr-av').textContent=currentUser.emoji;
-  document.getElementById('header-sub').textContent=currentUser.isAdmin?'👑 Admin Access':'👤 Member';
+  document.getElementById('header-sub').textContent=currentUser._delegatedLabel ? `Viewing as ${currentUser._delegatedLabel} (delegated)` : (currentUser.isAdmin?'👑 Admin Access':'👤 Member');
   if(currentUser.isAdmin){
     document.getElementById('btn-admin-panel').style.display='block';
     document.getElementById('admin-prev-section').style.display='block';
@@ -657,7 +683,7 @@ async function enterApp(){
   updateMonthLabels();
   renderSquad();
   initAddForm();
-  document.getElementById('inp-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('inp-date').value=localDateStr(new Date());
   refresh();
 }
 
@@ -693,7 +719,8 @@ async function loadAllData(){
 function logout(){
   if(!confirm('Log out?'))return;
   sessionStorage.removeItem('sq_user');currentUser=null;
-  showScreen('login');
+  document.getElementById('screen-app').classList.remove('active');
+  document.getElementById('screen-login').classList.add('active');
   showStep(1);document.querySelectorAll('.member-option').forEach(e=>e.classList.remove('selected'));
   selectedId=null;
 }
