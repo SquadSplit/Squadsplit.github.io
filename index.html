@@ -12,6 +12,17 @@
   --accent1:#ff6b6b;--accent2:#ffd93d;--accent3:#6bcb77;--accent4:#4d96ff;--accent5:#ff922b;
   --purple:#b06aff;--text:#f0f0ff;--muted:#7777aa;--red:#ff6b6b;--green:#6bcb77;
 }
+/* Same theme system as bill-tracker.html (v7.0) — applied read-only here
+   (picked in Bill Tracker's 🎨 Appearance, just honored on this page too
+   so navigating between the two doesn't jar). See bill-tracker.html for
+   the full explanation of scope (surface tokens only, not a full light
+   mode — see that file's comment for why). */
+html[data-theme="ocean"]{ --bg:#071820;--card:#0e2530;--card2:#123244;--border:#1c4a5e;--text:#eaf6fb;--muted:#6b9aad; }
+html[data-theme="sunset"]{ --bg:#1a0f14;--card:#2a1620;--card2:#33192a;--border:#4a2438;--text:#fbeef1;--muted:#a67f8c; }
+html[data-theme="forest"]{ --bg:#0c1710;--card:#132a1c;--card2:#183524;--border:#2a4a35;--text:#eafbf0;--muted:#7aa38c; }
+html[data-theme="mono"]{ --bg:#0a0a0a;--card:#161616;--card2:#1e1e1e;--border:#333333;--text:#f2f2f2;--muted:#8a8a8a; }
+#bg-photo-layer{ position:fixed; inset:0; z-index:-1; background-size:cover; background-position:center; opacity:0; transition:opacity .3s; pointer-events:none; }
+#bg-photo-layer.on{ opacity:var(--bg-photo-opacity, 0.30); }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
 .bg-mesh{position:fixed;inset:0;z-index:0;pointer-events:none;
@@ -182,6 +193,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 </style>
 </head>
 <body>
+<div id="bg-photo-layer"></div>
 <div class="bg-mesh"></div>
 
 <!-- ═══════ LOGIN ═══════ -->
@@ -420,6 +432,19 @@ const COLORS=['#4d96ff','#ff6b6b','#ff92d0','#ffd93d','#6bcb77','#b06aff','#ff92
 // ── STATE ───────────────────────────────────
 let sb=null,isDemoMode=true;
 let currentUser=null,selectedId=null,currentEmail='';
+// Read-only mirror of bill-tracker.html's Appearance feature — same
+// bill_user_prefs row, keyed by currentEmail, no UI to change it here.
+async function applyMyAppearance(){
+  try{
+    const { data } = await sb.from('bill_user_prefs').select('*').ilike('user_email', currentEmail).maybeSingle();
+    if(data?.theme && data.theme!=='default') document.documentElement.setAttribute('data-theme', data.theme);
+    if(data?.bg_url){
+      document.documentElement.style.setProperty('--bg-photo-opacity', data.bg_opacity ?? 0.30);
+      const layer=document.getElementById('bg-photo-layer');
+      layer.style.backgroundImage=`url('${data.bg_url}')`; layer.classList.add('on');
+    }
+  }catch(e){ /* appearance is cosmetic — never block the app over it */ }
+}
 let timerInterval=null;
 function localDateStr(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function localMonthStr(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
@@ -469,6 +494,7 @@ window.onload=async()=>{
     const session = settled || (await sb.auth.getSession()).data.session;
     if(session?.user?.email){
       currentEmail=session.user.email.toLowerCase();
+      applyMyAppearance(); // read-only here — theme/background are set in Bill Tracker's 🎨 Appearance
       await routeAfterLogin(true);
       return;
     }
@@ -1361,3 +1387,4 @@ function hideMsg(id){const e=document.getElementById(id);if(e)e.style.display='n
 </script>
 </body>
 </html>
+
