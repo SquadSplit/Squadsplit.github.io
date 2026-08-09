@@ -12,6 +12,26 @@
   --accent1:#ff6b6b;--accent2:#ffd93d;--accent3:#6bcb77;--accent4:#4d96ff;--accent5:#ff922b;
   --purple:#b06aff;--text:#f0f0ff;--muted:#7777aa;--red:#ff6b6b;--green:#6bcb77;
 }
+/* ── THEMES (v7.0) ──────────────────────────────
+   Each preset re-tones the surface/text tokens only (bg/card/card2/border/
+   text/muted) — every element that uses var() for these picks it up
+   automatically. Brand accent colors (buttons, category chips, the login
+   gradient) stay constant across themes by design, the same way most apps
+   keep a signature accent while surfaces shift — and because several of
+   those accents are hardcoded in specific spots rather than var-driven, so
+   leaving them alone is what keeps every theme looking finished rather
+   than partially-skinned. A true light mode is a larger follow-up (it
+   would need those hardcoded spots parameterized too) and wasn't part of
+   this pass — flagged here rather than shipped half-right. */
+html[data-theme="ocean"]{ --bg:#071820;--card:#0e2530;--card2:#123244;--border:#1c4a5e;--text:#eaf6fb;--muted:#6b9aad; }
+html[data-theme="sunset"]{ --bg:#1a0f14;--card:#2a1620;--card2:#33192a;--border:#4a2438;--text:#fbeef1;--muted:#a67f8c; }
+html[data-theme="forest"]{ --bg:#0c1710;--card:#132a1c;--card2:#183524;--border:#2a4a35;--text:#eafbf0;--muted:#7aa38c; }
+html[data-theme="mono"]{ --bg:#0a0a0a;--card:#161616;--card2:#1e1e1e;--border:#333333;--text:#f2f2f2;--muted:#8a8a8a; }
+#bg-photo-layer{ position:fixed; inset:0; z-index:-1; background-size:cover; background-position:center; opacity:0; transition:opacity .3s; pointer-events:none; }
+#bg-photo-layer.on{ opacity:var(--bg-photo-opacity, 0.30); }
+.theme-swatch{ width:44px;height:44px;border-radius:50%;cursor:pointer;border:3px solid transparent;flex-shrink:0; }
+.theme-swatch.active{ border-color:var(--accent4); }
+.theme-row{ display:flex;gap:12px;flex-wrap:wrap;margin:10px 0 16px; }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
 .bg-mesh{position:fixed;inset:0;z-index:0;pointer-events:none;
@@ -152,6 +172,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 </style>
 </head>
 <body>
+<div id="bg-photo-layer"></div>
 <div class="bg-mesh"></div>
 
 <!-- ═══ LOGIN ═══ -->
@@ -211,6 +232,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
     <div class="header-right">
       <a href="index.html" id="link-to-squad" style="display:none;text-decoration:none;background:var(--card2);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:7px 12px;font-family:'Fredoka One',cursive;font-size:.78rem;">💸 Squad Splitter</a>
       <button class="switch-acct-btn" id="btn-switch-account" onclick="openSwitchAccount()" title="Switch between your own and delegated accounts">🔀 Switch</button>
+      <button class="notif-bell" onclick="openAppearance()" title="Appearance — theme & background">🎨</button>
       <div class="notif-wrap">
         <button class="notif-bell" onclick="toggleNotifPanel()" title="Notifications">🔔<span class="notif-badge" id="notif-badge"></span></button>
         <div class="notif-panel" id="notif-panel">
@@ -579,6 +601,60 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   </div>
 </div>
 
+<!-- Edit a personal spend entry — private data, no reason/notification needed -->
+<div class="modal-overlay" id="edit-expense-modal">
+  <div class="modal-box">
+    <h3>✏️ Edit spend</h3>
+    <input type="hidden" id="ee-id">
+    <div class="fg"><label>What was it for</label><input type="text" id="ee-desc"></div>
+    <div class="form-row">
+      <div class="fg"><label>Amount (AED)</label><input type="number" id="ee-amount" step="0.01" min="0"></div>
+      <div class="fg"><label>Date</label><input type="date" id="ee-date"></div>
+    </div>
+    <div class="form-row">
+      <div class="fg"><label>Card used</label><select id="ee-card"></select></div>
+      <div class="fg"><label>Category</label>
+        <select id="ee-category">
+          <option value="food">🍔 Food</option>
+          <option value="transport">🚗 Transport</option>
+          <option value="shopping">🛍️ Shopping</option>
+          <option value="bills">🧾 Bills</option>
+          <option value="entertainment">🎬 Entertainment</option>
+          <option value="health">💊 Health</option>
+          <option value="other">📦 Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeEditExpense()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEditExpense()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Appearance — theme + personal background photo. Tied to YOUR login
+     (me.email), not the account you're managing, so a delegate keeps
+     their own look even while managing someone else's data. Every choice
+     here applies and saves immediately — no separate Save button. -->
+<div class="modal-overlay" id="appearance-modal">
+  <div class="modal-box">
+    <h3>🎨 Appearance</h3>
+    <label style="font-size:.72rem;color:var(--muted);display:block;margin-bottom:4px;">Theme</label>
+    <div class="theme-row" id="theme-swatches"></div>
+    <label style="font-size:.72rem;color:var(--muted);display:block;margin-bottom:6px;">Background photo (optional)</label>
+    <div id="bg-preview" style="height:70px;border-radius:12px;background:var(--card2);border:1px solid var(--border);margin-bottom:10px;background-size:cover;background-position:center;"></div>
+    <input type="file" id="bg-file-input" accept="image/*" onchange="uploadBackground(event)" style="font-size:.75rem;margin-bottom:8px;">
+    <div id="bg-opacity-row" style="display:none;margin:8px 0;">
+      <label style="font-size:.72rem;color:var(--muted);">How strong (so text stays readable)</label>
+      <input type="range" id="bg-opacity" min="10" max="70" value="30" oninput="previewBgOpacity(this.value)" onchange="persistBgOpacity(this.value)" style="width:100%;">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="removeBackground()">Remove photo</button>
+      <button class="btn btn-primary" onclick="closeAppearance()">Done</button>
+    </div>
+  </div>
+</div>
+
 <!-- Card breakdown — total bill, your spend vs. what others charged to this card -->
 <div class="modal-overlay" id="card-detail-modal">
   <div class="modal-box" style="max-width:400px;">
@@ -606,7 +682,7 @@ const CARD_COLORS = ['#4d96ff','#ff6b6b','#ff92d0','#ffd93d','#6bcb77','#b06aff'
 // messages came from this app's server, not a secret in itself; the
 // PRIVATE key that actually signs pushes lives only in the Edge Function's
 // secrets, never here).
-const VAPID_PUBLIC_KEY = 'BPAPSno-5ruRHQo3DqTHsiRDw23Rj3fzOG_oFQmUl0-2Ov_nWS7yeFdYHNNfH7uuKvfQ82ppMiLcFyKSkAcuVpY';
+const VAPID_PUBLIC_KEY = 'BHD124XPPBGuCsfuOqdS2tNVq4Hric5FJKsklJcGTMS6W56tVKYnE9N1mgbds2-wvu-GMaVbW7wU73soSYMxCuk';
 
 // ── DATE HELPERS — always use the browser's LOCAL calendar date, never
 // toISOString() on a locally-built Date (that silently shifts to UTC and
@@ -815,6 +891,7 @@ async function enterApp(){
   document.getElementById('screen-login').classList.remove('active');
   document.getElementById('screen-app').classList.add('active');
   if(me.is_admin) document.getElementById('btn-open-admin').style.display='inline-block';
+  loadAppearance(); // tied to me.email — runs once per login, not per account switch
   await refreshManagingUI();
 }
 
@@ -842,6 +919,85 @@ async function refreshManagingUI(){
   await loadNotifications();
   await loadDeletedHistory();
   refreshPushUI();
+}
+
+// ── APPEARANCE (v7.0) — theme + background photo, tied to whoever is
+// actually logged in (me.email), loaded once per login, not per switched
+// account, so a delegate's own look follows them into whatever they're
+// managing rather than being overwritten by it. ──
+const THEMES = [
+  { id:'default', label:'Default', c1:'#0b0b18', c2:'#4d96ff' },
+  { id:'ocean',   label:'Ocean',   c1:'#071820', c2:'#4d96ff' },
+  { id:'sunset',  label:'Sunset',  c1:'#1a0f14', c2:'#ff922b' },
+  { id:'forest',  label:'Forest',  c1:'#0c1710', c2:'#6bcb77' },
+  { id:'mono',    label:'Mono',    c1:'#0a0a0a', c2:'#f2f2f2' },
+];
+let myAppearance = { theme:'default', bg_url:null, bg_opacity:0.30 };
+
+function applyTheme(themeId){
+  if(themeId && themeId!=='default') document.documentElement.setAttribute('data-theme', themeId);
+  else document.documentElement.removeAttribute('data-theme');
+}
+function applyBackground(url, opacity){
+  const layer = document.getElementById('bg-photo-layer');
+  document.documentElement.style.setProperty('--bg-photo-opacity', opacity ?? 0.30);
+  if(url){ layer.style.backgroundImage = `url('${url}')`; layer.classList.add('on'); }
+  else { layer.style.backgroundImage=''; layer.classList.remove('on'); }
+}
+function renderThemeSwatches(){
+  document.getElementById('theme-swatches').innerHTML = THEMES.map(t=>`
+    <div class="theme-swatch ${myAppearance.theme===t.id?'active':''}" title="${t.label}"
+         style="background:linear-gradient(135deg,${t.c1} 50%,${t.c2} 50%);" onclick="selectTheme('${t.id}')"></div>
+  `).join('');
+}
+async function loadAppearance(){
+  const { data } = await sb.from('bill_user_prefs').select('*').ilike('user_email', me.email).maybeSingle();
+  myAppearance = data ? { theme:data.theme||'default', bg_url:data.bg_url||null, bg_opacity:data.bg_opacity??0.30 } : { theme:'default', bg_url:null, bg_opacity:0.30 };
+  applyTheme(myAppearance.theme);
+  applyBackground(myAppearance.bg_url, myAppearance.bg_opacity);
+}
+async function saveAppearance(){
+  await sb.from('bill_user_prefs').upsert({ user_email: me.email.toLowerCase(), theme: myAppearance.theme, bg_url: myAppearance.bg_url, bg_opacity: myAppearance.bg_opacity }, { onConflict:'user_email' });
+}
+async function selectTheme(themeId){
+  myAppearance.theme = themeId;
+  applyTheme(themeId);
+  renderThemeSwatches();
+  await saveAppearance();
+}
+function openAppearance(){
+  renderThemeSwatches();
+  const preview = document.getElementById('bg-preview');
+  preview.style.backgroundImage = myAppearance.bg_url ? `url('${myAppearance.bg_url}')` : '';
+  document.getElementById('bg-opacity-row').style.display = myAppearance.bg_url ? 'block' : 'none';
+  document.getElementById('bg-opacity').value = Math.round((myAppearance.bg_opacity??0.30)*100);
+  document.getElementById('appearance-modal').classList.add('open');
+}
+function closeAppearance(){ document.getElementById('appearance-modal').classList.remove('open'); }
+function previewBgOpacity(v){ document.documentElement.style.setProperty('--bg-photo-opacity', v/100); }
+async function persistBgOpacity(v){ myAppearance.bg_opacity = v/100; await saveAppearance(); }
+async function uploadBackground(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  if(file.size > 5*1024*1024){ toast('Please choose an image under 5MB'); return; }
+  toast('Uploading…');
+  const path = `${me.email.toLowerCase()}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g,'_')}`;
+  const { error: upErr } = await sb.storage.from('user-backgrounds').upload(path, file, { upsert:true, cacheControl:'3600' });
+  if(upErr){ toast('Upload failed — try a smaller image'); return; }
+  const { data: pub } = sb.storage.from('user-backgrounds').getPublicUrl(path);
+  myAppearance.bg_url = pub.publicUrl;
+  applyBackground(myAppearance.bg_url, myAppearance.bg_opacity);
+  document.getElementById('bg-preview').style.backgroundImage = `url('${myAppearance.bg_url}')`;
+  document.getElementById('bg-opacity-row').style.display = 'block';
+  await saveAppearance();
+  toast('Background updated ✓');
+}
+async function removeBackground(){
+  myAppearance.bg_url = null;
+  applyBackground(null, myAppearance.bg_opacity);
+  document.getElementById('bg-preview').style.backgroundImage = '';
+  document.getElementById('bg-opacity-row').style.display = 'none';
+  await saveAppearance();
 }
 
 // ── DELETED HISTORY (populated by the delete_payee_entry/delete_owed_entry
@@ -1053,6 +1209,8 @@ function renderHome(){
         <div class="exp-meta">${x.date}${card?` · <span class="card-chip" style="background:${card.color}33;color:${card.color};">${escapeHtml(card.card_name)}</span>`:''}</div>
       </div>
       <div style="font-weight:800;">${dhs(x.amount)}</div>
+      <button class="icon-btn" onclick="editExpense(${x.id})" title="Edit">✏️</button>
+      <button class="icon-btn" onclick="deleteExpense(${x.id})" title="Delete (mistake or duplicate?)">🗑️</button>
     </div>`;
   }).join('') : `<div class="empty-state"><span>🧾</span>No spending logged for this month yet</div>`;
 
@@ -1174,9 +1332,10 @@ async function openReport(email, month){
 function closeReport(){ document.getElementById('report-overlay').classList.remove('active'); }
 
 // ── ADD EXPENSE ───────────────────────────────
-function fillCardSelect(){
-  const sel=document.getElementById('add-card');
-  sel.innerHTML = myCards.length ? myCards.map(c=>`<option value="${c.id}">${escapeHtml(c.card_name)}</option>`).join('') : `<option value="">Add a card first →</option>`;
+function fillCardSelect(targetId){
+  const sel=document.getElementById(targetId||'add-card');
+  sel.innerHTML = (myCards.length ? myCards.map(c=>`<option value="${c.id}">${escapeHtml(c.card_name)}</option>`).join('') : `<option value="">Add a card first →</option>`)
+    + `<option value="">No card / cash</option>`;
 }
 async function addExpense(){
   const desc=document.getElementById('add-desc').value.trim();
@@ -1195,6 +1354,46 @@ async function addExpense(){
   // was the reported annoyance, especially when logging several in a row.
 }
 
+// Personal spend is private to the account that logged it — nobody else
+// ever sees it, so (unlike Party Ledger deletes) there's no "other side"
+// to notify and no reason prompt needed. Same plain-confirm pattern as
+// deleteCard()/deleteParty() below, for consistency.
+async function deleteExpense(id){
+  if(!confirm('Delete this spend entry? This can\'t be undone.')) return;
+  const { error } = await sb.from('bill_expenses').delete().eq('id', id);
+  if(error){ toast('Could not delete — try again'); return; }
+  toast('Entry deleted');
+  await loadMyData();
+}
+function editExpense(id){
+  const x = myExpenses.find(e=>e.id===id);
+  if(!x) return;
+  document.getElementById('ee-id').value = x.id;
+  document.getElementById('ee-desc').value = x.description;
+  document.getElementById('ee-amount').value = x.amount;
+  document.getElementById('ee-date').value = x.date;
+  document.getElementById('ee-category').value = x.category || 'other';
+  fillCardSelect('ee-card');
+  document.getElementById('ee-card').value = x.card_id || '';
+  document.getElementById('edit-expense-modal').classList.add('open');
+}
+function closeEditExpense(){ document.getElementById('edit-expense-modal').classList.remove('open'); }
+async function saveEditExpense(){
+  const id = document.getElementById('ee-id').value;
+  const desc = document.getElementById('ee-desc').value.trim();
+  const amount = parseFloat(document.getElementById('ee-amount').value);
+  const date = document.getElementById('ee-date').value;
+  const category = document.getElementById('ee-category').value;
+  const cardId = document.getElementById('ee-card').value;
+  if(!desc||!amount||amount<=0||!date){ toast('Fill in description, amount and date'); return; }
+  const month = date.slice(0,7);
+  const { error } = await sb.from('bill_expenses').update({ description:desc, amount, date, month, category, card_id:cardId||null }).eq('id', id);
+  if(error){ toast('Could not save — try again'); return; }
+  closeEditExpense();
+  toast('Spend updated ✓');
+  await loadMyData();
+}
+
 // ── CARDS ─────────────────────────────────────
 // Due-date math always uses LOCAL calendar days (see localDateStr/localMonthStr
 // above) and clamps to the real last day of the month (so "due day 31" behaves
@@ -1206,31 +1405,14 @@ function nextDueDate(due_day, from=new Date()){
   if(cand<today) cand=new Date(today.getFullYear(),today.getMonth()+1,clampDay(today.getFullYear(),today.getMonth()+1,due_day));
   return cand;
 }
-// A card's actual billing window is "the day after the PREVIOUS due date"
-// through "this due date" — not simply "whichever calendar month the due
-// date falls in". Using calendar-month equality would silently drop or
-// misattribute spending in the days after a due date rolls into a new
-// month but before the new month's due date arrives (e.g. due day 15:
-// spending on the 20th belongs to next month's bill, not this month's —
-// a plain month match gets that wrong right at the boundary that matters
-// most). Both personal spend and card-attribution below use this same
-// window so the two halves of "total bill" always add up consistently.
-function cardBillingWindow(due_day, from=new Date()){
-  const due = nextDueDate(due_day, from);
-  const prevMonthDate = new Date(due.getFullYear(), due.getMonth()-1, 1);
-  const prevDue = new Date(prevMonthDate.getFullYear(), prevMonthDate.getMonth(), clampDay(prevMonthDate.getFullYear(), prevMonthDate.getMonth(), due_day));
-  const windowStart = new Date(prevDue.getFullYear(), prevDue.getMonth(), prevDue.getDate()+1);
-  return { due, windowStart, windowEnd: due };
-}
-function inWindow(dateStr, win){ return dateStr && dateStr >= localDateStr(win.windowStart) && dateStr <= localDateStr(win.windowEnd); }
 // Who charged what to this card this cycle — the cross-user attribution
 // feature. "Others" = bill_payee_entries where this card was picked as the
 // payment method, entry_type='owe' (a debt to the card owner), grouped by
 // who ran it up. Visible to the card owner via the SAME RLS that already
 // lets a "party" see entries logged against them (v5.0) — no new access
 // rule needed, just a new way of grouping data that was already visible.
-function cardAttribution(card, win){
-  const others = owedToMeEntries.filter(e=>e.card_id===card.id && e.entry_type==='owe' && inWindow(e.date, win));
+function cardAttribution(card, month){
+  const others = owedToMeEntries.filter(e=>e.card_id===card.id && e.entry_type==='owe' && e.date && e.date.slice(0,7)===month);
   const byPerson = {};
   others.forEach(e=>{
     const row = owedToMeRows.find(r=>r.entries.some(x=>x.id===e.id));
@@ -1242,15 +1424,15 @@ function cardAttribution(card, win){
 }
 function cardCycleInfo(card){
   if(!card.due_day) return null;
-  const win = cardBillingWindow(card.due_day);
+  const due=nextDueDate(card.due_day);
   const now=new Date(); now.setHours(0,0,0,0);
-  const daysRemaining=Math.round((win.due-now)/86400000);
-  const month=localMonthStr(win.due); // still used as the bill_card_payments row key (one row per due-date month)
+  const daysRemaining=Math.round((due-now)/86400000);
+  const month=localMonthStr(due);
   const payment=myCardPayments.find(p=>p.card_id===card.id && p.month===month);
-  const personalSpend=myExpenses.filter(x=>x.card_id===card.id && inWindow(x.date, win)).reduce((a,x)=>a+Number(x.amount),0);
-  const attribution = cardAttribution(card, win);
+  const personalSpend=myExpenses.filter(x=>x.card_id===card.id && x.month===month).reduce((a,x)=>a+Number(x.amount),0);
+  const attribution = cardAttribution(card, month);
   const amount=(payment&&payment.amount_due!=null)?Number(payment.amount_due):(personalSpend+attribution.othersTotal);
-  return { due:win.due, windowStart:win.windowStart, month, daysRemaining, status:payment?.status||'pending', amount, personalSpend, attribution, paymentId: payment?.id };
+  return { due, month, daysRemaining, status:payment?.status||'pending', amount, personalSpend, attribution, paymentId: payment?.id };
 }
 function renderCards(){
   const grid=document.getElementById('cards-grid');
@@ -1296,8 +1478,8 @@ function openCardDetail(cardId){
       <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:.8rem;"><span>${escapeHtml(name)}</span><span>${dhs(amt)}</span></div>`).join('');
     body = `
       <div style="background:var(--card2);border-radius:12px;padding:14px;margin-bottom:14px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:var(--muted);font-size:.78rem;">Total bill</span><b style="font-size:1.2rem;">${dhs(cyc.amount)}</b></div>
-        <div style="font-size:.72rem;color:var(--muted);margin-top:4px;">Billing window ${cyc.windowStart.toLocaleDateString('en-GB',{day:'numeric',month:'short'})} – ${cyc.due.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})} · ${paid?'paid':(cyc.daysRemaining<0?Math.abs(cyc.daysRemaining)+'d overdue':cyc.daysRemaining+'d remaining')}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:var(--muted);font-size:.78rem;">Total bill (${cyc.month})</span><b style="font-size:1.2rem;">${dhs(cyc.amount)}</b></div>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:4px;">Due ${cyc.due.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})} — ${paid?'paid':(cyc.daysRemaining<0?Math.abs(cyc.daysRemaining)+'d overdue':cyc.daysRemaining+'d remaining')}</div>
       </div>
       <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span>Your personal spend</span><b>${dhs(cyc.personalSpend)}</b></div>
       ${peopleRows ? `<div style="margin-top:8px;"><div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;font-weight:800;margin-bottom:4px;">Charged by others</div>${peopleRows}
@@ -1490,262 +1672,4 @@ function renderPayeeBalances(){
     </div>`;
   }).join('');
 }
-// Works for an entry on EITHER side of the relationship — your own
-// party-ledger row, or one the linked party logged from their side.
-function deletePayeeEntry(id){
-  let row = myPayeeEntries.find(e=>e.id===id), payee, counterpart, ownSide=true;
-  if(row){
-    payee = myPayees.find(p=>p.id===row.payee_id);
-    counterpart = payee?.party_email || null;
-  } else {
-    row = owedToMeEntries.find(e=>e.id===id);
-    if(!row){ toast('Entry not found'); return; }
-    payee = owedToMePayees.find(p=>p.id===row.payee_id);
-    counterpart = payee?.user_email || null;
-    ownSide = false;
-  }
-  const who = ownSide ? payee?.party_name : (payee?.user_email||'this entry');
-  requestDelete('payee_entry', id, counterpart, `${who} · ${Number(row.amount).toFixed(2)} AED`);
-}
-// One-tap settlement — inserts a 'paid' entry for the full outstanding
-// balance. Works from either side: fromOtherSide=true means "I'm the one
-// who's owed, marking it settled from the Owed to You tab".
-async function settleUpParty(payeeId, balance, fromOtherSide){
-  if(!confirm(`Mark ${Number(balance).toFixed(2)} AED as settled?`)) return;
-  const ownerEmail = fromOtherSide ? (owedToMeRows.find(r=>r.payeeId===payeeId)?.fromEmail) : managing.email;
-  if(!ownerEmail){ toast('Could not find this relationship'); return; }
-  const today=localDateStr(new Date());
-  const { error } = await sb.from('bill_payee_entries').insert({
-    user_email:ownerEmail, payee_id:payeeId, amount:balance, entry_type:'paid',
-    note:'Settled up', date:today, month:today.slice(0,7), created_by_email:managing.email
-  });
-  if(error){ toast('Could not settle — try again'); return; }
-  toast('Settled ✓');
-  await loadMyData();
-  await loadOwedToMe();
-}
-
-// ── REVERSE VIEW: other people who logged ME as their party — now fully
-// interactive, not read-only: you can log entries and delete them from
-// this side too, exactly like the person who added you can. ──
-let owedToMeRows = [], owedToMeEntries = [], owedToMePayees = [];
-async function loadOwedToMe(){
-  const { data: linkedPayees } = await sb.from('bill_payees').select('*').ilike('party_email', escLike(managing.email));
-  owedToMePayees = linkedPayees || [];
-  if(!owedToMePayees.length){ owedToMeRows = []; owedToMeEntries = []; renderHome(); return; }
-  const ids = owedToMePayees.map(p=>p.id);
-  const [{ data: entries }, { data: everyone }] = await Promise.all([
-    sb.from('bill_payee_entries').select('*').in('payee_id', ids).order('date',{ascending:false}),
-    sb.from('app_users').select('email,name,emoji')
-  ]);
-  owedToMeEntries = entries || [];
-  owedToMeRows = owedToMePayees.map(p=>{
-    const es = owedToMeEntries.filter(e=>e.payee_id===p.id);
-    const owe = es.filter(e=>e.entry_type==='owe').reduce((a,x)=>a+Number(x.amount),0);
-    const paid = es.filter(e=>e.entry_type==='paid').reduce((a,x)=>a+Number(x.amount),0);
-    const debtor = (everyone||[]).find(u=>u.email.toLowerCase()===p.user_email.toLowerCase());
-    return { payeeId:p.id, fromEmail:p.user_email, fromName: debtor?.name || p.user_email, fromEmoji: debtor?.emoji || '👤', balance: owe-paid, count: es.length, entries: es };
-  });
-  renderHome();
-}
-function renderOwedToMe(){
-  const el=document.getElementById('owed-to-me-list');
-  if(!el) return;
-  if(!owedToMeRows.length){ el.innerHTML = `<div class="empty-state"><span>🔁</span>No one's logged owing you anything yet. If someone owes you, you can add them as a Party yourself (🎉 Party tab, their email optional) and log it here directly.</div>`; return; }
-  el.innerHTML = owedToMeRows.map(r=>{
-    const entryRows = r.entries.slice(0,8).map(e=>{
-      const loggedByYou = e.created_by_email && e.created_by_email.toLowerCase()===managing.email.toLowerCase();
-      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:.72rem;color:var(--muted);">
-        <span>${e.date} · ${e.entry_type==='owe'?'they owe':'they paid'} · ${dhs(e.amount)}${e.note?' · '+escapeHtml(e.note):''}${loggedByYou?' · <i>logged by you</i>':''}</span>
-        <button class="icon-btn" onclick="deletePayeeEntry(${e.id})" title="Delete (mistake?)">🗑️</button>
-      </div>`;
-    }).join('');
-    return `<div class="owed-row settle" style="flex-direction:column;align-items:stretch;">
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div class="b-left"><div class="b-name">${r.fromEmoji} ${escapeHtml(r.fromName)}</div><div class="b-sub">${r.count} entr${r.count===1?'y':'ies'}</div></div>
-        <div class="b-amt ${r.balance>0?'pos':'neg'}">${dhs(Math.max(r.balance,0))}</div>
-      </div>
-      ${entryRows}
-      <div style="display:flex;gap:8px;margin-top:8px;">
-        <button class="btn-tiny" onclick="openAddFromOwedToMe(${r.payeeId})">+ Log entry</button>
-        ${r.balance>0?`<button class="btn-tiny ghost" onclick="settleUpParty(${r.payeeId},${r.balance},true)">✅ Settle up</button>`:''}
-      </div>
-    </div>`;
-  }).join('');
-}
-
-// ── Quick entry modal — lets the OWED side log a transaction directly,
-// same underlying table, without needing the debtor to do it first. ──
-let _pendingOwedToMeAdd=null;
-function openAddFromOwedToMe(payeeId){
-  const row = owedToMeRows.find(r=>r.payeeId===payeeId);
-  if(!row) return;
-  _pendingOwedToMeAdd = { payeeId, ownerEmail: row.fromEmail };
-  document.getElementById('qe-title').textContent = `Log an entry — ${row.fromName}`;
-  document.getElementById('qe-amount').value=''; document.getElementById('qe-note').value='';
-  document.getElementById('qe-date').value = localDateStr(new Date());
-  document.getElementById('qe-type').value = 'owe';
-  document.getElementById('quick-entry-modal').classList.add('open');
-}
-function closeQuickEntry(){ document.getElementById('quick-entry-modal').classList.remove('open'); _pendingOwedToMeAdd=null; }
-async function submitQuickEntry(){
-  if(!_pendingOwedToMeAdd) return;
-  const amount=parseFloat(document.getElementById('qe-amount').value);
-  const date=document.getElementById('qe-date').value;
-  const entry_type=document.getElementById('qe-type').value;
-  const note=document.getElementById('qe-note').value.trim();
-  if(!amount||amount<=0||!date){ toast('Fill in amount and date'); return; }
-  const { error } = await sb.from('bill_payee_entries').insert({
-    user_email:_pendingOwedToMeAdd.ownerEmail, payee_id:_pendingOwedToMeAdd.payeeId,
-    amount, entry_type, note, date, month:date.slice(0,7), created_by_email:managing.email
-  });
-  if(error){ toast('Could not save — ask them to add you as a Party first'); return; }
-  closeQuickEntry();
-  toast('Saved ✓');
-  await loadOwedToMe();
-}
-
-// ── ADMIN ──────────────────────────────────────
-async function openAdmin(){
-  document.getElementById('admin-overlay').classList.add('active');
-  await loadAllUsers();
-}
-function closeAdmin(){ document.getElementById('admin-overlay').classList.remove('active'); }
-function switchAdminTab(name){
-  document.querySelectorAll('.admin-tab-btn').forEach(b=>b.classList.remove('active'));
-  document.querySelectorAll('.admin-tab-page').forEach(p=>p.classList.remove('active'));
-  document.getElementById('atab-'+name).classList.add('active');
-  document.getElementById('atp-'+name).classList.add('active');
-}
-
-async function loadAllUsers(){
-  const { data } = await sb.from('app_users').select('*').order('created_at');
-  allUsers = data||[];
-  renderAdminUsers();
-  const opts = allUsers.map(u=>`<option value="${u.email}">${escapeHtml(u.name)} (${u.email})</option>`).join('');
-  document.getElementById('ow-user').innerHTML = opts;
-  document.getElementById('sp-user').innerHTML = opts;
-  if(allUsers.length) loadAdminSpending();
-}
-function renderAdminUsers(){
-  const el=document.getElementById('admin-users-list');
-  el.innerHTML = allUsers.length ? allUsers.map(u=>`
-    <div class="user-row">
-      <div class="u-left">
-        <div class="av-sm" style="background:${u.color};">${u.emoji}</div>
-        <div>
-          <div style="font-weight:800;font-size:.85rem;">${escapeHtml(u.name)} ${u.is_admin?'<span class="admin-badge2">ADMIN</span>':''}</div>
-          <div style="font-size:.68rem;color:var(--muted);">${u.email}</div>
-          ${u.delegate_email?`<div style="font-size:.65rem;color:var(--accent2);">🔑 delegate: ${escapeHtml(u.delegate_email)}</div>`:''}
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;gap:4px;">
-        <span class="grp-badge ${u.group_type==='squad_split'?'grp-squad':'grp-general'}">${u.group_type==='squad_split'?'Squad':'General'}</span>
-        <button class="icon-btn" title="View this person's report" onclick="adminSendOneReport('${u.email}')">📊</button>
-        <button class="icon-btn" title="Edit user" onclick="openEditUser(${u.id})">✏️</button>
-        <button class="icon-btn" onclick="deleteUser(${u.id})">🗑️</button>
-      </div>
-    </div>`).join('') : `<div class="empty-state"><span>👥</span>No one added yet</div>`;
-}
-// Full edit — works identically for every user regardless of whether they
-// were created manually or via "Import from Squad": same fields, same
-// delegate assignment, no special-casing by origin.
-function openEditUser(id){
-  const u = allUsers.find(x=>x.id===id);
-  if(!u) return;
-  document.getElementById('eu-id').value = u.id;
-  document.getElementById('eu-name').value = u.name;
-  document.getElementById('eu-email').value = u.email;
-  document.getElementById('eu-group').value = u.group_type;
-  document.getElementById('eu-admin').value = String(!!u.is_admin);
-  document.getElementById('eu-delegate').value = u.delegate_email || '';
-  document.getElementById('edit-user-modal').classList.add('open');
-}
-function closeEditUser(){ document.getElementById('edit-user-modal').classList.remove('open'); }
-async function saveEditUser(){
-  const id = Number(document.getElementById('eu-id').value);
-  const name = document.getElementById('eu-name').value.trim();
-  const email = document.getElementById('eu-email').value.trim().toLowerCase();
-  const group_type = document.getElementById('eu-group').value;
-  const is_admin = document.getElementById('eu-admin').value==='true';
-  const delegate_email = document.getElementById('eu-delegate').value.trim().toLowerCase() || null;
-  if(!name||!email){ toast('Name and email are required'); return; }
-  const { error } = await sb.from('app_users').update({ name, email, group_type, is_admin, delegate_email }).eq('id', id);
-  if(error){ toast(error.code==='23505' ? 'That email is already used by someone else' : 'Could not save'); return; }
-  closeEditUser();
-  toast('User updated ✓');
-  await loadAllUsers();
-}
-async function adminSendOneReport(email){
-  await openReport(email, viewMonth);
-}
-async function createUser(){
-  const email=document.getElementById('nu-email').value.trim().toLowerCase();
-  const name=document.getElementById('nu-name').value.trim();
-  const group_type=document.getElementById('nu-group').value;
-  const is_admin=document.getElementById('nu-admin').value==='true';
-  const delegate_email=document.getElementById('nu-delegate').value.trim().toLowerCase()||null;
-  if(!email||!name){ toast('Enter email and name'); return; }
-  const emoji=['😎','🦁','🐯','🦊','🐺','🎯','🚀','💎'][allUsers.length%8];
-  const color=CARD_COLORS[allUsers.length%CARD_COLORS.length];
-  const { error } = await sb.from('app_users').insert({ email, name, group_type, is_admin, emoji, color, delegate_email });
-  if(error){ toast(error.code==='23505'?'That email is already added':'Could not add user'); return; }
-  document.getElementById('nu-email').value=''; document.getElementById('nu-name').value=''; document.getElementById('nu-delegate').value='';
-  toast('User added ✓');
-  await loadAllUsers();
-}
-async function deleteUser(id){
-  if(!confirm('Remove this person from Bill Tracker? Their data stays but they can no longer log in.')) return;
-  await sb.from('app_users').delete().eq('id',id);
-  await loadAllUsers();
-}
-async function importFromSquad(){
-  const { data, error } = await sb.from('members_config').select('*');
-  if(error || !data){ toast('Could not read Squad members'); return; }
-  const toAdd = data.filter(m=>m.email && !allUsers.some(u=>u.email.toLowerCase()===m.email.toLowerCase()));
-  if(!toAdd.length){ toast('Nothing new to import'); return; }
-  const rows = toAdd.map(m=>({ email:m.email.toLowerCase(), name:m.name, group_type:'squad_split', is_admin:!!m.is_admin, emoji:m.emoji||'😎', color:m.color||'#4d96ff' }));
-  const { error: insErr } = await sb.from('app_users').insert(rows);
-  if(insErr){ toast('Import failed'); return; }
-  toast(`Imported ${rows.length} squad member(s) ✓ — edit any of them the same as manually-added users, including setting a delegate`);
-  await loadAllUsers();
-}
-
-async function adminAddOwed(){
-  const user_email=document.getElementById('ow-user').value;
-  const amount=parseFloat(document.getElementById('ow-amount').value);
-  const month=document.getElementById('ow-month').value || viewMonth;
-  const note=document.getElementById('ow-note').value.trim();
-  if(!user_email||!amount){ toast('Pick a person and amount'); return; }
-  const { error } = await sb.from('bill_owed').insert({ user_email, amount, month, note });
-  if(error){ toast('Could not add'); return; }
-  document.getElementById('ow-amount').value=''; document.getElementById('ow-note').value='';
-  toast('Owed entry added ✓');
-  loadAdminOwedList();
-}
-async function loadAdminOwedList(){
-  const { data } = await sb.from('bill_owed').select('*').order('created_at',{ascending:false}).limit(50);
-  const el=document.getElementById('admin-owed-list');
-  el.innerHTML = (data||[]).map(o=>`
-    <div class="owed-row"><div class="b-left"><div class="b-name">${escapeHtml(o.user_email)}</div><div class="b-sub">${escapeHtml(o.note||'')} · ${o.month}</div></div><div class="b-amt neg">${dhs(o.amount)}</div></div>
-  `).join('') || `<div class="empty-state"><span>⚖️</span>No entries yet</div>`;
-}
-document.addEventListener('DOMContentLoaded',()=>{ /* placeholder no-op to keep load order simple */ });
-
-async function loadAdminSpending(){
-  const email=document.getElementById('sp-user').value;
-  if(!email) return;
-  const { data } = await sb.from('bill_expenses').select('*').ilike('user_email',email).order('date',{ascending:false}).limit(60);
-  const el=document.getElementById('admin-spending-list');
-  el.innerHTML = (data||[]).length ? data.map(x=>`
-    <div class="exp-item-card"><div class="exp-icon">${CAT_ICONS[x.category]||'📦'}</div><div style="flex:1;"><div class="exp-name">${escapeHtml(x.description)}</div><div class="exp-meta">${x.date}</div></div><div style="font-weight:800;">${dhs(x.amount)}</div></div>
-  `).join('') : `<div class="empty-state"><span>📊</span>No spending logged yet</div>`;
-}
-// load owed list when that admin tab is first opened
-const _origSwitchAdminTab = switchAdminTab;
-switchAdminTab = function(name){ _origSwitchAdminTab(name); if(name==='owed') loadAdminOwedList(); };
-
-function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s??''; return d.innerHTML; }
-</script>
-</body>
-</html>
+/
