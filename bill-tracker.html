@@ -294,6 +294,28 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
           </div>
           <button class="btn-add" onclick="recordSettlement()">Record Payment</button>
         </div>
+
+        <!-- v7.2: admin / admin-delegate only — add directly to whoever is currently
+             being managed, no need to leave this tab for the separate Admin panel -->
+        <div class="card" id="owed-admin-controls" style="display:none;">
+          <div class="section-title" style="font-size:.85rem;margin-top:0;">🏦 Add an owed amount</div>
+          <div class="form-row">
+            <div class="fg">
+              <label>Amount (AED)</label>
+              <input type="number" id="inline-owed-amount" placeholder="0.00" step="0.01" min="0">
+            </div>
+            <div class="fg">
+              <label>Month</label>
+              <input type="month" id="inline-owed-month">
+            </div>
+          </div>
+          <div class="fg">
+            <label>Note (optional)</label>
+            <input type="text" id="inline-owed-note" placeholder="e.g. Electricity bill share">
+          </div>
+          <button class="btn-add" onclick="addOwedInline()">Add Owed Entry</button>
+        </div>
+
         <div id="owed-list"></div>
       </div>
 
@@ -742,6 +764,8 @@ function escLike(s){ return String(s||'').replace(/[%_\\]/g,m=>'\\'+m); }
 // ── STATE ────────────────────────────────────
 let me = null;               // row from app_users — who actually logged in
 let managing = null;         // row from app_users — whose account we're viewing (may be delegated)
+let iAmAdminDelegate = false; // true if the logged-in email is set as delegate_email on an admin's row —
+                               // gives admin-equivalent rights on the "Owed to Admin" ledger (v7.2)
 let currentEmail = '';
 let viewMonth = localMonthStr(new Date());
 let myCards = [], myExpenses = [], myOwed = [], mySettlements = [], myPayees = [], myPayeeEntries = [];
@@ -753,6 +777,9 @@ let notifications = [];
 function dhs(n){ return `<span class="dhs">${(Number(n)||0).toFixed(2)} <small>AED</small></span>`; }
 function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.style.display='block'; setTimeout(()=>t.style.display='none',2600); }
 function showErr(id,msg){ const e=document.getElementById(id); e.textContent=msg; e.style.display='block'; setTimeout(()=>e.style.display='none',4000); }
+// v7.2 — true admin OR someone delegating for an admin: the two roles allowed
+// to add/edit/delete on the admin-assigned "Owed to Admin" ledger.
+function canManageOwed(){ return !!(me && (me.is_admin || iAmAdminDelegate)); }
 
 // ── INIT ─────────────────────────────────────
 // Everything is wrapped so ONE unexpected error (a missing element, a slow
@@ -863,6 +890,9 @@ async function tryEnter(){
   delegated.forEach(d=>options.push({...d, _label:'Delegated — '+d.name}));
   window._accountOptions = options;
   me = own || delegated[0];
+  // v7.2: does this login stand in for an admin anywhere? `delegated` already
+  // holds every account this email is delegate_email for — no extra query.
+  iAmAdminDelegate = delegated.some(d => d.is_admin === true);
 
   if(delegated.length===0){
     managing = own;
@@ -1236,9 +1266,9 @@ async function confirmDeleteWithReason(){
   const reason=document.getElementById('delete-reason-input').value.trim();
   if(!reason){ toast('Please enter a short reason — the other side will see it'); return; }
   const { kind, id } = _pendingDelete;
-  const { data, error } = kind==='payee_entry'
-    ? await sb.rpc('delete_payee_entry', { p_entry_id:id, p_reason:reason })
-    : await sb.rpc('delete_owed_entry', { p_id:id, p_reason:reason });
+  const rpcName = kind==='payee_entry' ? 'delete_payee_entry' : kind==='settlement' ? 'delete_settlement_entry' : 'delete_owed_entry';
+  const rpcArgs = kind==='payee_entry' ? { p_entry_id:id, p_reason:reason } : { p_id:id, p_reason:reason };
+  const { data, error } = await sb.rpc(rpcName, rpcArgs);
   closeDeleteModal();
   if(error || !data?.ok){ toast('Could not delete — ' + (data?.error || 'try again')); return; }
   toast('Deleted ✓ — the other side has been notified, and it\'s in Deleted History');
@@ -1280,21 +1310,32 @@ function renderHome(){
   sumOweEl.innerHTML = dhs(Math.max(bal,0));
   sumOweEl.style.color = bal>0 ? 'var(--red)' : 'var(--green)';
 
+  const canOwed = canManageOwed();
+  const owedCtrl = document.getElementById('owed-admin-controls');
+  if(owedCtrl){
+    owedCtrl.style.display = canOwed ? 'block' : 'none';
+    const moEl = document.getElementById('inline-owed-month');
+    if(moEl && !moEl.value) moEl.value = viewMonth;
+  }
   const oList=document.getElementById('owed-list');
   oList.innerHTML = myOwed.length ? myOwed.map(o=>`
-    <div class="owed-row"><div class="b-left"><div class="b-name">${escapeHtml(o.note||'Owed amount')}</div><div class="b-sub">${o.month}</div></div><div class="b-amt neg">${dhs(o.amount)}</div>${me.is_admin?`<button class="icon-btn" onclick="deleteOwedEntry(${o.id})" title="Delete (mistake?)">🗑️</button>`:''}</div>
+    <div class="owed-row"><div class="b-left"><div class="b-name">${escapeHtml(o.note||'Owed amount')}</div><div class="b-sub">${o.month}</div></div><div class="b-amt neg">${dhs(o.amount)}</div>${canOwed?`<button class="icon-btn" onclick="deleteOwedEntry(${o.id})" title="Delete (mistake?)">🗑️</button>`:''}</div>
   `).join('') : `<div class="empty-state"><span>✅</span>Nothing added yet</div>`;
 
   const sList=document.getElementById('settle-list');
   const historyRows = [
-    ...mySettlements.map(s=>({ when: s.created_at||s.month, label:'Paid to admin', sub: s.month, amount: s.amount })),
+    ...mySettlements.map(s=>({ id:s.id, kind:'settlement', when: s.created_at||s.month, label:'Paid to admin', sub: s.month, amount: s.amount })),
     ...myPayeeEntries.filter(e=>e.entry_type==='paid').map(e=>{
       const payee = myPayees.find(p=>p.id===e.payee_id);
-      return { when: e.date, label:`Paid ${payee?escapeHtml(payee.party_name):'someone'}`, sub: e.note||e.date, amount: e.amount };
+      return { id:e.id, kind:'payee', when: e.date, label:`Paid ${payee?escapeHtml(payee.party_name):'someone'}`, sub: e.note||e.date, amount: e.amount };
     }),
   ].sort((a,b)=>String(b.when).localeCompare(String(a.when)));
+  // v7.2: every history row is now deletable (with a required reason — see
+  // requestDelete) by whoever logged it, their delegate, or admin — previously
+  // this whole tab was read-only, so a mistaken "paid to admin" entry had no
+  // fix short of a direct database edit.
   sList.innerHTML = historyRows.length ? historyRows.map(h=>`
-    <div class="owed-row settle"><div class="b-left"><div class="b-name">${h.label}</div><div class="b-sub">${escapeHtml(String(h.sub))}</div></div><div class="b-amt pos">${dhs(h.amount)}</div></div>
+    <div class="owed-row settle"><div class="b-left"><div class="b-name">${h.label}</div><div class="b-sub">${escapeHtml(String(h.sub))}</div></div><div class="b-amt pos">${dhs(h.amount)}</div><button class="icon-btn" onclick="${h.kind==='settlement'?`deleteSettlementEntry(${h.id})`:`deletePayeeEntry(${h.id})`}" title="Delete (mistake?)">🗑️</button></div>
   `).join('') : `<div class="empty-state"><span>💸</span>No payments recorded yet</div>`;
   renderPayeeBalances();
 
@@ -1674,8 +1715,32 @@ async function recordSettlement(){
   const { error } = await sb.from('bill_settlements').insert({ user_email:managing.email, amount, month:viewMonth });
   if(error){ toast('Could not save'); return; }
   document.getElementById('settle-amount').value='';
-  toast('Payment recorded ✓');
+  toast('Payment recorded ✓ — admin has been notified');
   await loadMyData();
+}
+// v7.2 — admin (or an admin-delegate) assigning an owed amount to whoever is
+// currently being managed, inline from this tab instead of the separate
+// Admin panel. RLS (bill_owed_insert) enforces the same permission
+// server-side, so this is a convenience, not the real security boundary.
+async function addOwedInline(){
+  if(!canManageOwed()){ toast('Only admin or an admin delegate can add this'); return; }
+  const amount=parseFloat(document.getElementById('inline-owed-amount').value);
+  const month=document.getElementById('inline-owed-month').value || viewMonth;
+  const note=document.getElementById('inline-owed-note').value.trim();
+  if(!amount||amount<=0){ toast('Enter an amount'); return; }
+  const { error } = await sb.from('bill_owed').insert({ user_email:managing.email, amount, month, note });
+  if(error){ toast('Could not add — '+(error.message||'try again')); return; }
+  document.getElementById('inline-owed-amount').value='';
+  document.getElementById('inline-owed-note').value='';
+  toast('Owed entry added ✓ — they\'ve been notified');
+  await loadMyData();
+}
+// v7.2 — delete-with-reason for a "paid to admin" settlement row, same
+// pattern as deleteOwedEntry/deletePayeeEntry. Owner, their delegate, or
+// admin may call this; delete_settlement_entry() re-checks server-side.
+function deleteSettlementEntry(id){
+  const row = mySettlements.find(s=>s.id===id);
+  requestDelete('settlement', id, null, `Paid to admin · ${row?.month||''} · ${Number(row?.amount||0).toFixed(2)} AED`);
 }
 
 // ── ADD PAGE SUB-TABS ─────────────────────────
@@ -1819,7 +1884,10 @@ function renderPayeeBalances(){
         <div class="b-amt ${bal>0?'neg':'pos'}">${dhs(Math.max(bal,0))}</div>
       </div>
       ${entryRows}
-      ${bal>0?`<button class="btn-tiny ghost" style="margin-top:6px;align-self:flex-start;" onclick="settleUpParty(${p.id},${bal},false)">✅ Settle up (${bal.toFixed(2)} AED)</button>`:''}
+      <div style="display:flex;gap:8px;margin-top:6px;">
+        <button class="btn-tiny" onclick="openAddFromOwedToOthers(${p.id})">+ Log entry</button>
+        ${bal>0?`<button class="btn-tiny ghost" onclick="settleUpParty(${p.id},${bal},false)">✅ Settle up (${bal.toFixed(2)} AED)</button>`:''}
+      </div>
     </div>`;
   }).join('');
 }
@@ -1983,6 +2051,20 @@ function openAddFromOwedToMe(payeeId){
   document.getElementById('quick-entry-modal').classList.add('open');
 }
 function closeQuickEntry(){ document.getElementById('quick-entry-modal').classList.remove('open'); _pendingOwedToMeAdd=null; }
+// v7.2 — same quick-entry modal, opened from the Owed to Others side instead:
+// here `managing` IS the ledger owner (you're logging what you owe/paid
+// them), the mirror image of openAddFromOwedToMe where the owner is the
+// other person.
+function openAddFromOwedToOthers(payeeId){
+  const p = myPayees.find(x=>x.id===payeeId);
+  if(!p) return;
+  _pendingOwedToMeAdd = { payeeId, ownerEmail: managing.email };
+  document.getElementById('qe-title').textContent = `Log an entry — ${escapeHtml(p.party_name)}`;
+  document.getElementById('qe-amount').value=''; document.getElementById('qe-note').value='';
+  document.getElementById('qe-date').value = localDateStr(new Date());
+  document.getElementById('qe-type').value = 'owe';
+  document.getElementById('quick-entry-modal').classList.add('open');
+}
 async function submitQuickEntry(){
   if(!_pendingOwedToMeAdd) return;
   const amount=parseFloat(document.getElementById('qe-amount').value);
@@ -1997,6 +2079,10 @@ async function submitQuickEntry(){
   if(error){ toast('Could not save — ask them to add you as a Party first'); return; }
   closeQuickEntry();
   toast('Saved ✓');
+  // v7.2: this modal now serves both directions (Owed to Others AND Owed to
+  // You), so refresh both — loadMyData covers myPayeeEntries, loadOwedToMe
+  // covers the reverse view; whichever didn't change is a harmless no-op.
+  await loadMyData();
   await loadOwedToMe();
 }
 
