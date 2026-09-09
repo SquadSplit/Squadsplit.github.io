@@ -6,6 +6,12 @@
 <title>Bill Tracker 🧾</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.9"></script>
+<!-- v7.3: report export libraries. Both are optional at runtime — the
+     in-portal report never depends on them, only the ⬇️ PDF / ⬇️ Excel
+     buttons do (see exportReportPDF/exportReportExcel's own checks). -->
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf-autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 :root {
   --bg:#0b0b18;--card:#13132a;--card2:#1a1a35;--border:#2a2a50;
@@ -263,7 +269,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
       <button class="admin-tab-btn" onclick="switchHomeTab('owedtome')" id="htab-owedtome">🔁 Owed to You</button>
     </div>
 
-    <button class="report-btn" id="btn-email-report" onclick="viewMyReport()">📊 View my report for this month</button>
+    <button class="report-btn" id="btn-email-report" onclick="openReportPeriodModal()">📊 View report / statement</button>
 
     <div class="admin-tab-page active" id="hometab-spent">
       <div class="card" style="text-align:center;">
@@ -716,8 +722,56 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   </div>
 </div>
 
-<div class="modal-overlay" id="manage-shares-modal">
+<!-- v7.3: full breakdown for a party — no more being capped at the inline
+     preview count. Same modal serves Owed to Others and Owed to You. -->
+<div class="modal-overlay" id="payee-detail-modal">
+  <div class="modal-box" style="max-width:460px;max-height:82vh;overflow-y:auto;">
+    <h3 id="payee-detail-title">Party</h3>
+    <p id="payee-detail-balance" style="font-size:.85rem;margin:-6px 0 12px;color:var(--muted);"></p>
+    <div id="payee-detail-body"></div>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="closePayeeDetail()">Close</button></div>
+  </div>
+</div>
+
+<!-- v7.3: settle up now asks for an amount instead of always settling the
+     full balance in one tap — enter less for a partial settlement. -->
+<div class="modal-overlay" id="settle-amount-modal">
   <div class="modal-box">
+    <h3>✅ Settle up</h3>
+    <p id="settle-amount-context" style="font-size:.8rem;color:var(--muted);margin-bottom:10px;"></p>
+    <div class="fg"><label>Amount to settle (AED)</label><input type="number" id="settle-amount-input" step="0.01" min="0"></div>
+    <p style="font-size:.68rem;color:var(--muted);margin-top:2px;">Leave it as the full balance, or lower it for a partial payment — the rest stays owed. You can edit or delete this from the entry list afterward if you get it wrong.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeSettleAmountModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmSettleAmount()">Settle</button>
+    </div>
+  </div>
+</div>
+
+<!-- v7.3: pick a period before generating a report — replaces the old
+     always-this-month-only button. -->
+<div class="modal-overlay" id="report-period-modal">
+  <div class="modal-box">
+    <h3>📊 View report / statement</h3>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
+      <button class="btn-tiny ghost" onclick="setReportPreset('this_month')">This month</button>
+      <button class="btn-tiny ghost" onclick="setReportPreset('last_month')">Last month</button>
+      <button class="btn-tiny ghost" onclick="setReportPreset('last_3')">Last 3 months</button>
+      <button class="btn-tiny ghost" onclick="setReportPreset('this_year')">This year</button>
+      <button class="btn-tiny ghost" onclick="setReportPreset('all')">All time</button>
+    </div>
+    <div class="form-row">
+      <div class="fg"><label>From</label><input type="date" id="report-from-date"></div>
+      <div class="fg"><label>To</label><input type="date" id="report-to-date"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeReportPeriodModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="generateReportFromPicker()">Generate</button>
+    </div>
+  </div>
+</div>
+
+
     <h3 id="manage-shares-title">💳 Share this card</h3>
     <p style="font-size:.76rem;color:var(--muted);margin-bottom:10px;">Only people you add here can select this card when they log what they spent using it — no one else sees it, even in the payee dropdown.</p>
     <div id="manage-shares-list" style="margin-bottom:12px;"></div>
@@ -1318,9 +1372,32 @@ function renderHome(){
     if(moEl && !moEl.value) moEl.value = viewMonth;
   }
   const oList=document.getElementById('owed-list');
-  oList.innerHTML = myOwed.length ? myOwed.map(o=>`
-    <div class="owed-row"><div class="b-left"><div class="b-name">${escapeHtml(o.note||'Owed amount')}</div><div class="b-sub">${o.month}</div></div><div class="b-amt neg">${dhs(o.amount)}</div>${canOwed?`<button class="icon-btn" onclick="deleteOwedEntry(${o.id})" title="Delete (mistake?)">🗑️</button>`:''}</div>
-  `).join('') : `<div class="empty-state"><span>✅</span>Nothing added yet</div>`;
+  if(!myOwed.length){
+    oList.innerHTML = `<div class="empty-state"><span>✅</span>Nothing added yet</div>`;
+  } else {
+    // v7.3: grouped by month so it's visible at a glance that nothing here
+    // resets month to month — "You owe overall" above has always summed
+    // every unpaid entry regardless of month (confirmed — it's totalOwed
+    // minus totalSettled over the FULL myOwed/mySettlements arrays, no
+    // month filter). This just makes that carry-forward visible instead of
+    // leaving it invisible math; the total itself is unchanged.
+    const byMonth = {};
+    myOwed.forEach(o=>{ (byMonth[o.month]=byMonth[o.month]||[]).push(o); });
+    const months = Object.keys(byMonth).sort().reverse();
+    const carriedTotal = myOwed.filter(o=>o.month!==viewMonth).reduce((a,x)=>a+Number(x.amount),0);
+    oList.innerHTML =
+      (carriedTotal>0?`<div style="font-size:.7rem;color:var(--muted);padding:2px 2px 8px;">📜 Includes ${carriedTotal.toFixed(2)} AED carried forward from earlier months below — it never resets on its own, it only clears when paid or removed.</div>`:'') +
+      months.map(mo=>{
+        const rows = byMonth[mo];
+        const subtotal = rows.reduce((a,x)=>a+Number(x.amount),0);
+        return `<div style="margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;font-size:.68rem;color:var(--accent4);font-weight:800;margin-bottom:2px;padding:0 2px;">
+            <span>${mo}${mo!==viewMonth?' · carried':''}</span><span>${subtotal.toFixed(2)} AED</span>
+          </div>
+          ${rows.map(o=>`<div class="owed-row"><div class="b-left"><div class="b-name">${escapeHtml(o.note||'Owed amount')}</div><div class="b-sub">${o.month}</div></div><div class="b-amt neg">${dhs(o.amount)}</div>${canOwed?`<button class="icon-btn" onclick="deleteOwedEntry(${o.id})" title="Delete (mistake?)">🗑️</button>`:''}</div>`).join('')}
+        </div>`;
+      }).join('');
+  }
 
   const sList=document.getElementById('settle-list');
   const historyRows = [
@@ -1345,57 +1422,100 @@ function renderHome(){
   renderOwedToMe();
 }
 
-async function viewMyReport(){ await openReport(managing.email, viewMonth); }
+async function viewMyReport(){ openReportPeriodModal(); }
+function openReportPeriodModal(){
+  const today = localDateStr(new Date());
+  document.getElementById('report-from-date').value = viewMonth + '-01';
+  document.getElementById('report-to-date').value = today;
+  document.getElementById('report-period-modal').classList.add('open');
+}
+function closeReportPeriodModal(){ document.getElementById('report-period-modal').classList.remove('open'); }
+function setReportPreset(kind){
+  const now = new Date();
+  const y = now.getFullYear(), m = now.getMonth(); // m is 0-based
+  let from, to = localDateStr(now);
+  if(kind==='this_month'){ from = `${y}-${String(m+1).padStart(2,'0')}-01`; }
+  else if(kind==='last_month'){ from = localDateStr(new Date(y, m-1, 1)); to = localDateStr(new Date(y, m, 0)); }
+  else if(kind==='last_3'){ from = localDateStr(new Date(y, m-2, 1)); }
+  else if(kind==='this_year'){ from = `${y}-01-01`; }
+  else if(kind==='all'){ from = '2000-01-01'; }
+  document.getElementById('report-from-date').value = from;
+  document.getElementById('report-to-date').value = to;
+}
+async function generateReportFromPicker(){
+  const from = document.getElementById('report-from-date').value;
+  const to = document.getElementById('report-to-date').value;
+  if(!from || !to){ toast('Pick both dates'); return; }
+  if(from > to){ toast('"From" has to be before "To"'); return; }
+  closeReportPeriodModal();
+  await openReport(managing.email, from, to);
+}
 
 // Builds the same content an emailed report used to show, live from the
 // database, rendered in an overlay instead — no email, no third party.
-async function buildReportHTML(email, month){
-  const [{data:userRow},{data:members}] = await Promise.all([
-    sb.from('app_users').select('*').ilike('email',escLike(email)).maybeSingle(),
+// v7.3: takes a [fromDate, toDate] range instead of a single month, and
+// separates DATA gathering from HTML rendering so the on-screen report, the
+// PDF, and the Excel export all read from the exact same numbers — they
+// cannot drift apart from each other. Balances that are running totals
+// (owed-to-admin, Party Ledger) are shown as "current, as of today" — a
+// balance doesn't really have a "value during a date range", only
+// transactions do — alongside an "activity in this period" list so the
+// statement still answers "what happened between these two dates".
+async function gatherReportData(email, fromDate, toDate){
+  const inRange = d => !!d && d >= fromDate && d <= toDate;
+  const inRangeMonth = mo => !!mo && mo >= fromDate.slice(0,7) && mo <= toDate.slice(0,7);
+  const [{data:userRow}, {data:members}] = await Promise.all([
+    sb.from('app_users').select('*').ilike('email', escLike(email)).maybeSingle(),
     sb.from('members_config').select('*'),
   ]);
   const name = userRow?.name || email;
-  let sections = '';
-  const sec = (title,inner)=>`<div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;">
-    <div style="font-weight:800;margin-bottom:8px;">${title}</div>${inner}</div>`;
-  const tbl = (headers,rowsHtml)=>`<table style="width:100%;border-collapse:collapse;font-size:.78rem;">
-    <tr style="color:var(--muted);text-align:left;">${headers.map(h=>`<th style="padding:4px 0;">${h}</th>`).join('')}</tr>
-    ${rowsHtml || `<tr><td colspan="${headers.length}" style="padding:8px 0;color:var(--muted);">Nothing this month.</td></tr>`}</table>`;
+  const data = { name, email, fromDate, toDate, squad:null, bill:null, party:null };
 
   const member = (members||[]).find(m=>(m.email||'').toLowerCase()===email.toLowerCase());
   if(member){
     const [{data:allExp},{data:prevBals},{data:settles}] = await Promise.all([
       sb.from('expenses').select('*'), sb.from('prev_balances').select('*'), sb.from('settlements').select('*'),
     ]);
-    const monthExp = (allExp||[]).filter(e=>e.month===month);
-    let net=0;
-    for(const e of allExp||[]){
+    let netAllTime=0;
+    (allExp||[]).forEach(e=>{
       const share=Number(e.amount)/(e.split_between?.length||1);
-      if(e.paid_by===member.id) net+=Number(e.amount);
-      if(e.split_between?.includes(member.id)) net-=share;
-    }
-    for(const p of prevBals||[]){ if(p.to_member===member.id) net+=Number(p.amount); if(p.from_member===member.id) net-=Number(p.amount); }
-    for(const s of settles||[]){ if(s.to_member===member.id) net-=Number(s.amount); if(s.from_member===member.id) net+=Number(s.amount); }
-    const rows = monthExp.map(e=>{
-      const payer=(members||[]).find(m=>m.id===e.paid_by);
-      return `<tr><td>${e.date}</td><td>${escapeHtml(e.name)}</td><td>${escapeHtml(payer?.name||'—')}</td><td style="text-align:right;">${dhs(e.amount)}</td></tr>`;
-    }).join('');
-    sections += sec('💸 Squad Splitter', `<p style="margin:0 0 8px;"><b>${net<0?'You owe the squad':'The squad owes you'}: ${dhs(Math.abs(net))}</b></p>${tbl(['Date','What','Paid by','Amount'],rows)}`);
+      if(e.paid_by===member.id) netAllTime+=Number(e.amount);
+      if(e.split_between?.includes(member.id)) netAllTime-=share;
+    });
+    (prevBals||[]).forEach(p=>{ if(p.to_member===member.id) netAllTime+=Number(p.amount); if(p.from_member===member.id) netAllTime-=Number(p.amount); });
+    (settles||[]).forEach(s=>{ if(s.to_member===member.id) netAllTime-=Number(s.amount); if(s.from_member===member.id) netAllTime+=Number(s.amount); });
+
+    const periodRows = (allExp||[])
+      .filter(e=>(e.split_between?.includes(member.id)||e.paid_by===member.id) && inRange(e.date))
+      .map(e=>{
+        const payer=(members||[]).find(m=>m.id===e.paid_by);
+        return { date:e.date, what:e.name, paidBy:payer?.name||'—', amount:Number(e.amount) };
+      }).sort((a,b)=>a.date.localeCompare(b.date));
+    data.squad = { currentNet: netAllTime, periodRows };
   }
 
   const [{data:exp},{data:owed},{data:settle}] = await Promise.all([
-    sb.from('bill_expenses').select('*').ilike('user_email',escLike(email)).eq('month',month).order('date'),
+    sb.from('bill_expenses').select('*').ilike('user_email',escLike(email)).order('date'),
     sb.from('bill_owed').select('*').ilike('user_email',escLike(email)),
     sb.from('bill_settlements').select('*').ilike('user_email',escLike(email)),
   ]);
-  const spentThisMonth = (exp||[]).reduce((a,x)=>a+Number(x.amount),0);
   const totalOwed = (owed||[]).reduce((a,x)=>a+Number(x.amount),0);
   const totalSettled = (settle||[]).reduce((a,x)=>a+Number(x.amount),0);
-  const expRows = (exp||[]).map(x=>{
+  const periodExpRows = (exp||[]).filter(x=>inRange(x.date)).map(x=>{
     const card = myCards.find(c=>c.id===x.card_id);
-    return `<tr><td>${x.date}</td><td>${escapeHtml(x.description)}</td><td>${card?escapeHtml(card.card_name):'—'}</td><td style="text-align:right;">${dhs(x.amount)}</td></tr>`;
-  }).join('');
-  sections += sec('🧾 Bill Tracker', `<p style="margin:0 0 8px;">Spent this month: <b>${dhs(spentThisMonth)}</b> · Owed to admin: <b>${dhs(Math.max(totalOwed-totalSettled,0))}</b></p>${tbl(['Date','What','Card','Amount'],expRows)}`);
+    return { date:x.date, what:x.description, card:card?card.card_name:'—', amount:Number(x.amount) };
+  });
+  const periodOwedRows = (owed||[])
+    .filter(o=>inRange(o.created_at?String(o.created_at).slice(0,10):null) || inRangeMonth(o.month))
+    .map(o=>({ date:o.created_at?String(o.created_at).slice(0,10):o.month, note:o.note||'Owed amount', amount:Number(o.amount) }));
+  const periodSettleRows = (settle||[])
+    .filter(s=>inRange(s.created_at?String(s.created_at).slice(0,10):null) || inRangeMonth(s.month))
+    .map(s=>({ date:s.created_at?String(s.created_at).slice(0,10):s.month, amount:Number(s.amount) }));
+  data.bill = {
+    currentOwedToAdmin: Math.max(totalOwed-totalSettled,0),
+    periodSpent: periodExpRows.reduce((a,x)=>a+x.amount,0),
+    periodExpRows, periodOwedRows, periodSettleRows,
+  };
 
   const {data:myParties} = await sb.from('bill_payees').select('*').ilike('user_email',escLike(email));
   const myPartyIds=(myParties||[]).map(p=>p.id);
@@ -1403,8 +1523,8 @@ async function buildReportHTML(email, month){
   const oweRows=(myParties||[]).map(p=>{
     const es=(myPartyEntries||[]).filter(e=>e.payee_id===p.id);
     const bal=es.filter(e=>e.entry_type==='owe').reduce((a,x)=>a+Number(x.amount),0)-es.filter(e=>e.entry_type==='paid').reduce((a,x)=>a+Number(x.amount),0);
-    return bal>0?`<tr><td>${escapeHtml(p.party_name)}</td><td style="text-align:right;">${dhs(bal)}</td></tr>`:'';
-  }).join('');
+    return { who:p.party_name, balance:bal };
+  }).filter(r=>r.balance>0);
 
   const {data:linkedToMe} = await sb.from('bill_payees').select('*').ilike('party_email',escLike(email));
   const linkedIds=(linkedToMe||[]).map(p=>p.id);
@@ -1412,23 +1532,126 @@ async function buildReportHTML(email, month){
   const owedToMeRowsR=(linkedToMe||[]).map(p=>{
     const es=(theirEntries||[]).filter(e=>e.payee_id===p.id);
     const bal=es.filter(e=>e.entry_type==='owe').reduce((a,x)=>a+Number(x.amount),0)-es.filter(e=>e.entry_type==='paid').reduce((a,x)=>a+Number(x.amount),0);
-    return bal>0?`<tr><td>${escapeHtml(p.user_email)}</td><td style="text-align:right;">${dhs(bal)}</td></tr>`:'';
-  }).join('');
-  if(oweRows||owedToMeRowsR){
-    sections += sec('🎉 Party Ledger',
-      (oweRows?`<p style="margin:0 0 4px;font-size:.78rem;"><b>People you owe:</b></p>${tbl(['Who','Amount'],oweRows)}`:'')+
-      (owedToMeRowsR?`<p style="margin:10px 0 4px;font-size:.78rem;"><b>🔁 Owed to you:</b></p>${tbl(['Who','Amount'],owedToMeRowsR)}`:''));
+    return { who:p.user_email, balance:bal };
+  }).filter(r=>r.balance>0);
+
+  const allMyEntries = (myPartyEntries||[]).map(e=>({...e, __who:(myParties||[]).find(p=>p.id===e.payee_id)?.party_name}));
+  const allTheirEntries = (theirEntries||[]).map(e=>({...e, __who:(linkedToMe||[]).find(p=>p.id===e.payee_id)?.user_email}));
+  const periodPartyRows = [...allMyEntries, ...allTheirEntries]
+    .filter(e=>inRange(e.date))
+    .map(e=>({ date:e.date, who:e.__who||'—', type:e.entry_type, amount:Number(e.amount), note:e.note||'' }))
+    .sort((a,b)=>a.date.localeCompare(b.date));
+  data.party = { oweRows, owedToMeRowsR, periodPartyRows };
+
+  return data;
+}
+
+function renderReportHTML(data){
+  const sec = (title,inner)=>`<div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;">
+    <div style="font-weight:800;margin-bottom:8px;">${title}</div>${inner}</div>`;
+  const tbl = (headers,rowsHtml)=>`<table style="width:100%;border-collapse:collapse;font-size:.78rem;">
+    <tr style="color:var(--muted);text-align:left;">${headers.map(h=>`<th style="padding:4px 0;">${h}</th>`).join('')}</tr>
+    ${rowsHtml || `<tr><td colspan="${headers.length}" style="padding:8px 0;color:var(--muted);">Nothing in this period.</td></tr>`}</table>`;
+  let sections = '';
+
+  if(data.squad){
+    const rows = data.squad.periodRows.map(r=>`<tr><td>${r.date}</td><td>${escapeHtml(r.what)}</td><td>${escapeHtml(r.paidBy)}</td><td style="text-align:right;">${dhs(r.amount)}</td></tr>`).join('');
+    sections += sec('💸 Squad Splitter', `<p style="margin:0 0 8px;"><b>Current balance (as of today, all-time): ${data.squad.currentNet<0?'you owe the squad':'the squad owes you'} ${dhs(Math.abs(data.squad.currentNet))}</b></p>${tbl(['Date','What','Paid by','Amount'],rows)}`);
   }
 
-  return `<p style="color:var(--muted);font-size:.8rem;margin-top:0;">Hi ${escapeHtml(name)} — here's ${month}, generated live from your data.</p>${sections}`;
+  const expRows = data.bill.periodExpRows.map(x=>`<tr><td>${x.date}</td><td>${escapeHtml(x.what)}</td><td>${escapeHtml(x.card)}</td><td style="text-align:right;">${dhs(x.amount)}</td></tr>`).join('');
+  const owedActRows = data.bill.periodOwedRows.map(o=>`<tr><td>${o.date}</td><td>${escapeHtml(o.note)}</td><td style="text-align:right;">${dhs(o.amount)}</td></tr>`).join('');
+  const settleActRows = data.bill.periodSettleRows.map(s=>`<tr><td>${s.date}</td><td>Paid to admin</td><td style="text-align:right;">${dhs(s.amount)}</td></tr>`).join('');
+  sections += sec('🧾 Bill Tracker',
+    `<p style="margin:0 0 8px;">Spent in this period: <b>${dhs(data.bill.periodSpent)}</b> · Owed to admin (current, as of today): <b>${dhs(data.bill.currentOwedToAdmin)}</b></p>
+     <p style="margin:0 0 4px;font-size:.72rem;color:var(--muted);">Spending in this period</p>${tbl(['Date','What','Card','Amount'],expRows)}
+     <p style="margin:10px 0 4px;font-size:.72rem;color:var(--muted);">Owed-to-admin activity in this period</p>${tbl(['Date','Note','Amount'],owedActRows)}
+     <p style="margin:10px 0 4px;font-size:.72rem;color:var(--muted);">Payments to admin in this period</p>${tbl(['Date','What','Amount'],settleActRows)}`);
+
+  const oweHtml = data.party.oweRows.map(r=>`<tr><td>${escapeHtml(r.who)}</td><td style="text-align:right;">${dhs(r.balance)}</td></tr>`).join('');
+  const owedToMeHtml = data.party.owedToMeRowsR.map(r=>`<tr><td>${escapeHtml(r.who)}</td><td style="text-align:right;">${dhs(r.balance)}</td></tr>`).join('');
+  const partyActHtml = data.party.periodPartyRows.map(r=>`<tr><td>${r.date}</td><td>${escapeHtml(r.who)}</td><td>${r.type==='owe'?'owed':'paid'}</td><td style="text-align:right;">${dhs(r.amount)}</td></tr>`).join('');
+  sections += sec('🎉 Party Ledger',
+    (data.party.oweRows.length?`<p style="margin:0 0 4px;font-size:.78rem;"><b>People you currently owe:</b></p>${tbl(['Who','Amount'],oweHtml)}`:'')+
+    (data.party.owedToMeRowsR.length?`<p style="margin:10px 0 4px;font-size:.78rem;"><b>🔁 Currently owed to you:</b></p>${tbl(['Who','Amount'],owedToMeHtml)}`:'')+
+    `<p style="margin:10px 0 4px;font-size:.72rem;color:var(--muted);">Activity in this period</p>${tbl(['Date','Who','Type','Amount'],partyActHtml)}`);
+
+  return `<p style="color:var(--muted);font-size:.8rem;margin-top:0;">Hi ${escapeHtml(data.name)} — statement for <b>${data.fromDate}</b> to <b>${data.toDate}</b>, generated live from your data.</p>
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <button class="btn-tiny" onclick="exportReportPDF()">⬇️ PDF</button>
+      <button class="btn-tiny ghost" onclick="exportReportExcel()">⬇️ Excel</button>
+    </div>${sections}`;
 }
-async function openReport(email, month){
+
+let _lastReportData = null;
+async function openReport(email, fromDate, toDate){
   document.getElementById('report-overlay').classList.add('active');
   document.getElementById('report-body').innerHTML = 'Loading…';
-  try{ document.getElementById('report-body').innerHTML = await buildReportHTML(email, month || viewMonth); }
-  catch(e){ document.getElementById('report-body').innerHTML = '<p style="color:var(--red);">Could not build the report — try again.</p>'; console.error(e); }
+  try{
+    _lastReportData = await gatherReportData(email, fromDate || (viewMonth+'-01'), toDate || localDateStr(new Date()));
+    document.getElementById('report-body').innerHTML = renderReportHTML(_lastReportData);
+  }catch(e){
+    document.getElementById('report-body').innerHTML = '<p style="color:var(--red);">Could not build the report — try again.</p>';
+    console.error(e);
+  }
 }
 function closeReport(){ document.getElementById('report-overlay').classList.remove('active'); }
+
+// ---- Exports read the exact same _lastReportData the on-screen report used,
+// so the PDF/Excel numbers can never disagree with what's on screen. Both
+// libraries are optional CDN loads (see <head>) — if either failed to load
+// (e.g. no internet reaching that CDN), the export button says so instead
+// of silently doing nothing. Viewing the report in the portal never depends
+// on these libraries — only the two export buttons do.
+function exportReportPDF(){
+  if(!_lastReportData){ toast('Generate the report first'); return; }
+  if(!window.jspdf){ toast('PDF library did not load — check your connection and try again'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const d = _lastReportData;
+  let y = 14;
+  doc.setFontSize(14); doc.text(`Statement — ${d.name}`, 14, y); y+=6;
+  doc.setFontSize(9); doc.setTextColor(120); doc.text(`${d.fromDate} to ${d.toDate}`, 14, y); y+=8;
+  doc.setTextColor(0);
+  const addTable = (title, head, rows)=>{
+    doc.setFontSize(11); doc.text(title, 14, y); y+=4;
+    doc.autoTable({ startY:y, head:[head], body:rows, styles:{fontSize:8}, margin:{left:14,right:14} });
+    y = doc.lastAutoTable.finalY + 8;
+    if(y > 260){ doc.addPage(); y = 14; }
+  };
+  if(d.squad){
+    doc.setFontSize(10);
+    doc.text(`Squad Splitter — current balance: ${d.squad.currentNet<0?'you owe':'owed to you'} ${Math.abs(d.squad.currentNet).toFixed(2)} AED`, 14, y); y+=6;
+    addTable('Squad Splitter — expenses in period', ['Date','What','Paid by','Amount'], d.squad.periodRows.map(r=>[r.date,r.what,r.paidBy,r.amount.toFixed(2)]));
+  }
+  doc.setFontSize(10);
+  doc.text(`Bill Tracker — spent in period: ${d.bill.periodSpent.toFixed(2)} AED · owed to admin (current): ${d.bill.currentOwedToAdmin.toFixed(2)} AED`, 14, y); y+=6;
+  addTable('Bill Tracker — spending in period', ['Date','What','Card','Amount'], d.bill.periodExpRows.map(x=>[x.date,x.what,x.card,x.amount.toFixed(2)]));
+  addTable('Bill Tracker — owed-to-admin activity', ['Date','Note','Amount'], d.bill.periodOwedRows.map(o=>[o.date,o.note,o.amount.toFixed(2)]));
+  addTable('Bill Tracker — payments to admin', ['Date','Amount'], d.bill.periodSettleRows.map(s=>[s.date,s.amount.toFixed(2)]));
+  addTable('Party Ledger — activity in period', ['Date','Who','Type','Amount'], d.party.periodPartyRows.map(r=>[r.date,r.who,r.type,r.amount.toFixed(2)]));
+  doc.save(`statement_${(d.email||'user').split('@')[0]}_${d.fromDate}_to_${d.toDate}.pdf`);
+}
+
+function exportReportExcel(){
+  if(!_lastReportData){ toast('Generate the report first'); return; }
+  if(typeof XLSX === 'undefined'){ toast('Excel library did not load — check your connection and try again'); return; }
+  const d = _lastReportData;
+  const wb = XLSX.utils.book_new();
+  const summary = [
+    ['Statement for', d.name], ['Period', `${d.fromDate} to ${d.toDate}`], [],
+    ['Bill Tracker — spent in period', d.bill.periodSpent],
+    ['Bill Tracker — owed to admin (current)', d.bill.currentOwedToAdmin],
+  ];
+  if(d.squad) summary.push(['Squad Splitter — current balance', d.squad.currentNet]);
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summary), 'Summary');
+  if(d.squad && d.squad.periodRows.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(d.squad.periodRows), 'Squad Splitter');
+  if(d.bill.periodExpRows.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(d.bill.periodExpRows), 'Bill Tracker Spend');
+  if(d.bill.periodOwedRows.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(d.bill.periodOwedRows), 'Owed to Admin Activity');
+  if(d.bill.periodSettleRows.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(d.bill.periodSettleRows), 'Payments to Admin');
+  if(d.party.periodPartyRows.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(d.party.periodPartyRows), 'Party Ledger Activity');
+  XLSX.writeFile(wb, `statement_${(d.email||'user').split('@')[0]}_${d.fromDate}_to_${d.toDate}.xlsx`);
+}
 
 // ── ADD EXPENSE ───────────────────────────────
 function fillCardSelect(targetId){
@@ -1880,10 +2103,11 @@ function renderPayeeBalances(){
     }).join('');
     return `<div class="owed-row" style="border-color:${p.color};flex-direction:column;align-items:stretch;">
       <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div class="b-left"><div class="b-name">${escapeHtml(p.party_name)}</div><div class="b-sub">${entries.length} entr${entries.length===1?'y':'ies'}</div></div>
+        <div class="b-left" style="cursor:pointer;" onclick="showPayeeDetail(${p.id},false)"><div class="b-name" style="text-decoration:underline dotted;">${escapeHtml(p.party_name)}</div><div class="b-sub">${entries.length} entr${entries.length===1?'y':'ies'} · tap for full breakdown</div></div>
         <div class="b-amt ${bal>0?'neg':'pos'}">${dhs(Math.max(bal,0))}</div>
       </div>
       ${entryRows}
+      ${entries.length>5?`<button class="btn-tiny ghost" style="margin-top:4px;" onclick="showPayeeDetail(${p.id},false)">View all ${entries.length} entries →</button>`:''}
       <div style="display:flex;gap:8px;margin-top:6px;">
         <button class="btn-tiny" onclick="openAddFromOwedToOthers(${p.id})">+ Log entry</button>
         ${bal>0?`<button class="btn-tiny ghost" onclick="settleUpParty(${p.id},${bal},false)">✅ Settle up (${bal.toFixed(2)} AED)</button>`:''}
@@ -1970,20 +2194,86 @@ async function saveEditPayeeEntry(){
 // One-tap settlement — inserts a 'paid' entry for the full outstanding
 // balance. Works from either side: fromOtherSide=true means "I'm the one
 // who's owed, marking it settled from the Owed to You tab".
-async function settleUpParty(payeeId, balance, fromOtherSide){
-  if(!confirm(`Mark ${Number(balance).toFixed(2)} AED as settled?`)) return;
+// v7.3: opens the amount-entry modal instead of instantly settling the full
+// balance — confirmSettleAmount() below does the actual insert.
+let _pendingSettle = null;
+function settleUpParty(payeeId, balance, fromOtherSide){
+  _pendingSettle = { payeeId, balance, fromOtherSide };
+  document.getElementById('settle-amount-context').textContent = `Full balance: ${Number(balance).toFixed(2)} AED`;
+  document.getElementById('settle-amount-input').value = Number(balance).toFixed(2);
+  document.getElementById('settle-amount-modal').classList.add('open');
+}
+function closeSettleAmountModal(){ document.getElementById('settle-amount-modal').classList.remove('open'); _pendingSettle=null; }
+async function confirmSettleAmount(){
+  if(!_pendingSettle) return;
+  const { payeeId, balance, fromOtherSide } = _pendingSettle;
+  const amount = parseFloat(document.getElementById('settle-amount-input').value);
+  if(!amount || amount<=0){ toast('Enter an amount'); return; }
+  if(amount > Number(balance)+0.01){ toast("That's more than the current balance"); return; }
   const ownerEmail = fromOtherSide ? (owedToMeRows.find(r=>r.payeeId===payeeId)?.fromEmail) : managing.email;
   if(!ownerEmail){ toast('Could not find this relationship'); return; }
   const today=localDateStr(new Date());
+  const isPartial = amount < Number(balance)-0.01;
+  const note = isPartial ? `Partial settlement (${amount.toFixed(2)} of ${Number(balance).toFixed(2)})` : 'Settled up';
   const { error } = await sb.from('bill_payee_entries').insert({
-    user_email:ownerEmail, payee_id:payeeId, amount:balance, entry_type:'paid',
-    note:'Settled up', date:today, month:today.slice(0,7), created_by_email:managing.email
+    user_email:ownerEmail, payee_id:payeeId, amount, entry_type:'paid',
+    note, date:today, month:today.slice(0,7), created_by_email:managing.email
   });
+  closeSettleAmountModal();
   if(error){ toast('Could not settle — try again'); return; }
-  toast('Settled ✓');
+  toast(isPartial ? `Partial settlement of ${amount.toFixed(2)} AED recorded ✓ — remainder stays owed` : 'Settled ✓');
   await loadMyData();
   await loadOwedToMe();
 }
+// v7.3: full, uncapped breakdown for one party — Owed to Others and Owed to
+// You both open this (isOwedToMe flips which array/labels it reads from).
+// Entries are grouped by month so a long history stays easy to scan, and the
+// same edit/delete buttons work here (they call the exact same functions
+// used in the inline preview, including the settle-up "paid" rows).
+function showPayeeDetail(payeeId, isOwedToMe){
+  let title, entries, balanceLabel;
+  if(isOwedToMe){
+    const row = owedToMeRows.find(r=>r.payeeId===payeeId);
+    if(!row) return;
+    title = `${row.fromEmoji||''} ${row.fromName}`.trim();
+    entries = row.entries.slice();
+    balanceLabel = `They owe you: ${dhs(Math.max(row.balance,0))}`;
+  } else {
+    const p = myPayees.find(x=>x.id===payeeId);
+    if(!p) return;
+    title = p.party_name;
+    entries = myPayeeEntries.filter(e=>e.payee_id===payeeId);
+    const owe = entries.filter(e=>e.entry_type==='owe').reduce((a,x)=>a+Number(x.amount),0);
+    const paid = entries.filter(e=>e.entry_type==='paid').reduce((a,x)=>a+Number(x.amount),0);
+    balanceLabel = `You owe them: ${dhs(Math.max(owe-paid,0))}`;
+  }
+  document.getElementById('payee-detail-title').textContent = title;
+  document.getElementById('payee-detail-balance').innerHTML = balanceLabel;
+  const byMonth = {};
+  entries.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).forEach(e=>{
+    const mo = (e.date||'').slice(0,7) || 'Undated';
+    (byMonth[mo]=byMonth[mo]||[]).push(e);
+  });
+  const months = Object.keys(byMonth).sort().reverse();
+  document.getElementById('payee-detail-body').innerHTML = months.length ? months.map(mo=>{
+    const monthOwe = byMonth[mo].filter(e=>e.entry_type==='owe').reduce((a,x)=>a+Number(x.amount),0);
+    const monthPaid = byMonth[mo].filter(e=>e.entry_type==='paid').reduce((a,x)=>a+Number(x.amount),0);
+    const rows = byMonth[mo].map(e=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:.75rem;">
+        <div><div>${e.date} · ${isOwedToMe?(e.entry_type==='owe'?'they owe':'they paid'):(e.entry_type==='owe'?'owed':'paid')}</div>${e.note?`<div style="color:var(--muted);font-size:.68rem;">${escapeHtml(e.note)}</div>`:''}</div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <b>${dhs(e.amount)}</b>
+          <button class="icon-btn" onclick="editPayeeEntry(${e.id})" title="Edit">✏️</button>
+          <button class="icon-btn" onclick="deletePayeeEntry(${e.id})" title="Delete">🗑️</button>
+        </div>
+      </div>`).join('');
+    return `<div style="margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;font-weight:800;font-size:.72rem;color:var(--accent4);margin-bottom:2px;">
+        <span>${mo}</span><span>owed ${monthOwe.toFixed(2)} · paid ${monthPaid.toFixed(2)}</span>
+      </div>${rows}</div>`;
+  }).join('') : `<div class="empty-state"><span>🤷</span>No entries</div>`;
+  document.getElementById('payee-detail-modal').classList.add('open');
+}
+function closePayeeDetail(){ document.getElementById('payee-detail-modal').classList.remove('open'); }
 
 // ── REVERSE VIEW: other people who logged ME as their party — now fully
 // interactive, not read-only: you can log entries and delete them from
@@ -2025,10 +2315,11 @@ function renderOwedToMe(){
     }).join('');
     return `<div class="owed-row settle" style="flex-direction:column;align-items:stretch;">
       <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div class="b-left"><div class="b-name">${r.fromEmoji} ${escapeHtml(r.fromName)}</div><div class="b-sub">${r.count} entr${r.count===1?'y':'ies'}</div></div>
+        <div class="b-left" style="cursor:pointer;" onclick="showPayeeDetail(${r.payeeId},true)"><div class="b-name" style="text-decoration:underline dotted;">${r.fromEmoji} ${escapeHtml(r.fromName)}</div><div class="b-sub">${r.count} entr${r.count===1?'y':'ies'} · tap for full breakdown</div></div>
         <div class="b-amt ${r.balance>0?'pos':'neg'}">${dhs(Math.max(r.balance,0))}</div>
       </div>
       ${entryRows}
+      ${r.count>8?`<button class="btn-tiny ghost" style="margin-top:4px;" onclick="showPayeeDetail(${r.payeeId},true)">View all ${r.count} entries →</button>`:''}
       <div style="display:flex;gap:8px;margin-top:8px;">
         <button class="btn-tiny" onclick="openAddFromOwedToMe(${r.payeeId})">+ Log entry</button>
         ${r.balance>0?`<button class="btn-tiny ghost" onclick="settleUpParty(${r.payeeId},${r.balance},true)">✅ Settle up</button>`:''}
@@ -2158,7 +2449,7 @@ async function saveEditUser(){
   await loadAllUsers();
 }
 async function adminSendOneReport(email){
-  await openReport(email, viewMonth);
+  await openReport(email, viewMonth+'-01', localDateStr(new Date()));
 }
 async function createUser(){
   const email=document.getElementById('nu-email').value.trim().toLowerCase();
