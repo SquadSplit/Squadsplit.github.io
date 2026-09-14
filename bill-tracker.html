@@ -17,27 +17,116 @@
   --bg:#0b0b18;--card:#13132a;--card2:#1a1a35;--border:#2a2a50;
   --accent1:#ff6b6b;--accent2:#ffd93d;--accent3:#6bcb77;--accent4:#4d96ff;--accent5:#ff922b;
   --purple:#b06aff;--text:#f0f0ff;--muted:#7777aa;--red:#ff6b6b;--green:#6bcb77;
+  /* v7.4: gradient + surface-treatment tokens. Every button/header gradient
+     and every card/panel's blur+shadow now READS these instead of a literal
+     hex/shadow value, so a theme can restyle the whole app by overriding
+     this block alone — this is what makes neumorphism/glass/texture presets
+     possible without hand-editing dozens of selectors per theme. */
+  --grad-a:#b06aff;--grad-b:#4d96ff;
+  --grad-pos-a:#6bcb77;--grad-pos-b:#4d96ff;
+  --header-grad-a:#0a1a3e;--header-grad-b:#1a0a2e;
+  --surface-blur:none;--surface-shadow:none;--elev-shadow:0 12px 40px rgba(0,0,0,.45);
 }
-/* ── THEMES (v7.0) ──────────────────────────────
-   Each preset re-tones the surface/text tokens only (bg/card/card2/border/
-   text/muted) — every element that uses var() for these picks it up
-   automatically. Brand accent colors (buttons, category chips, the login
-   gradient) stay constant across themes by design, the same way most apps
-   keep a signature accent while surfaces shift — and because several of
-   those accents are hardcoded in specific spots rather than var-driven, so
-   leaving them alone is what keeps every theme looking finished rather
-   than partially-skinned. A true light mode is a larger follow-up (it
-   would need those hardcoded spots parameterized too) and wasn't part of
-   this pass — flagged here rather than shipped half-right. */
+/* ── THEMES (v7.0 base 5, extended v7.4 with 8 more) ──────────────
+   Each preset re-tones surface/text tokens (bg/card/card2/border/text/
+   muted) plus, as of v7.4, gradient + blur/shadow tokens — every element
+   that uses var() for these picks it up automatically. The original 5
+   below are untouched (existing saved preferences keep looking exactly as
+   they did). The 8 new presets after them are what make neumorphism, glass
+   and textured/gradient looks possible: neo-light/neo-dark drop the border
+   and drive shape entirely from a dual light+dark --surface-shadow (classic
+   soft-UI), the glass-*/aurora/custom-photo set --card to a translucent
+   rgba() and turn on --surface-blur so content behind them shows through,
+   and noise-dark/sandstone add a grain texture via #theme-fx-layer below.
+   custom-photo is meant to be paired with the existing photo-upload
+   control (Appearance → own image) — its cards render as glass so the
+   photo shows through regardless of which photo is chosen. */
 html[data-theme="ocean"]{ --bg:#071820;--card:#0e2530;--card2:#123244;--border:#1c4a5e;--text:#eaf6fb;--muted:#6b9aad; }
 html[data-theme="sunset"]{ --bg:#1a0f14;--card:#2a1620;--card2:#33192a;--border:#4a2438;--text:#fbeef1;--muted:#a67f8c; }
 html[data-theme="forest"]{ --bg:#0c1710;--card:#132a1c;--card2:#183524;--border:#2a4a35;--text:#eafbf0;--muted:#7aa38c; }
 html[data-theme="mono"]{ --bg:#0a0a0a;--card:#161616;--card2:#1e1e1e;--border:#333333;--text:#f2f2f2;--muted:#8a8a8a; }
+
+html[data-theme="glass-aqua"]{ --bg:#04141c;--card:rgba(255,255,255,.08);--card2:rgba(255,255,255,.05);--border:rgba(255,255,255,.18);--text:#eafcff;--muted:#8fc2cf;
+  --grad-a:#22d3ee;--grad-b:#4d96ff;--grad-pos-a:#34e6b0;--grad-pos-b:#22d3ee;
+  --header-grad-a:rgba(6,30,40,.55);--header-grad-b:rgba(4,18,28,.55);
+  --surface-blur:blur(18px);--surface-shadow:0 8px 32px rgba(0,40,60,.35);--elev-shadow:0 16px 50px rgba(0,20,35,.5); }
+
+html[data-theme="glass-dark"]{ --bg:#0a0a12;--card:rgba(255,255,255,.05);--card2:rgba(255,255,255,.03);--border:rgba(255,255,255,.12);--text:#f0f0ff;--muted:#9494b8;
+  --header-grad-a:rgba(15,15,25,.5);--header-grad-b:rgba(10,10,18,.5);
+  --surface-blur:blur(16px);--surface-shadow:0 8px 30px rgba(0,0,0,.45);--elev-shadow:0 16px 50px rgba(0,0,0,.55); }
+
+html[data-theme="neo-light"]{ --bg:#e8ebf1;--card:#e8ebf1;--card2:#e2e5ec;--border:transparent;--text:#2a2d3a;--muted:#666b80;
+  --accent1:#d94f6b;--accent2:#c99417;--accent3:#3f9e63;--accent4:#3f6fc9;--accent5:#c96a1f;--purple:#8b5fc9;--red:#d94f6b;--green:#3f9e63;
+  --grad-a:#8b6ad8;--grad-b:#4d7fdb;--grad-pos-a:#4f9e73;--grad-pos-b:#4d7fdb;
+  --header-grad-a:#e8ebf1;--header-grad-b:#e2e5ec;
+  --surface-blur:none;--surface-shadow:7px 7px 16px rgba(163,177,198,.55),-7px -7px 16px rgba(255,255,255,.9);
+  --elev-shadow:9px 9px 20px rgba(163,177,198,.6),-9px -9px 20px rgba(255,255,255,.95); }
+
+html[data-theme="neo-dark"]{ --bg:#1e2028;--card:#1e2028;--card2:#1a1c23;--border:transparent;--text:#e8e9f0;--muted:#8a8d9c;
+  --grad-a:#9b7ae0;--grad-b:#5c8fe0;--grad-pos-a:#5fc98a;--grad-pos-b:#5c8fe0;
+  --header-grad-a:#1e2028;--header-grad-b:#1a1c23;
+  --surface-blur:none;--surface-shadow:7px 7px 16px rgba(0,0,0,.5),-7px -7px 16px rgba(255,255,255,.03);
+  --elev-shadow:9px 9px 22px rgba(0,0,0,.55),-9px -9px 22px rgba(255,255,255,.04); }
+
+html[data-theme="aurora"]{ --bg:#0d0620;--card:rgba(255,255,255,.07);--card2:rgba(255,255,255,.04);--border:rgba(255,255,255,.16);--text:#f5f0ff;--muted:#a597c2;
+  --grad-a:#ff92d0;--grad-b:#b06aff;--grad-pos-a:#6bcb77;--grad-pos-b:#4d96ff;
+  --header-grad-a:rgba(20,10,35,.5);--header-grad-b:rgba(12,6,22,.5);
+  --surface-blur:blur(18px);--surface-shadow:0 8px 32px rgba(60,20,80,.4);--elev-shadow:0 16px 50px rgba(40,10,60,.5); }
+
+html[data-theme="noise-dark"]{ --bg:#0e0e12;--card:#161619;--card2:#1c1c20;--border:#2c2c33;--text:#f0f0f2;--muted:#87879a;
+  --header-grad-a:#141418;--header-grad-b:#0e0e12;
+  --surface-blur:none;--surface-shadow:0 4px 18px rgba(0,0,0,.4);--elev-shadow:0 14px 40px rgba(0,0,0,.5); }
+
+html[data-theme="sandstone"]{ --bg:#2a1d14;--card:#33241a;--card2:#3a2a1e;--border:#4a3526;--text:#f7ece0;--muted:#b89880;
+  --grad-a:#ffb066;--grad-b:#ff7a5c;--grad-pos-a:#d9a441;--grad-pos-b:#ff7a5c;
+  --header-grad-a:#2a1d14;--header-grad-b:#1f150e;
+  --surface-blur:none;--surface-shadow:5px 5px 14px rgba(0,0,0,.35),-3px -3px 10px rgba(255,180,120,.05);--elev-shadow:0 14px 40px rgba(0,0,0,.45); }
+
+html[data-theme="custom-photo"]{ --bg:#0c0c16;--card:rgba(20,20,30,.35);--card2:rgba(20,20,30,.25);--border:rgba(255,255,255,.14);--text:#f5f5ff;--muted:#a8a8c5;
+  --header-grad-a:rgba(10,10,18,.45);--header-grad-b:rgba(6,6,12,.45);
+  --surface-blur:blur(14px);--surface-shadow:0 8px 30px rgba(0,0,0,.4);--elev-shadow:0 16px 45px rgba(0,0,0,.5); }
+
 #bg-photo-layer{ position:fixed; inset:0; z-index:-1; background-size:cover; background-position:center; opacity:0; transition:opacity .3s; pointer-events:none; }
 #bg-photo-layer.on{ opacity:var(--bg-photo-opacity, 0.30); }
+/* v7.4: theme-driven backdrop (gradients/texture for glass, aurora, noise,
+   sandstone). Independent of #bg-photo-layer above — a user's own uploaded
+   photo (z-index:-1) still layers on TOP of this (z-index:-2), so picking
+   a theme never removes or fights with an already-uploaded photo. */
+#theme-fx-layer{ position:fixed; inset:0; z-index:-2; opacity:0; transition:opacity .4s; background-size:cover; background-position:center; pointer-events:none; }
+html[data-theme="glass-aqua"] #theme-fx-layer{ opacity:1; background:
+  radial-gradient(circle at 15% 20%,rgba(77,214,255,.55),transparent 45%),
+  radial-gradient(circle at 85% 15%,rgba(77,150,255,.45),transparent 50%),
+  radial-gradient(circle at 50% 85%,rgba(107,203,220,.5),transparent 55%),
+  linear-gradient(160deg,#04202a,#031521 60%,#02101a); animation:fxDrift 22s ease-in-out infinite alternate; }
+html[data-theme="glass-dark"] #theme-fx-layer{ opacity:1; background:
+  radial-gradient(circle at 30% 20%,rgba(255,255,255,.06),transparent 40%),
+  linear-gradient(160deg,#12131c,#0a0a12 70%); }
+html[data-theme="aurora"] #theme-fx-layer{ opacity:1; background:
+  radial-gradient(circle at 20% 25%,rgba(176,106,255,.55),transparent 45%),
+  radial-gradient(circle at 80% 20%,rgba(255,146,208,.45),transparent 50%),
+  radial-gradient(circle at 50% 80%,rgba(77,150,255,.5),transparent 55%),
+  linear-gradient(160deg,#160a2e,#0d0620 60%,#08041a); animation:fxDrift 18s ease-in-out infinite alternate; }
+html[data-theme="noise-dark"] #theme-fx-layer{ opacity:1;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/></svg>"),
+  linear-gradient(160deg,#0e0e12,#08080a 70%); background-size:120px 120px,cover; }
+html[data-theme="sandstone"] #theme-fx-layer{ opacity:1;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.10'/></svg>"),
+  radial-gradient(circle at 20% 20%,rgba(255,196,140,.35),transparent 50%),
+  linear-gradient(160deg,#2a1d14,#1c130d 70%); background-size:120px 120px,cover,cover; }
+html[data-theme="custom-photo"] #theme-fx-layer{ opacity:1; background:linear-gradient(160deg,#0c0c16,#08080f); }
+@keyframes fxDrift{ 0%{ filter:hue-rotate(0deg) brightness(1); } 100%{ filter:hue-rotate(18deg) brightness(1.08); } }
+/* v7.4: apply the blur+shadow tokens above to every card-like surface in
+   one place, so new themes reach the whole app instead of a few spots. */
+.card,.login-box,.exp-item-card,.card-tile,.month-nav,.user-row,.owed-row,.bottom-nav,.notif-panel,.modal-box,.toast,.exp-icon,.app-header,.payee-row,.brk-modal,.brk-row,.owed-summary-card{
+  backdrop-filter:var(--surface-blur);-webkit-backdrop-filter:var(--surface-blur);
+}
+.card,.exp-item-card,.card-tile,.month-nav,.user-row,.owed-row,.bottom-nav,.payee-row,.brk-row{ box-shadow:var(--surface-shadow); }
 .theme-swatch{ width:44px;height:44px;border-radius:50%;cursor:pointer;border:3px solid transparent;flex-shrink:0; }
 .theme-swatch.active{ border-color:var(--accent4); }
-.theme-row{ display:flex;gap:12px;flex-wrap:wrap;margin:10px 0 16px; }
+.theme-row{ display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:10px 4px;margin:10px 0 16px; }
+.theme-opt{ display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer; }
+.theme-opt span{ font-size:.58rem;color:var(--muted);text-align:center;line-height:1.1; }
+.theme-opt.active span{ color:var(--accent4);font-weight:800; }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
 .bg-mesh{position:fixed;inset:0;z-index:0;pointer-events:none;
@@ -47,7 +136,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .screen{display:none;position:relative;z-index:1;min-height:100vh;}
 .screen.active{display:flex;flex-direction:column;}
 #screen-login{align-items:center;justify-content:center;padding:24px;}
-.login-box{width:100%;max-width:420px;background:var(--card);border:1px solid var(--border);border-radius:24px;padding:36px 28px;box-shadow:0 24px 80px rgba(0,0,0,.5);animation:slideUp .5s ease;}
+.login-box{width:100%;max-width:420px;background:var(--card);border:1px solid var(--border);border-radius:24px;padding:36px 28px;box-shadow:var(--elev-shadow);animation:slideUp .5s ease;}
 @keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
 .login-logo{text-align:center;margin-bottom:28px;}
 .login-logo .logo-icon{font-size:3.5rem;display:block;animation:bounce 2s ease-in-out infinite;}
@@ -63,7 +152,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .otp-box{background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:14px 0;text-align:center;font-size:1.3rem;font-weight:900;color:var(--text);outline:none;transition:border-color .2s;width:100%;}
 .otp-box:focus{border-color:var(--accent4);box-shadow:0 0 12px rgba(77,150,255,.25);}
 .btn{width:100%;padding:15px;border-radius:14px;border:none;font-family:'Fredoka One',cursive;font-size:1.1rem;cursor:pointer;transition:all .2s;}
-.btn-primary{background:linear-gradient(135deg,#4d96ff,#b06aff);color:#fff;box-shadow:0 4px 20px rgba(77,150,255,.3);margin-bottom:8px;}
+.btn-primary{background:linear-gradient(135deg,var(--grad-b),var(--grad-a));color:#fff;box-shadow:0 4px 20px rgba(77,150,255,.3);margin-bottom:8px;}
 .btn-primary:hover:not(:disabled){transform:translateY(-2px);}.btn-primary:disabled{opacity:.5;cursor:not-allowed;}
 .btn-ghost{background:var(--card2);color:var(--muted);border:1px solid var(--border);font-family:'Nunito',sans-serif;font-size:.85rem;font-weight:700;padding:12px;}
 .btn-ghost:hover{color:var(--text);}
@@ -74,11 +163,11 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .not-registered{text-align:center;padding:20px 0;}
 .not-registered .big-emoji{font-size:2.6rem;display:block;margin-bottom:10px;}
 #screen-app{padding-bottom:80px;}
-.app-header{background:linear-gradient(135deg,#0a1a3e,#1a0a2e);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.app-header{background:linear-gradient(135deg,var(--header-grad-a),var(--header-grad-b));border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;flex-wrap:wrap;row-gap:8px;}
 .app-header h2{font-family:'Fredoka One',cursive;font-size:1.3rem;background:linear-gradient(135deg,#4d96ff,#ffd93d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 .app-header p{font-size:.7rem;color:var(--muted);margin-top:1px;}
 .header-right{display:flex;align-items:center;gap:8px;}
-.btn-admin-panel{background:linear-gradient(135deg,#b06aff,#4d96ff);color:#fff;border:none;border-radius:12px;padding:7px 14px;font-family:'Fredoka One',cursive;font-size:.82rem;cursor:pointer;letter-spacing:.3px;box-shadow:0 2px 12px rgba(176,106,255,.35);}
+.btn-admin-panel{background:linear-gradient(135deg,var(--grad-a),var(--grad-b));color:#fff;border:none;border-radius:12px;padding:7px 14px;font-family:'Fredoka One',cursive;font-size:.82rem;cursor:pointer;letter-spacing:.3px;box-shadow:0 2px 12px rgba(176,106,255,.35);}
 .btn-admin-panel:hover{transform:scale(1.03);}
 .user-pill{display:flex;align-items:center;gap:6px;background:var(--card2);border-radius:20px;padding:6px 10px;border:1px solid var(--border);cursor:pointer;}
 .av-sm{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.85rem;}
@@ -94,7 +183,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .summary-grid .s-label{font-size:.66rem;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;font-weight:800;}
 .summary-grid .s-val{font-family:'Fredoka One',cursive;font-size:1.3rem;margin-top:4px;}
 .dhs{display:inline-flex;align-items:center;gap:2px;}
-.report-btn{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#6bcb77,#4d96ff);color:#fff;font-family:'Fredoka One',cursive;font-size:.98rem;cursor:pointer;margin-bottom:16px;box-shadow:0 4px 20px rgba(107,203,119,.25);}
+.report-btn{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--grad-pos-a),var(--grad-pos-b));color:#fff;font-family:'Fredoka One',cursive;font-size:.98rem;cursor:pointer;margin-bottom:16px;box-shadow:0 4px 20px rgba(107,203,119,.25);}
 .report-btn:hover:not(:disabled){transform:translateY(-2px);}
 .report-btn:disabled{opacity:.6;cursor:not-allowed;}
 .exp-item-card{background:var(--card2);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;border:1px solid var(--border);gap:10px;}
@@ -106,7 +195,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .fg input,.fg select{width:100%;background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:12px 14px;color:var(--text);font-family:'Nunito',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s;}
 .fg input:focus,.fg select:focus{border-color:var(--accent4);}.fg select option{background:var(--card2);}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.btn-add{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#6bcb77,#4d96ff);color:#fff;font-family:'Fredoka One',cursive;font-size:1.05rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 20px rgba(107,203,119,.25);}
+.btn-add{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--grad-pos-a),var(--grad-pos-b));color:#fff;font-family:'Fredoka One',cursive;font-size:1.05rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 20px rgba(107,203,119,.25);}
 .btn-add:hover{transform:translateY(-2px);}
 .cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
 .card-tile{background:var(--card2);border-radius:14px;border:1px solid var(--border);padding:14px 12px;text-align:center;position:relative;}
@@ -126,12 +215,15 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .nav-btn.active{color:var(--accent4);background:rgba(77,150,255,.1);}
 .admin-overlay{position:fixed;inset:0;background:var(--bg);z-index:200;display:none;flex-direction:column;}
 .admin-overlay.active{display:flex;}
-.admin-top{background:linear-gradient(135deg,#1a0a2e,#0a1a3e);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.admin-top{background:linear-gradient(135deg,var(--header-grad-b),var(--header-grad-a));padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);backdrop-filter:var(--surface-blur);-webkit-backdrop-filter:var(--surface-blur);}
 .admin-top h2{font-family:'Fredoka One',cursive;font-size:1.15rem;color:var(--accent1);}
 .close-admin{background:var(--card2);border:1px solid var(--border);color:var(--text);width:34px;height:34px;border-radius:10px;font-size:1rem;cursor:pointer;}
 .admin-tabs{display:flex;gap:6px;padding:10px 16px;overflow-x:auto;border-bottom:1px solid var(--border);}
 .admin-tab-btn{background:var(--card2);border:1px solid var(--border);color:var(--muted);padding:8px 14px;border-radius:10px;font-size:.78rem;font-weight:800;cursor:pointer;white-space:nowrap;}
-.admin-tab-btn.active{background:linear-gradient(135deg,#b06aff,#4d96ff);color:#fff;border-color:transparent;}
+.admin-tab-btn.active{background:linear-gradient(135deg,var(--grad-a),var(--grad-b));color:#fff;border-color:transparent;}
+.seg-tabs{display:flex;gap:6px;margin:0 0 12px;}
+.seg-tab-btn{flex:1;min-width:0;background:var(--card2);border:1px solid var(--border);color:var(--muted);padding:9px 4px;border-radius:10px;font-size:.66rem;font-weight:800;cursor:pointer;white-space:normal;line-height:1.15;text-align:center;word-break:break-word;}
+.seg-tab-btn.active{background:linear-gradient(135deg,var(--grad-a),var(--grad-b));color:#fff;border-color:transparent;}
 .admin-body{flex:1;overflow-y:auto;padding:16px;}
 .admin-tab-page{display:none;}.admin-tab-page.active{display:block;}
 .user-row{display:flex;align-items:center;justify-content:space-between;background:var(--card2);border-radius:12px;padding:10px 12px;margin-bottom:8px;border:1px solid var(--border);}
@@ -142,13 +234,27 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .admin-badge2{background:rgba(255,107,107,.2);color:var(--accent1);font-size:.58rem;font-weight:800;padding:1px 6px;border-radius:6px;margin-left:4px;}
 .icon-btn{background:none;border:none;color:var(--muted);font-size:.95rem;cursor:pointer;padding:4px 8px;}
 .icon-btn:hover{color:var(--red);}
-.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 18px;font-size:.82rem;font-weight:700;z-index:999;box-shadow:0 8px 30px rgba(0,0,0,.5);display:none;}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);max-width:min(92vw,420px);background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 18px;font-size:.82rem;font-weight:700;z-index:999;box-shadow:var(--elev-shadow);display:none;}
+.toast.pop{display:flex;align-items:center;gap:8px;}
 
 /* Notification bell */
 .notif-wrap{position:relative;}
 .notif-bell{background:var(--card2);border:1px solid var(--border);border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:1rem;cursor:pointer;position:relative;}
 .notif-badge{position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;border-radius:10px;min-width:16px;height:16px;font-size:.6rem;display:none;align-items:center;justify-content:center;padding:0 3px;font-weight:800;}
-.notif-panel{display:none;position:absolute;top:42px;right:0;width:280px;max-height:340px;overflow-y:auto;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:10px;z-index:200;box-shadow:0 12px 40px rgba(0,0,0,.5);}
+/* v7.4 fix: was position:absolute anchored to the 34px bell button with a
+   fixed 280px width — on phones, once other header buttons pushed the bell
+   away from the true right edge, the panel overflowed/overlapped the rest
+   of the screen instead of fitting it. Now anchored to the VIEWPORT with a
+   width/height computed from it, so it always fits regardless of where the
+   bell sits or how narrow the screen is. */
+.notif-panel{display:none;position:fixed;top:64px;right:12px;left:12px;margin:0 auto;width:min(380px, calc(100vw - 24px));max-height:min(70vh, 480px);overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:10px;z-index:600;box-shadow:var(--elev-shadow);backdrop-filter:var(--surface-blur);-webkit-backdrop-filter:var(--surface-blur);}
+.notif-panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px;}
+.notif-panel-head .btn-tiny.ghost{padding:4px 8px;font-size:.62rem;}
+.notif-scrim{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:590;}
+.notif-scrim.open{display:block;}
+.notif-row{display:flex;align-items:flex-start;gap:8px;padding:9px 8px;border-radius:10px;margin-bottom:4px;}
+.notif-row.unread{background:rgba(77,150,255,.1);}
+.notif-row .del-x{background:none;border:none;color:var(--muted);font-size:.85rem;cursor:pointer;flex-shrink:0;padding:2px 4px;}
 .notif-panel.open{display:block;}
 .notif-item{padding:8px 6px;border-bottom:1px solid var(--border);}
 .notif-item:last-child{border-bottom:none;}
@@ -158,7 +264,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .switch-acct-btn{display:none;background:var(--card2);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:7px 10px;font-family:'Fredoka One',cursive;font-size:.72rem;cursor:pointer;align-items:center;gap:4px;}
 
 /* Small action buttons used on card tiles / balance rows */
-.btn-tiny{background:linear-gradient(135deg,#b06aff,#4d96ff);color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:.68rem;font-weight:800;cursor:pointer;}
+.btn-tiny{background:linear-gradient(135deg,var(--grad-a),var(--grad-b));color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:.68rem;font-weight:800;cursor:pointer;}
 .btn-tiny.ghost{background:var(--card);border:1px solid var(--border);color:var(--text);}
 
 /* Due-date badges on card tiles */
@@ -170,7 +276,18 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 /* Reusable modal overlay (delete-reason, switch-account, quick-entry) */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center;padding:20px;}
 .modal-overlay.open{display:flex;}
-.modal-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;width:100%;max-width:360px;max-height:80vh;overflow-y:auto;}
+.modal-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;width:100%;max-width:360px;max-height:80vh;overflow-y:auto;box-shadow:var(--elev-shadow);backdrop-filter:var(--surface-blur);-webkit-backdrop-filter:var(--surface-blur);}
+.modal-box.wide{max-width:480px;}
+.brk-modal{max-width:480px;}
+.brk-row{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:8px;}
+.brk-row-top{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.brk-group-label{font-size:.68rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin:14px 0 8px;}
+.brk-group-label:first-child{margin-top:0;}
+.brk-actions{display:flex;gap:6px;flex-shrink:0;}
+.brk-actions button{background:none;border:none;font-size:.9rem;cursor:pointer;padding:2px 4px;color:var(--muted);}
+.brk-trigger{display:flex;align-items:center;justify-content:space-between;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-top:8px;cursor:pointer;font-size:.78rem;font-weight:800;color:var(--accent4);}
+.tracker-banner{display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--grad-a),var(--grad-b));color:#fff;border-radius:12px;padding:8px 14px;margin-bottom:12px;font-size:.76rem;font-weight:800;}
+.tracker-banner .tb-x{margin-left:auto;background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:8px;width:22px;height:22px;cursor:pointer;font-size:.8rem;flex-shrink:0;}
 .modal-box h3{font-family:'Fredoka One',cursive;font-size:1.05rem;margin-bottom:12px;}
 .modal-box textarea{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px;color:var(--text);font-family:inherit;font-size:.85rem;min-height:70px;resize:vertical;}
 .modal-actions{display:flex;gap:8px;margin-top:14px;}
@@ -241,8 +358,15 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
       <button class="notif-bell" onclick="openAppearance()" title="Appearance — theme & background">🎨</button>
       <div class="notif-wrap">
         <button class="notif-bell" onclick="toggleNotifPanel()" title="Notifications">🔔<span class="notif-badge" id="notif-badge"></span></button>
+        <div class="notif-scrim" id="notif-scrim" onclick="closeNotifPanel()"></div>
         <div class="notif-panel" id="notif-panel">
-          <div style="font-weight:800;font-size:.8rem;margin-bottom:6px;">Notifications</div>
+          <div class="notif-panel-head">
+            <div style="font-weight:800;font-size:.8rem;">Notifications</div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn-tiny ghost" onclick="clearAllNotifications()">Clear all</button>
+              <button class="btn-tiny ghost" onclick="closeNotifPanel()">✕</button>
+            </div>
+          </div>
           <div id="notif-list"></div>
         </div>
       </div>
@@ -256,6 +380,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 
   <!-- HOME -->
   <div class="page active" id="page-home">
+    <div id="tracker-banner"></div>
     <div id="push-banner"></div>
     <div class="month-nav">
       <button onclick="changeMonth(-1)">‹</button>
@@ -263,10 +388,10 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
       <button onclick="changeMonth(1)">›</button>
     </div>
 
-    <div class="admin-tabs" style="padding:0 0 12px;border:none;">
-      <button class="admin-tab-btn active" onclick="switchHomeTab('spent')" id="htab-spent">💵 Spent</button>
-      <button class="admin-tab-btn" onclick="switchHomeTab('owe')" id="htab-owe">⚖️ You Owe</button>
-      <button class="admin-tab-btn" onclick="switchHomeTab('owedtome')" id="htab-owedtome">🔁 Owed to You</button>
+    <div class="seg-tabs">
+      <button class="seg-tab-btn active" onclick="switchHomeTab('spent')" id="htab-spent">💵 Spent</button>
+      <button class="seg-tab-btn" onclick="switchHomeTab('owe')" id="htab-owe">⚖️ You Owe</button>
+      <button class="seg-tab-btn" onclick="switchHomeTab('owedtome')" id="htab-owedtome">🔁 Owed to You</button>
     </div>
 
     <button class="report-btn" id="btn-email-report" onclick="openReportPeriodModal()">📊 View report / statement</button>
@@ -278,6 +403,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
       </div>
       <div class="section-title" style="font-size:1rem;">📅 This month's spending</div>
       <div id="expense-list"></div>
+      <div class="brk-trigger" onclick="openSpendBreakdown()"><span>📜 View all-time spending, edit or delete any entry</span><span>›</span></div>
     </div>
 
     <div class="admin-tab-page" id="hometab-owe">
@@ -286,10 +412,10 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
         <div class="s-val" id="sum-owe" style="font-size:1.6rem;">—</div>
       </div>
 
-      <div class="admin-tabs" style="padding:0 0 12px;border:none;">
-        <button class="admin-tab-btn active" onclick="switchOweSubTab('admin')" id="owesub-admin">🏦 Owed to Admin</button>
-        <button class="admin-tab-btn" onclick="switchOweSubTab('others')" id="owesub-others">🤝 Owed to Others</button>
-        <button class="admin-tab-btn" onclick="switchOweSubTab('history')" id="owesub-history">📜 History</button>
+      <div class="seg-tabs">
+        <button class="seg-tab-btn active" onclick="switchOweSubTab('admin')" id="owesub-admin">🏦 Owed to Admin</button>
+        <button class="seg-tab-btn" onclick="switchOweSubTab('others')" id="owesub-others">🤝 Owed to Others</button>
+        <button class="seg-tab-btn" onclick="switchOweSubTab('history')" id="owesub-history">📜 History</button>
       </div>
 
       <div class="admin-tab-page active" id="owesubtab-admin">
@@ -323,6 +449,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
         </div>
 
         <div id="owed-list"></div>
+        <div class="brk-trigger" onclick="openOwedBreakdown()"><span>📜 View full history, edit or delete any entry</span><span>›</span></div>
       </div>
 
       <div class="admin-tab-page" id="owesubtab-others">
@@ -331,6 +458,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 
       <div class="admin-tab-page" id="owesubtab-history">
         <div id="settle-list"></div>
+        <div class="brk-trigger" onclick="openHistoryBreakdown()"><span>📜 View full scrollable breakdown</span><span>›</span></div>
       </div>
     </div>
 
@@ -346,9 +474,9 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   <!-- ADD EXPENSE -->
   <div class="page" id="page-add">
     <div class="section-title">➕ Add</div>
-    <div class="admin-tabs" style="padding:0 0 12px;border:none;">
-      <button class="admin-tab-btn active" onclick="switchAddTab('spend')" id="atab-spend">💵 Personal Spend</button>
-      <button class="admin-tab-btn" onclick="switchAddTab('payee')" id="atab-payee">🤝 Party Ledger</button>
+    <div class="seg-tabs">
+      <button class="seg-tab-btn active" onclick="switchAddTab('spend')" id="atab-spend">💵 Personal Spend</button>
+      <button class="seg-tab-btn" onclick="switchAddTab('payee')" id="atab-payee">🤝 Party Ledger</button>
     </div>
 
     <div class="admin-tab-page active" id="addtab-spend">
@@ -662,6 +790,38 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   </div>
 </div>
 
+<!-- v7.4: owed-to-admin entries could only be deleted before, never edited
+     (a typo'd amount meant delete-and-redo). Same admin/admin-delegate
+     gate as add/delete (canManageOwed), enforced again server-side by RLS. -->
+<div class="modal-overlay" id="edit-owed-modal">
+  <div class="modal-box">
+    <h3>✏️ Edit owed amount</h3>
+    <input type="hidden" id="eo-id">
+    <div class="form-row">
+      <div class="fg"><label>Amount (AED)</label><input type="number" id="eo-amount" step="0.01" min="0"></div>
+      <div class="fg"><label>Month</label><input type="month" id="eo-month"></div>
+    </div>
+    <div class="fg"><label>Note (optional)</label><input type="text" id="eo-note"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeEditOwed()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEditOwed()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- v7.4: one shared scrollable breakdown modal, reused by every module
+     (personal spend, owed-to-admin, history, and anywhere else a list can
+     run long) instead of each screen inventing its own "view all" pattern.
+     Rows keep each module's own edit/delete functions — this only owns the
+     grouping/scroll/shell around them. -->
+<div class="modal-overlay" id="breakdown-modal">
+  <div class="modal-box brk-modal">
+    <h3 id="brk-title">Breakdown</h3>
+    <div id="brk-body"></div>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeBreakdown()">Close</button></div>
+  </div>
+</div>
+
 <!-- Appearance — theme + personal background photo. Tied to YOUR login
      (me.email), not the account you're managing, so a delegate keeps
      their own look even while managing someone else's data. Every choice
@@ -827,9 +987,24 @@ let myCardPayments = [];
 let allUsers = [];
 let timerInterval = null;
 let notifications = [];
+let notifChannel = null;
+let _toastTimer = null;
 
 function dhs(n){ return `<span class="dhs">${(Number(n)||0).toFixed(2)} <small>AED</small></span>`; }
-function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.style.display='block'; setTimeout(()=>t.style.display='none',2600); }
+function toast(msg){ const t=document.getElementById('toast'); t.classList.remove('pop'); t.onclick=null; t.textContent=msg; t.style.display='block'; clearTimeout(_toastTimer); _toastTimer=setTimeout(()=>t.style.display='none',2600); }
+// v7.4 — the "pop-up" for a cross-user notification (someone else's edit,
+// or your own action echoed back through Realtime): bolder than a plain
+// toast, tappable to jump straight into the notification list.
+function popNotification(title,message){
+  const t=document.getElementById('toast');
+  t.classList.add('pop');
+  t.innerHTML = `<span style="font-size:1.1rem;">🔔</span><span><b>${escapeHtml(title)}</b><br><span style="font-weight:600;opacity:.85;">${escapeHtml(message||'')}</span></span>`;
+  t.style.display='flex';
+  t.onclick = ()=>{ t.style.display='none'; const panel=document.getElementById('notif-panel'); if(panel && !panel.classList.contains('open')) toggleNotifPanel(); };
+  clearTimeout(_toastTimer);
+  _toastTimer=setTimeout(()=>{ t.style.display='none'; t.classList.remove('pop'); t.onclick=null; },4800);
+  nativeFireLocal(title,message);
+}
 function showErr(id,msg){ const e=document.getElementById(id); e.textContent=msg; e.style.display='block'; setTimeout(()=>e.style.display='none',4000); }
 // v7.2 — true admin OR someone delegating for an admin: the two roles allowed
 // to add/edit/delete on the admin-assigned "Owed to Admin" ledger.
@@ -991,18 +1166,43 @@ async function chooseAccount(i){
   await enterApp();
 }
 // ── SWITCH ACCOUNT — same account list, callable any time post-login,
-// without logging out. This is the control that was missing before. ──
+// without logging out. This is the control that was missing before. v7.4:
+// switching now asks for confirmation first (naming exactly whose tracker
+// you're about to view), rather than switching the instant a name is
+// tapped — and a persistent banner (renderTrackerBanner) makes it obvious
+// afterwards too, not just in the small header pill. ──
 function openSwitchAccount(){
-  renderAccountList('switch-account-list', (i)=>{ switchAccount(i); });
+  renderAccountList('switch-account-list', (i)=>{ confirmSwitchAccount(i); });
   document.getElementById('switch-account-modal').classList.add('open');
 }
 function closeSwitchAccount(){ document.getElementById('switch-account-modal').classList.remove('open'); }
+function confirmSwitchAccount(i){
+  const target = window._accountOptions[i];
+  if(target.email.toLowerCase()===managing.email.toLowerCase()){ closeSwitchAccount(); return; }
+  if(confirm(`Switch to viewing ${target.name}'s tracker?\n\nEverything you see and add after this will belong to ${target.name}'s account, not yours, until you switch back.`)){
+    switchAccount(i);
+  }
+}
 async function switchAccount(i){
   managing = window._accountOptions[i];
   rememberManaging(managing.email);
   closeSwitchAccount();
   toast(`Now managing ${managing.name}'s account`);
   await refreshManagingUI();
+}
+function renderTrackerBanner(){
+  const el = document.getElementById('tracker-banner');
+  if(!el) return;
+  if(managing.email.toLowerCase()===me.email.toLowerCase()){ el.innerHTML=''; return; }
+  el.innerHTML = `<div class="tracker-banner">
+    <span>${managing.emoji||'😎'}</span>
+    <span>📍 Viewing <b>${escapeHtml(managing.name)}</b>'s tracker — not yours</span>
+    <button class="tb-x" title="Switch back to your own" onclick="switchToSelf()">↩</button>
+  </div>`;
+}
+function switchToSelf(){
+  const i = window._accountOptions.findIndex(o=>o.email.toLowerCase()===me.email.toLowerCase());
+  if(i>=0) switchAccount(i);
 }
 function updateSwitcherVisibility(){
   const btn = document.getElementById('btn-switch-account');
@@ -1011,6 +1211,7 @@ function updateSwitcherVisibility(){
 }
 async function logout(){
   if(!confirm('Log out?')) return;
+  unsubscribeNotifRealtime();
   await sb.auth.signOut();
   sessionStorage.removeItem('bt_email');
   location.reload();
@@ -1022,6 +1223,7 @@ async function enterApp(){
   document.getElementById('screen-app').classList.add('active');
   if(me.is_admin) document.getElementById('btn-open-admin').style.display='inline-block';
   loadAppearance(); // tied to me.email — runs once per login, not per account switch
+  nativeRequestNotifPermission(); // once per login, native app only — no-op on the web build
   await refreshManagingUI();
 }
 
@@ -1031,6 +1233,7 @@ async function refreshManagingUI(){
   document.getElementById('me-avatar').textContent = managing.emoji || '😎';
   document.getElementById('me-avatar').style.background = managing.color || '#4d96ff';
   document.getElementById('me-name').textContent = managing.name + (managing.email!==me.email ? ' (delegated)' : '');
+  renderTrackerBanner();
   document.getElementById('header-sub').textContent = managing.group_type==='squad_split' ? 'Squad member · expenses, cards & owe tracker' : 'Expenses, cards & owe tracker';
   const squadLink = document.getElementById('link-to-squad');
   if(managing.group_type==='squad_split'){
@@ -1061,6 +1264,14 @@ const THEMES = [
   { id:'sunset',  label:'Sunset',  c1:'#1a0f14', c2:'#ff922b' },
   { id:'forest',  label:'Forest',  c1:'#0c1710', c2:'#6bcb77' },
   { id:'mono',    label:'Mono',    c1:'#0a0a0a', c2:'#f2f2f2' },
+  { id:'glass-aqua',  label:'Glass Aqua',  c1:'#04141c', c2:'#22d3ee' },
+  { id:'glass-dark',  label:'Glass Dark',  c1:'#0a0a12', c2:'#b06aff' },
+  { id:'neo-light',   label:'Neo Light',   c1:'#e8ebf1', c2:'#8b6ad8' },
+  { id:'neo-dark',    label:'Neo Dark',    c1:'#1e2028', c2:'#9b7ae0' },
+  { id:'aurora',      label:'Aurora',      c1:'#0d0620', c2:'#ff92d0' },
+  { id:'noise-dark',  label:'Noise',       c1:'#0e0e12', c2:'#b06aff' },
+  { id:'sandstone',   label:'Sandstone',   c1:'#2a1d14', c2:'#ffb066' },
+  { id:'custom-photo',label:'Your Photo',  c1:'#0c0c16', c2:'#f5f5ff' },
 ];
 let myAppearance = { theme:'default', bg_url:null, bg_opacity:0.30 };
 
@@ -1076,8 +1287,11 @@ function applyBackground(url, opacity){
 }
 function renderThemeSwatches(){
   document.getElementById('theme-swatches').innerHTML = THEMES.map(t=>`
-    <div class="theme-swatch ${myAppearance.theme===t.id?'active':''}" title="${t.label}"
-         style="background:linear-gradient(135deg,${t.c1} 50%,${t.c2} 50%);" onclick="selectTheme('${t.id}')"></div>
+    <div class="theme-opt ${myAppearance.theme===t.id?'active':''}" onclick="selectTheme('${t.id}')">
+      <div class="theme-swatch ${myAppearance.theme===t.id?'active':''}" title="${t.label}"
+           style="background:linear-gradient(135deg,${t.c1} 50%,${t.c2} 50%);"></div>
+      <span>${t.label}</span>
+    </div>
   `).join('');
 }
 async function loadAppearance(){
@@ -1094,6 +1308,7 @@ async function selectTheme(themeId){
   applyTheme(themeId);
   renderThemeSwatches();
   await saveAppearance();
+  if(themeId==='custom-photo' && !myAppearance.bg_url) toast('Now add your own photo below ↓');
 }
 function openAppearance(){
   renderThemeSwatches();
@@ -1237,16 +1452,64 @@ async function registerServiceWorker(){
   try{ return await navigator.serviceWorker.register('./sw.js'); }
   catch(e){ console.error('SW registration failed:', e); return null; }
 }
+// v7.4 — Capacitor detection + native local-notification bridge. The web
+// Push API (used below for the actual GitHub Pages site) is unsupported on
+// iOS WKWebView entirely and inconsistent on Android WebView, which is why
+// notification permission looked like it "didn't exist" inside the wrapped
+// app specifically — it wasn't broken, the API it depended on just isn't
+// there in that context. Capacitor's LocalNotifications plugin IS available
+// in a WebView regardless (it's a native bridge call, not a web API), so
+// the native app now gets a real OS permission prompt and real OS pop-ups
+// through that instead. No server/FCM/APNs setup needed for this part —
+// only true background-days-later push would need that, which is a
+// separate, larger undertaking noted in the reference doc.
+function nativeIsApp(){ return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()); }
+async function nativeRequestNotifPermission(){
+  if(!nativeIsApp()) return;
+  try{
+    const LN = window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications;
+    if(!LN) return;
+    const cur = await LN.checkPermissions();
+    if(cur.display === 'granted') return;
+    await LN.requestPermissions();
+  }catch(e){ console.error('native permission request failed', e); }
+}
+async function nativeFireLocal(title,message){
+  if(!nativeIsApp()) return;
+  try{
+    const LN = window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications;
+    if(!LN) return;
+    const perm = await LN.checkPermissions();
+    if(perm.display !== 'granted') return;
+    await LN.schedule({ notifications:[{
+      id: Math.floor(Date.now()%2147483647),
+      title: title||'Bill Tracker', body: message||'', schedule:{ at:new Date(Date.now()+300) },
+    }]});
+  }catch(e){ console.error('native local notification failed', e); }
+}
 async function refreshPushUI(){
   const el = document.getElementById('push-banner');
   if(!el) return;
+  if(nativeIsApp()){
+    try{
+      const LN = window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications;
+      const cur = LN ? await LN.checkPermissions() : { display:'denied' };
+      if(cur.display==='granted'){ el.innerHTML=''; return; }
+      el.innerHTML = `
+        <div style="background:rgba(77,150,255,.1);border:1px solid rgba(77,150,255,.3);border-radius:12px;padding:12px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:10px;">
+          <span style="font-size:.78rem;">🔔 Turn on notifications — every add, edit and delete (yours or a delegate's) will pop up here.</span>
+          <button class="btn-tiny" onclick="nativeRequestNotifPermission().then(refreshPushUI)">Enable</button>
+        </div>`;
+    }catch(e){ el.innerHTML=''; }
+    return;
+  }
   if(!('serviceWorker' in navigator) || !('PushManager' in window)){ el.innerHTML=''; return; }
   const reg = await navigator.serviceWorker.getRegistration('./sw.js');
   const sub = reg ? await reg.pushManager.getSubscription() : null;
   if(sub || Notification.permission==='denied'){ el.innerHTML=''; return; } // already on, or user said no — don't nag either way
   el.innerHTML = `
     <div style="background:rgba(77,150,255,.1);border:1px solid rgba(77,150,255,.3);border-radius:12px;padding:12px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:10px;">
-      <span style="font-size:.78rem;">🔔 Get a notification when a card bill is due soon — no email needed.</span>
+      <span style="font-size:.78rem;">🔔 Turn on notifications — every add, edit and delete (yours or a delegate's) will reach you, even when the tab's closed.</span>
       <button class="btn-tiny" onclick="enablePush()">Enable</button>
     </div>`;
 }
@@ -1262,20 +1525,39 @@ async function enablePush(){
       user_email: managing.email, endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth,
     }, { onConflict:'endpoint' });
     if(error){ toast('Could not save notification setup'); return; }
-    toast('Notifications on ✓ — you\'ll get one when a card is due in 7 days');
+    toast('Notifications on ✓ — every add, edit and delete will reach you');
     document.getElementById('push-banner').innerHTML='';
   }catch(e){ console.error(e); toast('Could not enable notifications on this device'); }
 }
 
 // ── NOTIFICATIONS ──────────────────────────────
-// Lets the OTHER side of a shared entry find out something changed —
-// used right now for deletions, but the table is general-purpose.
+// Lets anyone with a stake in an entry (the other side, a delegate, an
+// owner) find out something changed — as of v7.4 this covers every add,
+// edit and delete in every module, delivered three ways: the in-app bell
+// list below, a live pop-up the instant it happens (Realtime, this
+// section), and a real push/local OS notification even when the app isn't
+// in the foreground (send-push Edge Function / native bridge above).
 async function loadNotifications(){
-  const { data } = await sb.from('bill_notifications').select('*').ilike('recipient_email', escLike(managing.email)).order('created_at',{ascending:false}).limit(30);
+  const { data } = await sb.from('bill_notifications').select('*').ilike('recipient_email', escLike(managing.email)).order('created_at',{ascending:false}).limit(50);
   notifications = data||[];
   renderNotifications();
-  const unread = notifications.filter(n=>!n.is_read).length;
-  if(unread>0) toast(`🔔 You have ${unread} new notification${unread===1?'':'s'}`);
+  subscribeNotifRealtime();
+}
+function subscribeNotifRealtime(){
+  if(notifChannel){ sb.removeChannel(notifChannel); notifChannel=null; }
+  const myAddr = managing.email.toLowerCase();
+  notifChannel = sb.channel('notif-'+myAddr)
+    .on('postgres_changes', { event:'INSERT', schema:'public', table:'bill_notifications', filter:`recipient_email=eq.${myAddr}` }, (payload)=>{
+      const n = payload.new;
+      if(notifications.some(x=>x.id===n.id)) return;
+      notifications = [n, ...notifications];
+      renderNotifications();
+      popNotification(n.title, n.message);
+    })
+    .subscribe();
+}
+function unsubscribeNotifRealtime(){
+  if(notifChannel){ sb.removeChannel(notifChannel); notifChannel=null; }
 }
 function renderNotifications(){
   const unread = notifications.filter(n=>!n.is_read).length;
@@ -1284,15 +1566,20 @@ function renderNotifications(){
   const list=document.getElementById('notif-list');
   if(!list) return;
   list.innerHTML = notifications.length ? notifications.map(n=>`
-    <div class="notif-item ${n.is_read?'':'unread'}">
-      <div style="font-weight:800;font-size:.8rem;">${escapeHtml(n.title)}</div>
-      <div style="font-size:.74rem;color:var(--muted);margin-top:2px;">${escapeHtml(n.message)}</div>
-      <div style="font-size:.62rem;color:var(--muted);margin-top:4px;">${new Date(n.created_at).toLocaleString()}</div>
+    <div class="notif-row ${n.is_read?'':'unread'}">
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:800;font-size:.8rem;">${escapeHtml(n.title)}</div>
+        <div style="font-size:.74rem;color:var(--muted);margin-top:2px;">${escapeHtml(n.message)}</div>
+        <div style="font-size:.62rem;color:var(--muted);margin-top:4px;">${new Date(n.created_at).toLocaleString()}</div>
+      </div>
+      <button class="del-x" title="Remove" onclick="deleteNotification(${n.id}, event)">✕</button>
     </div>`).join('') : `<div class="empty-state"><span>🔔</span>Nothing yet</div>`;
 }
 async function toggleNotifPanel(){
   const panel=document.getElementById('notif-panel');
+  const scrim=document.getElementById('notif-scrim');
   panel.classList.toggle('open');
+  if(scrim) scrim.classList.toggle('open', panel.classList.contains('open'));
   if(!panel.classList.contains('open')) return;
   const unreadIds = notifications.filter(n=>!n.is_read).map(n=>n.id);
   if(unreadIds.length){
@@ -1300,6 +1587,26 @@ async function toggleNotifPanel(){
     notifications.forEach(n=>n.is_read=true);
     renderNotifications();
   }
+}
+function closeNotifPanel(){
+  document.getElementById('notif-panel').classList.remove('open');
+  const scrim=document.getElementById('notif-scrim'); if(scrim) scrim.classList.remove('open');
+}
+async function deleteNotification(id, ev){
+  if(ev) ev.stopPropagation();
+  const { error } = await sb.from('bill_notifications').delete().eq('id', id);
+  if(error){ toast('Could not remove that notification'); return; }
+  notifications = notifications.filter(n=>n.id!==id);
+  renderNotifications();
+}
+async function clearAllNotifications(){
+  if(!notifications.length) return;
+  const ids = notifications.map(n=>n.id);
+  const { error } = await sb.from('bill_notifications').delete().in('id', ids);
+  if(error){ toast('Could not clear notifications'); return; }
+  notifications = [];
+  renderNotifications();
+  toast('Notifications cleared');
 }
 
 // ── DELETE WITH REASON — one shared flow for every money entry that
@@ -1394,7 +1701,7 @@ function renderHome(){
           <div style="display:flex;justify-content:space-between;font-size:.68rem;color:var(--accent4);font-weight:800;margin-bottom:2px;padding:0 2px;">
             <span>${mo}${mo!==viewMonth?' · carried':''}</span><span>${subtotal.toFixed(2)} AED</span>
           </div>
-          ${rows.map(o=>`<div class="owed-row"><div class="b-left"><div class="b-name">${escapeHtml(o.note||'Owed amount')}</div><div class="b-sub">${o.month}</div></div><div class="b-amt neg">${dhs(o.amount)}</div>${canOwed?`<button class="icon-btn" onclick="deleteOwedEntry(${o.id})" title="Delete (mistake?)">🗑️</button>`:''}</div>`).join('')}
+          ${rows.map(o=>`<div class="owed-row"><div class="b-left"><div class="b-name">${escapeHtml(o.note||'Owed amount')}</div><div class="b-sub">${o.month}</div></div><div class="b-amt neg">${dhs(o.amount)}</div>${canOwed?`<button class="icon-btn" onclick="editOwedEntry(${o.id})" title="Edit">✏️</button><button class="icon-btn" onclick="deleteOwedEntry(${o.id})" title="Delete (mistake?)">🗑️</button>`:''}</div>`).join('')}
         </div>`;
       }).join('');
   }
@@ -1964,6 +2271,94 @@ async function addOwedInline(){
 function deleteSettlementEntry(id){
   const row = mySettlements.find(s=>s.id===id);
   requestDelete('settlement', id, null, `Paid to admin · ${row?.month||''} · ${Number(row?.amount||0).toFixed(2)} AED`);
+}
+
+// ── SHARED BREAKDOWN MODAL (v7.4) — every module's "view everything,
+// scroll, edit or delete right there" opens through this one shell. ──
+function openBreakdown(title, bodyHtml){
+  document.getElementById('brk-title').textContent = title;
+  document.getElementById('brk-body').innerHTML = bodyHtml;
+  document.getElementById('breakdown-modal').classList.add('open');
+}
+function closeBreakdown(){ document.getElementById('breakdown-modal').classList.remove('open'); }
+function monthLabel(mo){
+  const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const [y,m]=String(mo).split('-').map(Number);
+  return (m>=1&&m<=12) ? `${MN[m-1]} ${y}` : String(mo);
+}
+function openSpendBreakdown(){
+  const byMonth={};
+  myExpenses.forEach(e=>{ (byMonth[e.month]=byMonth[e.month]||[]).push(e); });
+  const months=Object.keys(byMonth).sort().reverse();
+  const html = months.length ? months.map(mo=>{
+    const rows=byMonth[mo].slice().sort((a,b)=>b.date.localeCompare(a.date));
+    const total=rows.reduce((s,x)=>s+Number(x.amount),0);
+    return `<div class="brk-group-label">${monthLabel(mo)} · ${total.toFixed(2)} AED</div>` + rows.map(x=>{
+      const card=myCards.find(c=>c.id===x.card_id);
+      return `<div class="brk-row"><div class="brk-row-top">
+        <div style="min-width:0;"><b>${escapeHtml(x.description)}</b><div style="font-size:.68rem;color:var(--muted);">${x.date}${card?' · '+escapeHtml(card.card_name):''}</div></div>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">${dhs(x.amount)}
+          <div class="brk-actions"><button onclick="closeBreakdown();editExpense(${x.id})" title="Edit">✏️</button><button onclick="deleteExpense(${x.id});closeBreakdown();openSpendBreakdown();" title="Delete">🗑️</button></div>
+        </div></div></div>`;
+    }).join('');
+  }).join('') : `<div class="empty-state"><span>💵</span>No spending yet</div>`;
+  openBreakdown('💵 All-time spending', html);
+}
+function openOwedBreakdown(){
+  const canOwed=canManageOwed();
+  const byMonth={};
+  myOwed.forEach(o=>{ (byMonth[o.month]=byMonth[o.month]||[]).push(o); });
+  const months=Object.keys(byMonth).sort().reverse();
+  const html = months.length ? months.map(mo=>{
+    const rows=byMonth[mo];
+    const total=rows.reduce((s,x)=>s+Number(x.amount),0);
+    return `<div class="brk-group-label">${monthLabel(mo)} · ${total.toFixed(2)} AED</div>` + rows.map(o=>`
+      <div class="brk-row"><div class="brk-row-top">
+        <div style="min-width:0;"><b>${escapeHtml(o.note||'Owed amount')}</b></div>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">${dhs(o.amount)}
+          ${canOwed?`<div class="brk-actions"><button onclick="closeBreakdown();editOwedEntry(${o.id})" title="Edit">✏️</button><button onclick="deleteOwedEntry(${o.id})" title="Delete">🗑️</button></div>`:''}
+        </div></div></div>`).join('');
+  }).join('') : `<div class="empty-state"><span>✅</span>Nothing added yet</div>`;
+  openBreakdown('🏦 Owed to Admin — full history', html);
+}
+function openHistoryBreakdown(){
+  const rows = [
+    ...mySettlements.map(s=>({ id:s.id, kind:'settlement', when:s.created_at||s.month, label:'Paid to admin', sub:s.month, amount:s.amount })),
+    ...myPayeeEntries.filter(e=>e.entry_type==='paid').map(e=>{
+      const payee=myPayees.find(p=>p.id===e.payee_id);
+      return { id:e.id, kind:'payee', when:e.date, label:`Paid ${payee?escapeHtml(payee.party_name):'someone'}`, sub:e.note||e.date, amount:e.amount };
+    }),
+  ].sort((a,b)=>String(b.when).localeCompare(String(a.when)));
+  const html = rows.length ? rows.map(h=>`
+    <div class="brk-row"><div class="brk-row-top">
+      <div style="min-width:0;"><b>${h.label}</b><div style="font-size:.68rem;color:var(--muted);">${escapeHtml(String(h.sub))}</div></div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">${dhs(h.amount)}
+        <div class="brk-actions"><button onclick="${h.kind==='settlement'?`deleteSettlementEntry(${h.id})`:`deletePayeeEntry(${h.id})`}" title="Delete">🗑️</button></div>
+      </div></div></div>`).join('') : `<div class="empty-state"><span>💸</span>No payments recorded yet</div>`;
+  openBreakdown('📜 Full payment history', html);
+}
+function editOwedEntry(id){
+  if(!canManageOwed()){ toast('Only admin or an admin delegate can edit this'); return; }
+  const o = myOwed.find(x=>x.id===id);
+  if(!o) return;
+  document.getElementById('eo-id').value=o.id;
+  document.getElementById('eo-amount').value=o.amount;
+  document.getElementById('eo-month').value=o.month;
+  document.getElementById('eo-note').value=o.note||'';
+  document.getElementById('edit-owed-modal').classList.add('open');
+}
+function closeEditOwed(){ document.getElementById('edit-owed-modal').classList.remove('open'); }
+async function saveEditOwed(){
+  const id=document.getElementById('eo-id').value;
+  const amount=parseFloat(document.getElementById('eo-amount').value);
+  const month=document.getElementById('eo-month').value;
+  const note=document.getElementById('eo-note').value.trim();
+  if(!amount||amount<=0){ toast('Enter a valid amount'); return; }
+  const { error } = await sb.from('bill_owed').update({ amount, month, note }).eq('id', id);
+  if(error){ toast('Could not save — '+(error.message||'try again')); return; }
+  closeEditOwed();
+  toast('Owed entry updated ✓ — they\'ve been notified');
+  await loadMyData();
 }
 
 // ── ADD PAGE SUB-TABS ─────────────────────────
