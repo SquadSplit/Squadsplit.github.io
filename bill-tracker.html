@@ -166,7 +166,9 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .app-header{background:linear-gradient(135deg,var(--header-grad-a),var(--header-grad-b));border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;flex-wrap:wrap;row-gap:8px;}
 .app-header h2{font-family:'Fredoka One',cursive;font-size:1.3rem;background:linear-gradient(135deg,#4d96ff,#ffd93d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 .app-header p{font-size:.7rem;color:var(--muted);margin-top:1px;}
-.header-right{display:flex;align-items:center;gap:8px;}
+.app-header{flex-wrap:nowrap;gap:8px;padding:10px 12px;}.app-header>div:first-child{flex:0 0 auto;min-width:0;}.app-header h2{font-size:1.05rem;white-space:nowrap;}.app-header p{white-space:nowrap;font-size:.68rem;}
+.header-right{display:flex;align-items:center;gap:6px;flex:1 1 0;min-width:0;justify-content:flex-start;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:2px 2px;}.header-right::-webkit-scrollbar{display:none;}.header-right>*{flex:0 0 auto;white-space:nowrap;}.header-right .notif-wrap{position:static;}
+.plan-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:14px;}.plan-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0;}.plan-stat{background:var(--card2);border-radius:10px;padding:8px;text-align:center;font-size:.68rem;color:var(--muted);}.plan-stat b{display:block;font-size:.9rem;color:var(--text);}.plan-scroll{overflow:auto;max-height:260px;border:1px solid var(--border);border-radius:10px;-webkit-overflow-scrolling:touch;}.plan-scroll table{border-collapse:collapse;min-width:520px;width:100%;font-size:.78rem;}.plan-scroll th{position:sticky;top:0;background:var(--card2);z-index:1;}.plan-scroll th,.plan-scroll td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}.plan-bar{height:8px;border-radius:6px;background:var(--card2);overflow:hidden;}.plan-bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--grad-pos-a),var(--grad-pos-b));}.chip-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;}.chip{flex:0 0 auto;padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-weight:800;font-size:.75rem;cursor:pointer;}.chip.on{background:var(--accent4);color:#fff;}
 .btn-admin-panel{background:linear-gradient(135deg,var(--grad-a),var(--grad-b));color:#fff;border:none;border-radius:12px;padding:7px 14px;font-family:'Fredoka One',cursive;font-size:.82rem;cursor:pointer;letter-spacing:.3px;box-shadow:0 2px 12px rgba(176,106,255,.35);}
 .btn-admin-panel:hover{transform:scale(1.03);}
 .user-pill{display:flex;align-items:center;gap:6px;background:var(--card2);border-radius:20px;padding:6px 10px;border:1px solid var(--border);cursor:pointer;}
@@ -610,10 +612,21 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
     <div id="deleted-history-list"></div>
   </div>
 
+  <div class="page" id="page-plans">
+    <div class="section-title">📅 EPP &amp; Gold Payment Plans</div>
+    <div class="chip-row" id="plan-type-chips"></div>
+    <div class="chip-row" id="plan-event-chips"></div>
+    <div class="chip-row" id="plan-ledger-chips"></div>
+    <div class="plan-stats" id="plan-summary"></div>
+    <button class="btn-add" onclick="openPlanModal()" style="margin-bottom:14px;">➕ New plan</button>
+    <div id="plan-list"></div>
+  </div>
+
   <div class="bottom-nav">
     <button class="nav-btn active" onclick="switchPage('home')" id="nav-home"><span class="ni">🏠</span><span class="nl">Home</span></button>
     <button class="nav-btn" onclick="switchPage('add')" id="nav-add"><span class="ni">➕</span><span class="nl">Add</span></button>
     <button class="nav-btn" onclick="switchPage('cards')" id="nav-cards"><span class="ni">💳</span><span class="nl">Cards</span></button>
+    <button class="nav-btn" onclick="switchPage('plans')" id="nav-plans"><span class="ni">📅</span><span class="nl">Plans</span></button>
     <button class="nav-btn" onclick="switchPage('party')" id="nav-party"><span class="ni">🎉</span><span class="nl">Party</span></button>
   </div>
 </div>
@@ -814,6 +827,23 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
      run long) instead of each screen inventing its own "view all" pattern.
      Rows keep each module's own edit/delete functions — this only owns the
      grouping/scroll/shell around them. -->
+<div class="modal-overlay" id="plan-modal"><div class="modal-box" style="max-height:90vh;overflow:auto;">
+<h3 id="pl-modal-title">📅 New payment plan</h3>
+<select class="form-input" id="pl-type"><option value="epp">EPP / Installment plan</option><option value="gold">Gold payment plan</option></select>
+<input class="form-input" id="pl-event" list="pl-events" placeholder="Event (e.g. Mobile, Gold, Laptop)"><datalist id="pl-events"></datalist>
+<input class="form-input" id="pl-title" placeholder="Title (e.g. iPhone 17 EPP)">
+<select class="form-input" id="pl-ledger" onchange="plLedgerChange()"><option value="own">💵 Own spend</option><option value="owe_admin">🏦 I owe admin</option><option value="owe_other">🤝 I owe someone</option><option value="owed_to_you">🔁 Owed to me</option></select>
+<select class="form-input" id="pl-payee" style="display:none;"></select>
+<select class="form-input" id="pl-card"></select>
+<input class="form-input" id="pl-total" type="number" step="0.01" placeholder="Total amount (AED)">
+<input class="form-input" id="pl-n" type="number" min="1" max="120" placeholder="Number of payments" oninput="plAutoEnd()">
+<label style="font-size:.7rem;color:var(--muted);">Start date</label><input class="form-input" id="pl-start" type="date" onchange="plAutoEnd()">
+<label style="font-size:.7rem;color:var(--muted);">End date</label><input class="form-input" id="pl-end" type="date">
+<input class="form-input" id="pl-due" type="number" min="1" max="31" placeholder="Payment due day of month (1-31)">
+<input class="form-input" id="pl-notes" placeholder="Notes (optional)">
+<div class="modal-actions"><button class="btn btn-ghost" onclick="closePlanModal()">Cancel</button><button class="btn btn-primary" id="pl-save-btn" onclick="savePlan()">Create plan</button></div>
+</div></div>
+
 <div class="modal-overlay" id="breakdown-modal">
   <div class="modal-box brk-modal">
     <h3 id="brk-title">Breakdown</h3>
@@ -1394,6 +1424,7 @@ async function loadMyData(){
   myCards = c.data||[]; myExpenses = e.data||[]; myOwed = o.data||[]; mySettlements = s.data||[];
   myPayees = p.data||[]; myPayeeEntries = pe.data||[]; myCardPayments = cp.data||[];
   myCardShares = cs.data||[]; appUsersDirectory = dir.data||[];
+  try{ await loadPlans(); }catch(e){ console.warn('plans',e); }
   fillCardSelect();
   fillPayeeEmailDatalist();
   renderCards();
@@ -1416,6 +1447,7 @@ function switchPage(name){
   document.getElementById('page-'+name).classList.add('active');
   document.getElementById('nav-'+name).classList.add('active');
   if(name==='home') renderHome();
+  if(name==='plans') renderPlans();
 }
 function switchHomeTab(name){
   document.querySelectorAll('#htab-spent,#htab-owe,#htab-owedtome').forEach(b=>b.classList.remove('active'));
@@ -2911,6 +2943,129 @@ async function loadAdminSpending(){
 // load owed list when that admin tab is first opened
 const _origSwitchAdminTab = switchAdminTab;
 switchAdminTab = function(name){ _origSwitchAdminTab(name); if(name==='owed') loadAdminOwedList(); };
+
+
+// ═══ v7.5 — EPP / Gold payment plans ═══
+let myPlans=[], myPlanPays=[], sharedCardsForPlans=[], planF={type:'all',event:'all',ledger:'all'};
+const LEDGER_LBL={own:'💵 Own spend',owe_admin:'🏦 Owed to admin',owe_other:'🤝 Owed to others',owed_to_you:'🔁 Owed to you'};
+async function loadPlans(){
+  const [a,b]=await Promise.all([
+    sb.from('bill_plans').select('*').ilike('user_email',escLike(managing.email)).order('created_at',{ascending:false}),
+    sb.from('bill_plan_payments').select('*').ilike('user_email',escLike(managing.email)).order('due_date')]);
+  myPlans=a.data||[]; myPlanPays=b.data||[]; scheduleDueNotifs();
+}
+function planStats(pl){
+  const ps=myPlanPays.filter(x=>x.plan_id===pl.id), paid=ps.filter(x=>x.status==='paid');
+  const paidAmt=paid.reduce((t,x)=>t+Number(x.amount),0), total=Number(pl.total_amount);
+  return {ps,paidCount:paid.length,paidAmt,remain:Math.max(total-paidAmt,0),left:ps.length-paid.length,total};
+}
+function renderPlans(){
+  const evs=[...new Set(myPlans.map(p=>p.event_name))];
+  const chips=(id,key,vals)=>document.getElementById(id).innerHTML=vals.map(([v,l])=>`<button class="chip ${planF[key]===v?'on':''}" onclick="planF['${key}']='${v}';renderPlans()">${escapeHtml(l)}</button>`).join('');
+  chips('plan-type-chips','type',[['all','All types'],['epp','EPP'],['gold','Gold']]);
+  chips('plan-event-chips','event',[['all','All events'],...evs.map(e=>[e,e])]);
+  chips('plan-ledger-chips','ledger',[['all','All ledgers'],...Object.entries(LEDGER_LBL)]);
+  const list=myPlans.filter(p=>(planF.type==='all'||p.plan_type===planF.type)&&(planF.event==='all'||p.event_name===planF.event)&&(planF.ledger==='all'||p.ledger===planF.ledger));
+  let T=0,P=0,R=0,L=0; list.forEach(p=>{const s=planStats(p);T+=s.total;P+=s.paidAmt;R+=s.remain;L+=s.left;});
+  document.getElementById('plan-summary').innerHTML=[['Total',T.toFixed(2)],['Paid',P.toFixed(2)],['Remaining',R.toFixed(2)]].map(([k,v])=>`<div class="plan-stat">${k}<b>${v}</b></div>`).join('')+`<div class="plan-stat" style="grid-column:span 3;">${list.length} plan(s) · ${L} payment(s) / month(s) left</div>`;
+  const cardName=id=>{const c=[...myCards,...sharedCardsForPlans].find(c=>c.id===id);return c?c.card_name+(c.user_email&&c.user_email.toLowerCase()!==managing.email.toLowerCase()?' ('+c.user_email.split('@')[0]+"'s card)":''):'—';};
+  const today=localDateStr(new Date());
+  document.getElementById('plan-list').innerHTML=list.length?list.map(p=>{const s=planStats(p),pct=Math.round(s.paidAmt/s.total*100);
+    const pe=p.payee_id?(myPayees.find(x=>x.id===p.payee_id)||{}).party_name:'';
+    return `<div class="plan-card"><div style="display:flex;justify-content:space-between;gap:8px;"><div><b>${p.plan_type==='gold'?'🪙':'📱'} ${escapeHtml(p.title)}</b><div style="font-size:.7rem;color:var(--muted);">${escapeHtml(p.event_name)} · ${p.plan_type.toUpperCase()} · ${LEDGER_LBL[p.ledger]}${pe?' · '+escapeHtml(pe):''}</div></div><span style="display:flex;gap:4px;"><button class="btn-tiny ghost" onclick="openPlanModal(${p.id})">✏️</button><button class="btn-tiny ghost" onclick="deletePlan(${p.id})">🗑️</button></span></div>
+    <div style="font-size:.72rem;margin-top:6px;">💳 ${escapeHtml(cardName(p.card_id))} · ${p.start_date} → ${p.end_date} · due day ${p.due_day}</div>
+    <div class="plan-stats"><div class="plan-stat">Total<b>${s.total.toFixed(2)}</b></div><div class="plan-stat">Paid<b>${s.paidAmt.toFixed(2)}</b></div><div class="plan-stat">Need to pay<b>${s.remain.toFixed(2)}</b></div><div class="plan-stat">Payments done<b>${s.paidCount}/${s.ps.length}</b></div><div class="plan-stat">Months left<b>${s.left}</b></div><div class="plan-stat">Progress<b>${pct}%</b></div></div>
+    <div class="plan-bar"><i style="width:${pct}%"></i></div>
+    <div class="plan-scroll" style="margin-top:10px;"><table><thead><tr><th>#</th><th>Due date</th><th>Amount</th><th>Status</th><th>Paid on</th><th></th></tr></thead><tbody>${s.ps.map(x=>`<tr><td>${x.seq}</td><td>${x.due_date}</td><td>${Number(x.amount).toFixed(2)}</td><td>${x.status==='paid'?'✅ Paid':(x.due_date<today?'⚠️ Overdue':'⏳ Pending')}</td><td>${x.paid_at?x.paid_at.slice(0,10):'—'}</td><td><button class="btn-tiny" onclick="togglePlanPay(${x.id},'${x.status==='paid'?'pending':'paid'}')">${x.status==='paid'?'Undo':'Mark paid'}</button></td></tr>`).join('')}</tbody></table></div></div>`;}).join(''):'<p style="color:var(--muted);text-align:center;">No plans yet. Tap “New plan”.</p>';
+}
+let planEditId=null;
+async function openPlanModal(editId){
+  planEditId=editId||null;
+  document.getElementById('pl-events').innerHTML=['Mobile','Gold','Laptop',...new Set(myPlans.map(p=>p.event_name))].map(e=>`<option value="${escapeHtml(e)}">`).join('');
+  document.getElementById('pl-payee').innerHTML=myPayees.map(p=>`<option value="${p.id}">${escapeHtml(p.party_name)}</option>`).join('')||'<option value="">No parties yet</option>';
+  const sh=await sb.from('bill_card_shares').select('card_id').ilike('shared_with_email',escLike(managing.email));
+  const ids=(sh.data||[]).map(x=>x.card_id); sharedCardsForPlans=[];
+  if(ids.length){const r=await sb.from('bill_cards').select('*').in('id',ids); sharedCardsForPlans=r.data||[];}
+  const all=[...myCards,...sharedCardsForPlans];
+  document.getElementById('pl-card').innerHTML='<option value="">No card / cash</option>'+all.map(c=>`<option value="${c.id}">💳 ${escapeHtml(c.card_name)}${c.user_email.toLowerCase()!==managing.email.toLowerCase()?' — '+escapeHtml(c.user_email):''}</option>`).join('');
+  const E=planEditId?myPlans.find(x=>x.id===planEditId):null, set=(i,v)=>document.getElementById(i).value=v;
+  document.getElementById('pl-modal-title').textContent=E?'✏️ Edit plan':'📅 New payment plan';
+  document.getElementById('pl-save-btn').textContent=E?'Save changes':'Create plan';
+  ['pl-type','pl-event','pl-title','pl-ledger','pl-total','pl-n','pl-end','pl-due','pl-notes','pl-card'].forEach(i=>set(i,''));
+  set('pl-type','epp'); set('pl-ledger','own'); set('pl-start',localDateStr(new Date()));
+  if(E){ set('pl-type',E.plan_type); set('pl-event',E.event_name); set('pl-title',E.title); set('pl-ledger',E.ledger); plLedgerChange();
+    if(E.payee_id) set('pl-payee',E.payee_id); set('pl-card',E.card_id||''); set('pl-total',E.total_amount); set('pl-n',E.installments);
+    set('pl-start',E.start_date); set('pl-end',E.end_date); set('pl-due',E.due_day); set('pl-notes',E.notes||''); }
+  document.getElementById('plan-modal').classList.add('open'); plLedgerChange();
+}
+function closePlanModal(){ document.getElementById('plan-modal').classList.remove('open'); }
+function plLedgerChange(){ const l=document.getElementById('pl-ledger').value; document.getElementById('pl-payee').style.display=(l==='owe_other'||l==='owed_to_you')?'block':'none'; }
+function plAutoEnd(){ const n=+document.getElementById('pl-n').value, st=document.getElementById('pl-start').value; if(!n||!st) return; const d=new Date(st+'T00:00:00'); d.setMonth(d.getMonth()+n-1); document.getElementById('pl-end').value=localDateStr(d); if(!document.getElementById('pl-due').value) document.getElementById('pl-due').value=new Date(st+'T00:00:00').getDate(); }
+function planSchedule(total,n,start,due){
+  const st=new Date(start+'T00:00:00'); let y=st.getFullYear(), m=st.getMonth(); const out=[]; const base=Math.floor(total/n*100)/100;
+  const dim=(y,m)=>new Date(y,m+1,0).getDate();
+  if(Math.min(due,dim(y,m))<st.getDate()) m++;
+  for(let i=0;i<n;i++){ const yy=y+Math.floor((m+i)/12), mm=(m+i)%12; out.push({seq:i+1,due_date:localDateStr(new Date(yy,mm,Math.min(due,dim(yy,mm)))),amount:i<n-1?base:Math.round((total-base*(n-1))*100)/100}); }
+  return out;
+}
+async function savePlan(){
+  const g=id=>document.getElementById(id).value.trim();
+  const total=+g('pl-total'), n=parseInt(g('pl-n')), due=parseInt(g('pl-due')), start=g('pl-start'), end=g('pl-end'), title=g('pl-title'), ledger=g('pl-ledger');
+  if(!title||!(total>0)||!(n>=1)||!(due>=1&&due<=31)||!start||!end) return toast('Fill title, total, payments, dates and due day');
+  if(end<start) return toast('End date must be after start date');
+  if((ledger==='owe_other'||ledger==='owed_to_you')&&!g('pl-payee')) return toast('Pick a party first');
+  if(planEditId) return saveEditedPlan({plan_type:g('pl-type'),event_name:g('pl-event')||'General',title,ledger,payee_id:(ledger==='owe_other'||ledger==='owed_to_you')?+g('pl-payee'):null,card_id:g('pl-card')?+g('pl-card'):null,total_amount:total,installments:n,start_date:start,end_date:end,due_day:due,notes:g('pl-notes')});
+  const {data,error}=await sb.from('bill_plans').insert({user_email:managing.email,plan_type:g('pl-type'),event_name:g('pl-event')||'General',title,ledger,payee_id:(ledger==='owe_other'||ledger==='owed_to_you')?+g('pl-payee'):null,card_id:g('pl-card')?+g('pl-card'):null,total_amount:total,installments:n,start_date:start,end_date:end,due_day:due,notes:g('pl-notes'),created_by_email:me.email}).select().single();
+  if(error) return toast('❌ '+error.message);
+  const rows=planSchedule(total,n,start,due).map(r=>({...r,plan_id:data.id,user_email:managing.email}));
+  const r2=await sb.from('bill_plan_payments').insert(rows);
+  if(r2.error){ await sb.from('bill_plans').delete().eq('id',data.id); return toast('❌ '+r2.error.message); }
+  closePlanModal(); await loadPlans(); renderPlans(); toast('✅ Plan created');
+}
+async function saveEditedPlan(f){
+  const id=planEditId, cur=planStats(myPlans.find(x=>x.id===id)), paidSeqs=new Set(cur.ps.filter(x=>x.status==='paid').map(x=>x.seq));
+  if(f.installments<paidSeqs.size) return toast('Payments must be at least '+paidSeqs.size+' (already paid)');
+  if(f.total_amount<=cur.paidAmt) return toast('Total must exceed already-paid '+cur.paidAmt.toFixed(2));
+  const {error}=await sb.from('bill_plans').update(f).eq('id',id); if(error) return toast('❌ '+error.message);
+  const full=planSchedule(f.total_amount,f.installments,f.start_date,f.due_day), pend=full.filter(r=>!paidSeqs.has(r.seq));
+  const each=Math.floor((f.total_amount-cur.paidAmt)/pend.length*100)/100;
+  const rows=pend.map((r,i)=>({plan_id:id,user_email:managing.email,seq:r.seq,due_date:r.due_date,status:'pending',amount:i<pend.length-1?each:Math.round((f.total_amount-cur.paidAmt-each*(pend.length-1))*100)/100}));
+  await sb.from('bill_plan_payments').delete().eq('plan_id',id).eq('status','pending');
+  const r2=await sb.from('bill_plan_payments').insert(rows); if(r2.error) return toast('❌ '+r2.error.message);
+  closePlanModal(); await loadPlans(); renderPlans(); toast('✅ Plan updated (paid payments kept)');
+}
+async function togglePlanPay(id,status){
+  const {error}=await sb.from('bill_plan_payments').update({status,paid_at:status==='paid'?new Date().toISOString():null,paid_by_email:status==='paid'?me.email:null}).eq('id',id);
+  if(error) return toast('❌ '+error.message); await loadPlans(); renderPlans();
+}
+async function deletePlan(id){
+  if(!confirm('Delete this plan and all its payments?')) return;
+  const {error}=await sb.from('bill_plans').delete().eq('id',id); if(error) return toast('❌ '+error.message);
+  await loadPlans(); renderPlans();
+}
+
+// v7.5 — OS-scheduled due alerts (fire with app closed, default system sound). Native app only.
+async function scheduleDueNotifs(){
+  try{
+    if(!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform())) return;
+    const LN=Capacitor.Plugins.LocalNotifications; if(!LN) return;
+    const perm=await LN.checkPermissions(); if(perm.display!=='granted'){ const r=await LN.requestPermissions(); if(r.display!=='granted') return; }
+    const pend=await LN.getPending(); if(pend.notifications.length) await LN.cancel({notifications:pend.notifications.filter(n=>n.id>=900000)});
+    const now=Date.now(), list=[]; let id=900000;
+    myPlanPays.filter(x=>x.status==='pending').forEach(x=>{
+      const pl=myPlans.find(p=>p.id===x.plan_id); if(!pl) return;
+      [[-1,'due tomorrow'],[0,'due today']].forEach(([off,txt])=>{
+        const d=new Date(x.due_date+'T09:00:00'); d.setDate(d.getDate()+off);
+        if(d.getTime()>now && list.length<60) list.push({id:id++,title:'📅 '+pl.title,body:`Payment #${x.seq} of ${pl.installments} (${Number(x.amount).toFixed(2)} AED) ${txt}`,schedule:{at:d,allowWhileIdle:true}});
+      });
+    });
+    (myCards||[]).filter(c=>c.due_day&&c.reminder_enabled!==false).forEach(c=>{
+      const t=new Date(); for(let k=0;k<3;k++){ const y=t.getFullYear(),m=t.getMonth()+k,dim=new Date(y,m+1,0).getDate();
+        [[-1,'due tomorrow'],[0,'due today']].forEach(([off,txt])=>{ const d=new Date(y,m,Math.min(c.due_day,dim),9,0,0); d.setDate(d.getDate()+off);
+          if(d.getTime()>now&&list.length<60) list.push({id:id++,title:'💳 '+c.card_name,body:'Card payment '+txt,schedule:{at:d,allowWhileIdle:true}}); }); } });
+    if(list.length) await LN.schedule({notifications:list});
+  }catch(e){ console.warn('schedule',e); }
+}
 
 function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s??''; return d.innerHTML; }
 </script>
