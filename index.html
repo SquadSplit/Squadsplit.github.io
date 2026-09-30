@@ -119,7 +119,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .app-header{background:linear-gradient(135deg,var(--header-grad-a),var(--header-grad-b));border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;flex-wrap:wrap;row-gap:8px;}
 .app-header h2{font-family:'Fredoka One',cursive;font-size:1.3rem;background:linear-gradient(135deg,#ff6b6b,#ffd93d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 .app-header p{font-size:.7rem;color:var(--muted);margin-top:1px;}
-.header-right{display:flex;align-items:center;gap:8px;}
+.app-header{flex-wrap:nowrap;gap:8px;padding:10px 12px;}.app-header>div:first-child{flex:0 0 auto;min-width:0;white-space:nowrap;}.header-right{display:flex;align-items:center;gap:6px;flex:1 1 0;min-width:0;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;}.header-right::-webkit-scrollbar{display:none;}.header-right>*{flex:0 0 auto;white-space:nowrap;}
 .btn-admin-panel{background:linear-gradient(135deg,#b06aff,#4d96ff);color:#fff;border:none;border-radius:12px;padding:7px 14px;font-family:'Fredoka One',cursive;font-size:.82rem;cursor:pointer;letter-spacing:.3px;box-shadow:0 2px 12px rgba(176,106,255,.35);backdrop-filter:var(--surface-blur);-webkit-backdrop-filter:var(--surface-blur);}
 .btn-admin-panel:hover{transform:scale(1.03);}
 .user-pill{display:flex;align-items:center;gap:6px;background:var(--card2);border-radius:20px;padding:6px 10px;border:1px solid var(--border);cursor:pointer;}
