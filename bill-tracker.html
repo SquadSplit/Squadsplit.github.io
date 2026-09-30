@@ -168,6 +168,40 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .app-header p{font-size:.7rem;color:var(--muted);margin-top:1px;}
 .app-header{flex-wrap:nowrap;gap:8px;padding:10px 12px;}.app-header>div:first-child{flex:0 0 auto;min-width:0;}.app-header h2{font-size:1.05rem;white-space:nowrap;}.app-header p{white-space:nowrap;font-size:.68rem;}
 .header-right{display:flex;align-items:center;gap:6px;flex:1 1 0;min-width:0;justify-content:flex-start;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:2px 2px;}.header-right::-webkit-scrollbar{display:none;}.header-right>*{flex:0 0 auto;white-space:nowrap;}.header-right .notif-wrap{position:static;}
+
+/* v7.7 polish */
+body{background-image:radial-gradient(900px 500px at 8% -5%,rgba(77,150,255,.16),transparent 60%),radial-gradient(800px 500px at 100% 0,rgba(176,106,255,.13),transparent 55%);background-attachment:fixed;}
+.app-header{flex-wrap:nowrap!important;justify-content:flex-start!important;gap:10px!important;padding:10px 12px!important;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 6px 24px rgba(0,0,0,.25);}
+.hamb{flex:0 0 auto;width:40px;height:40px;border-radius:13px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:1.25rem;cursor:pointer;}
+.hd-title{flex:1 1 auto;min-width:0;}.hd-title h2{font-size:1.05rem!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.hd-title p{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.64rem!important;}
+.app-header .header-right{flex:0 0 auto!important;overflow:visible!important;gap:6px!important;margin-left:auto;}
+.header-right .notif-wrap{position:relative!important;}
+.user-pill{max-width:112px;}.uname{max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+@media(max-width:430px){.switch-acct-btn .hide-sm{display:none;}}
+.drawer-scrim{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:900;}.drawer-scrim.open{display:block;}
+.drawer{position:fixed;top:0;bottom:0;left:0;width:min(290px,84vw);transform:translateX(-105%);transition:transform .25s ease;z-index:901;background:var(--card);border-right:1px solid var(--border);padding:14px;overflow-y:auto;box-shadow:12px 0 40px rgba(0,0,0,.4);}
+.drawer.open{transform:none;}.drawer-head{display:flex;justify-content:space-between;align-items:center;font-family:'Fredoka One',cursive;font-size:1.2rem;margin-bottom:10px;}
+.drawer-head button{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:10px;width:34px;height:34px;cursor:pointer;}
+.drawer-sec{font-size:.65rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin:14px 4px 6px;font-weight:800;}
+.drawer-item{display:block;width:100%;text-align:left;text-decoration:none;background:var(--card2);color:var(--text);border:1px solid var(--border);border-radius:13px;padding:12px 14px;margin-bottom:7px;font-family:'Fredoka One',cursive;font-size:.92rem;cursor:pointer;}
+.drawer-item:active{transform:scale(.98);}
+.card,.card-tile,.plan-card{box-shadow:0 8px 26px rgba(0,0,0,.16);transition:transform .15s,box-shadow .15s;}.card-tile:hover,.plan-card:hover{transform:translateY(-2px);}
+.card-tile{cursor:pointer;}
+.bottom-nav{left:10px!important;right:10px!important;bottom:8px!important;border-radius:22px;border:1px solid var(--border)!important;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 10px 34px rgba(0,0,0,.35);}
+.nav-btn.active{background:linear-gradient(135deg,rgba(77,150,255,.28),rgba(176,106,255,.22))!important;}
+.page{padding-bottom:118px!important;}
+.btn-add{box-shadow:0 8px 22px rgba(77,150,255,.35);}
+.plan-head{display:flex;align-items:center;gap:10px;cursor:pointer;}.plan-head .pt{flex:1;min-width:0;font-weight:800;}.plan-head .pt small{display:block;font-weight:600;color:var(--muted);font-size:.66rem;}
+.plan-chev{transition:transform .2s;}.plan-card.open .plan-chev{transform:rotate(90deg);}
+.ptabs{display:flex;gap:6px;margin:10px 0;}.ptab{flex:1;padding:8px;border-radius:11px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-weight:800;font-size:.74rem;cursor:pointer;}.ptab.on{background:var(--accent4);color:#fff;}
+.pp-in{width:78px;padding:5px 6px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:.74rem;}
+.et-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:14px;margin-bottom:12px;cursor:pointer;box-shadow:0 8px 26px rgba(0,0,0,.16);}
+.et-total{font-family:'Fredoka One',cursive;font-size:1.5rem;background:linear-gradient(135deg,#4d96ff,#ffd93d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.et-row{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--border);font-size:.8rem;}
+.et-bar{height:9px;border-radius:6px;background:var(--card2);overflow:hidden;}.et-bar>i{display:block;height:100%;background:linear-gradient(90deg,#4d96ff,#b06aff);}
+.et-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}.et-grid .fg{margin:0;}
+.fg-inline input,.fg-inline select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--card2);color:var(--text);}
+.chk{display:flex;align-items:center;gap:8px;padding:7px 4px;font-size:.82rem;}
 .plan-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:14px;}.plan-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0;}.plan-stat{background:var(--card2);border-radius:10px;padding:8px;text-align:center;font-size:.68rem;color:var(--muted);}.plan-stat b{display:block;font-size:.9rem;color:var(--text);}.plan-scroll{overflow:auto;max-height:260px;border:1px solid var(--border);border-radius:10px;-webkit-overflow-scrolling:touch;}.plan-scroll table{border-collapse:collapse;min-width:520px;width:100%;font-size:.78rem;}.plan-scroll th{position:sticky;top:0;background:var(--card2);z-index:1;}.plan-scroll th,.plan-scroll td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}.plan-bar{height:8px;border-radius:6px;background:var(--card2);overflow:hidden;}.plan-bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--grad-pos-a),var(--grad-pos-b));}.chip-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;}.chip{flex:0 0 auto;padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-weight:800;font-size:.75rem;cursor:pointer;}.chip.on{background:var(--accent4);color:#fff;}
 .btn-admin-panel{background:linear-gradient(135deg,var(--grad-a),var(--grad-b));color:#fff;border:none;border-radius:12px;padding:7px 14px;font-family:'Fredoka One',cursive;font-size:.82rem;cursor:pointer;letter-spacing:.3px;box-shadow:0 2px 12px rgba(176,106,255,.35);}
 .btn-admin-panel:hover{transform:scale(1.03);}
@@ -350,14 +384,9 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 <!-- ═══ APP ═══ -->
 <div class="screen" id="screen-app">
   <div class="app-header">
-    <div>
-      <h2>🧾 Bill Tracker</h2>
-      <p id="header-sub">Your private dashboard</p>
-    </div>
+    <button class="hamb" onclick="openDrawer()" aria-label="Menu">☰</button>
+    <div class="hd-title"><h2>🧾 Bill Tracker</h2><p id="header-sub">Your private dashboard</p></div>
     <div class="header-right">
-      <a href="index.html" id="link-to-squad" style="display:none;text-decoration:none;background:var(--card2);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:7px 12px;font-family:'Fredoka One',cursive;font-size:.78rem;">💸 Squad Splitter</a>
-      <button class="switch-acct-btn" id="btn-switch-account" onclick="openSwitchAccount()" title="Switch between your own and delegated accounts">🔀 Switch</button>
-      <button class="notif-bell" onclick="openAppearance()" title="Appearance — theme & background">🎨</button>
       <div class="notif-wrap">
         <button class="notif-bell" onclick="toggleNotifPanel()" title="Notifications">🔔<span class="notif-badge" id="notif-badge"></span></button>
         <div class="notif-scrim" id="notif-scrim" onclick="closeNotifPanel()"></div>
@@ -372,13 +401,26 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
           <div id="notif-list"></div>
         </div>
       </div>
-      <button class="btn-admin-panel" id="btn-open-admin" style="display:none;" onclick="openAdmin()">⚙️ Admin</button>
+      <button class="switch-acct-btn" id="btn-switch-account" onclick="openSwitchAccount()" title="Switch account">🔀 <span class="hide-sm">Switch</span></button>
       <div class="user-pill" onclick="logout()" title="Tap to log out">
         <div class="av-sm" id="me-avatar" style="background:var(--accent4);"></div>
         <span class="uname" id="me-name"></span>
       </div>
     </div>
   </div>
+  <div class="drawer-scrim" id="drawer-scrim" onclick="closeDrawer()"></div>
+  <aside class="drawer" id="drawer">
+    <div class="drawer-head">Menu <button onclick="closeDrawer()">✕</button></div>
+    <div class="drawer-sec">Modules</div>
+    <button class="drawer-item" onclick="goModule('home')">🏠 Bill Tracker</button>
+    <button class="drawer-item" onclick="goModule('et')">🧾 Expense Tracker</button>
+    <button class="drawer-item" onclick="goModule('plans')">📅 EPP &amp; Gold Plans</button>
+    <a class="drawer-item" id="link-to-squad" href="index.html" style="display:none;">💸 Squad Splitter</a>
+    <div class="drawer-sec">Settings</div>
+    <button class="drawer-item" onclick="closeDrawer();openAppearance()">🎨 Theme &amp; background</button>
+    <button class="drawer-item" id="btn-open-admin" style="display:none;" onclick="closeDrawer();openAdmin()">⚙️ Admin</button>
+    <button class="drawer-item" onclick="closeDrawer();logout()">🚪 Log out</button>
+  </aside>
 
   <!-- HOME -->
   <div class="page active" id="page-home">
@@ -622,6 +664,8 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
     <div id="plan-list"></div>
   </div>
 
+  <div class="page" id="page-et"><div id="et-root"></div></div>
+
   <div class="bottom-nav">
     <button class="nav-btn active" onclick="switchPage('home')" id="nav-home"><span class="ni">🏠</span><span class="nl">Home</span></button>
     <button class="nav-btn" onclick="switchPage('add')" id="nav-add"><span class="ni">➕</span><span class="nl">Add</span></button>
@@ -827,6 +871,18 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
      run long) instead of each screen inventing its own "view all" pattern.
      Rows keep each module's own edit/delete functions — this only owns the
      grouping/scroll/shell around them. -->
+<div class="modal-overlay" id="et-modal"><div class="modal-box" style="max-height:88vh;overflow:auto;">
+<h3 id="et-modal-title">New tracker</h3>
+<div class="fg fg-inline"><label>Title</label><input id="et-title" placeholder="e.g. October 2026 / Umrah 2026"></div>
+<div class="et-grid" style="margin-top:8px;"><div class="fg fg-inline"><label>Start date</label><input type="date" id="et-start"></div><div class="fg fg-inline"><label>End date</label><input type="date" id="et-end"></div></div>
+<button class="chip" style="margin:8px 0;" onclick="etThisMonth()">📆 Use this month</button>
+<div class="fg fg-inline"><label>Currency</label><input id="et-cur" list="et-curs" value="AED"><datalist id="et-curs"><option>AED</option><option>INR</option><option>SAR</option><option>EUR</option><option>USD</option><option>GBP</option><option>QAR</option><option>OMR</option></datalist></div>
+<div id="et-people-wrap"><label style="font-size:.7rem;color:var(--muted);">Spending with (registered users — leave empty for solo)</label><div id="et-people" style="max-height:140px;overflow:auto;"></div></div>
+<div class="fg fg-inline" style="margin-top:8px;"><label>Notes</label><input id="et-notes" placeholder="optional"></div>
+<div class="modal-actions"><button class="btn btn-ghost" onclick="document.getElementById('et-modal').classList.remove('open')">Cancel</button><button class="btn btn-primary" onclick="createEt()">Create</button></div>
+</div></div>
+<div class="modal-overlay" id="party-detail-modal" onclick="if(event.target===this)this.classList.remove('open')"><div class="modal-box wide" id="party-detail-box"></div></div>
+
 <div class="modal-overlay" id="plan-modal"><div class="modal-box" style="max-height:90vh;overflow:auto;">
 <h3 id="pl-modal-title">📅 New payment plan</h3>
 <select class="form-input" id="pl-type"><option value="epp">EPP / Installment plan</option><option value="gold">Gold payment plan</option></select>
@@ -967,7 +1023,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
     <div id="manage-shares-list" style="margin-bottom:12px;"></div>
     <div class="fg">
       <label>Add a registered user by email</label>
-      <input type="email" id="new-share-email" list="known-emails-list" placeholder="their@email.com">
+      <select id="new-share-email" class="form-input"></select>
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeManageShares()">Done</button>
@@ -1424,7 +1480,7 @@ async function loadMyData(){
   myCards = c.data||[]; myExpenses = e.data||[]; myOwed = o.data||[]; mySettlements = s.data||[];
   myPayees = p.data||[]; myPayeeEntries = pe.data||[]; myCardPayments = cp.data||[];
   myCardShares = cs.data||[]; appUsersDirectory = dir.data||[];
-  try{ await loadPlans(); }catch(e){ console.warn('plans',e); }
+  try{ await loadSharedWithMe(); await loadPlans(); }catch(e){ console.warn('plans',e); }
   fillCardSelect();
   fillPayeeEmailDatalist();
   renderCards();
@@ -1445,7 +1501,8 @@ function switchPage(name){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
-  document.getElementById('nav-'+name).classList.add('active');
+  document.getElementById('nav-'+name)?.classList.add('active');
+  if(name==='et'){ loadEt().then(renderEt); }
   if(name==='home') renderHome();
   if(name==='plans') renderPlans();
 }
@@ -1995,7 +2052,7 @@ function exportReportExcel(){
 // ── ADD EXPENSE ───────────────────────────────
 function fillCardSelect(targetId){
   const sel=document.getElementById(targetId||'add-card');
-  sel.innerHTML = (myCards.length ? myCards.map(c=>`<option value="${c.id}">${escapeHtml(c.card_name)}</option>`).join('') : `<option value="">Add a card first →</option>`)
+  sel.innerHTML = (usableCards().length ? usableCards().map(c=>`<option value="${c.id}">${escapeHtml(cardLabel(c))}</option>`).join('') : `<option value="">Add a card first →</option>`)
     + `<option value="">No card / cash</option>`;
 }
 async function addExpense(){
@@ -2230,7 +2287,6 @@ function openManageShares(cardId){
   _sharingCardId = cardId;
   const card = myCards.find(c=>c.id===cardId);
   document.getElementById('manage-shares-title').textContent = `💳 Share "${card?.card_name||''}"`;
-  document.getElementById('new-share-email').value = '';
   renderShareList();
   document.getElementById('manage-shares-modal').classList.add('open');
 }
@@ -2238,6 +2294,9 @@ function closeManageShares(){ document.getElementById('manage-shares-modal').cla
 function renderShareList(){
   const el = document.getElementById('manage-shares-list');
   const shares = myCardShares.filter(s=>s.card_id===_sharingCardId);
+  const taken=new Set(shares.map(x=>x.shared_with_email.toLowerCase()));
+  const opts=appUsersDirectory.filter(u=>u.email.toLowerCase()!==managing.email.toLowerCase()&&!taken.has(u.email.toLowerCase()));
+  document.getElementById('new-share-email').innerHTML=opts.length?'<option value="">Select a person…</option>'+opts.map(u=>`<option value="${escapeHtml(u.email)}">${escapeHtml(u.name)} — ${escapeHtml(u.email)}</option>`).join(''):'<option value="">Everyone already has access</option>';
   if(!shares.length){ el.innerHTML = `<p style="font-size:.76rem;color:var(--muted);">Not shared with anyone yet — just you.</p>`; return; }
   el.innerHTML = shares.map(s=>{
     const u = appUsersDirectory.find(u=>u.email.toLowerCase()===s.shared_with_email.toLowerCase());
@@ -2249,13 +2308,12 @@ function renderShareList(){
 }
 async function addCardShare(){
   const email = document.getElementById('new-share-email').value.trim().toLowerCase();
-  if(!email){ toast('Enter an email'); return; }
+  if(!email){ toast('Pick a person from the list'); return; }
   if(email===managing.email.toLowerCase()){ toast("That's already your own card"); return; }
   const known = appUsersDirectory.find(u=>u.email.toLowerCase()===email);
   if(!known){ toast('That email is not a registered user on this app'); return; }
   const { error } = await sb.from('bill_card_shares').insert({ card_id:_sharingCardId, owner_email:managing.email, shared_with_email:email });
   if(error){ toast(error.code==='23505' ? 'Already shared with them' : 'Could not add — try again'); return; }
-  document.getElementById('new-share-email').value = '';
   toast(`Shared with ${known.name} ✓`);
   await loadMyData();
   renderShareList();
@@ -2407,8 +2465,8 @@ function renderPartyGrid(){
   const grid=document.getElementById('party-grid');
   if(!grid) return;
   grid.innerHTML = myPayees.length ? myPayees.map(p=>`
-    <div class="card-tile">
-      <button class="cdel" onclick="deleteParty(${p.id})">✕</button>
+    <div class="card-tile" onclick="openPartyDetail(${p.id})">
+      <button class="cdel" onclick="event.stopPropagation();deleteParty(${p.id})">✕</button>
       <div class="cdot" style="background:${p.color};"></div>
       <div class="cname">${escapeHtml(p.party_name)}</div>
       ${p.party_email?`<div style="font-size:.6rem;color:var(--muted);margin-top:2px;">${escapeHtml(p.party_email)}</div>`:''}
@@ -2970,24 +3028,14 @@ function renderPlans(){
   document.getElementById('plan-summary').innerHTML=[['Total',T.toFixed(2)],['Paid',P.toFixed(2)],['Remaining',R.toFixed(2)]].map(([k,v])=>`<div class="plan-stat">${k}<b>${v}</b></div>`).join('')+`<div class="plan-stat" style="grid-column:span 3;">${list.length} plan(s) · ${L} payment(s) / month(s) left</div>`;
   const cardName=id=>{const c=[...myCards,...sharedCardsForPlans].find(c=>c.id===id);return c?c.card_name+(c.user_email&&c.user_email.toLowerCase()!==managing.email.toLowerCase()?' ('+c.user_email.split('@')[0]+"'s card)":''):'—';};
   const today=localDateStr(new Date());
-  document.getElementById('plan-list').innerHTML=list.length?list.map(p=>{const s=planStats(p),pct=Math.round(s.paidAmt/s.total*100);
-    const pe=p.payee_id?(myPayees.find(x=>x.id===p.payee_id)||{}).party_name:'';
-    return `<div class="plan-card"><div style="display:flex;justify-content:space-between;gap:8px;"><div><b>${p.plan_type==='gold'?'🪙':'📱'} ${escapeHtml(p.title)}</b><div style="font-size:.7rem;color:var(--muted);">${escapeHtml(p.event_name)} · ${p.plan_type.toUpperCase()} · ${LEDGER_LBL[p.ledger]}${pe?' · '+escapeHtml(pe):''}</div></div><span style="display:flex;gap:4px;"><button class="btn-tiny ghost" onclick="openPlanModal(${p.id})">✏️</button><button class="btn-tiny ghost" onclick="deletePlan(${p.id})">🗑️</button></span></div>
-    <div style="font-size:.72rem;margin-top:6px;">💳 ${escapeHtml(cardName(p.card_id))} · ${p.start_date} → ${p.end_date} · due day ${p.due_day}</div>
-    <div class="plan-stats"><div class="plan-stat">Total<b>${s.total.toFixed(2)}</b></div><div class="plan-stat">Paid<b>${s.paidAmt.toFixed(2)}</b></div><div class="plan-stat">Need to pay<b>${s.remain.toFixed(2)}</b></div><div class="plan-stat">Payments done<b>${s.paidCount}/${s.ps.length}</b></div><div class="plan-stat">Months left<b>${s.left}</b></div><div class="plan-stat">Progress<b>${pct}%</b></div></div>
-    <div class="plan-bar"><i style="width:${pct}%"></i></div>
-    <div class="plan-scroll" style="margin-top:10px;"><table><thead><tr><th>#</th><th>Due date</th><th>Amount</th><th>Status</th><th>Paid on</th><th></th></tr></thead><tbody>${s.ps.map(x=>`<tr><td>${x.seq}</td><td>${x.due_date}</td><td>${Number(x.amount).toFixed(2)}</td><td>${x.status==='paid'?'✅ Paid':(x.due_date<today?'⚠️ Overdue':'⏳ Pending')}</td><td>${x.paid_at?x.paid_at.slice(0,10):'—'}</td><td><button class="btn-tiny" onclick="togglePlanPay(${x.id},'${x.status==='paid'?'pending':'paid'}')">${x.status==='paid'?'Undo':'Mark paid'}</button></td></tr>`).join('')}</tbody></table></div></div>`;}).join(''):'<p style="color:var(--muted);text-align:center;">No plans yet. Tap “New plan”.</p>';
+  document.getElementById('plan-list').innerHTML=list.length?list.map(planCardHtml).join(''):'<p style="color:var(--muted);text-align:center;">No plans yet. Tap “New plan”.</p>';
 }
 let planEditId=null;
 async function openPlanModal(editId){
   planEditId=editId||null;
   document.getElementById('pl-events').innerHTML=['Mobile','Gold','Laptop',...new Set(myPlans.map(p=>p.event_name))].map(e=>`<option value="${escapeHtml(e)}">`).join('');
   document.getElementById('pl-payee').innerHTML=myPayees.map(p=>`<option value="${p.id}">${escapeHtml(p.party_name)}</option>`).join('')||'<option value="">No parties yet</option>';
-  const sh=await sb.from('bill_card_shares').select('card_id').ilike('shared_with_email',escLike(managing.email));
-  const ids=(sh.data||[]).map(x=>x.card_id); sharedCardsForPlans=[];
-  if(ids.length){const r=await sb.from('bill_cards').select('*').in('id',ids); sharedCardsForPlans=r.data||[];}
-  const all=[...myCards,...sharedCardsForPlans];
-  document.getElementById('pl-card').innerHTML='<option value="">No card / cash</option>'+all.map(c=>`<option value="${c.id}">💳 ${escapeHtml(c.card_name)}${c.user_email.toLowerCase()!==managing.email.toLowerCase()?' — '+escapeHtml(c.user_email):''}</option>`).join('');
+  document.getElementById('pl-card').innerHTML='<option value="">No card / cash</option>'+usableCards().map(c=>`<option value="${c.id}">${escapeHtml(cardLabel(c))}</option>`).join('');
   const E=planEditId?myPlans.find(x=>x.id===planEditId):null, set=(i,v)=>document.getElementById(i).value=v;
   document.getElementById('pl-modal-title').textContent=E?'✏️ Edit plan':'📅 New payment plan';
   document.getElementById('pl-save-btn').textContent=E?'Save changes':'Create plan';
@@ -3065,6 +3113,189 @@ async function scheduleDueNotifs(){
           if(d.getTime()>now&&list.length<60) list.push({id:id++,title:'💳 '+c.card_name,body:'Card payment '+txt,schedule:{at:d,allowWhileIdle:true}}); }); } });
     if(list.length) await LN.schedule({notifications:list});
   }catch(e){ console.warn('schedule',e); }
+}
+
+// ═══ v7.7 ═══════════════════════════════════════════════
+function openDrawer(){document.getElementById('drawer').classList.add('open');document.getElementById('drawer-scrim').classList.add('open');}
+function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('drawer-scrim').classList.remove('open');}
+function goModule(n){closeDrawer();switchPage(n);}
+const r2=n=>Math.round(n*100)/100;
+// ── cards usable by this account (own + shared with me) ──
+let sharedWithMeCards=[];
+async function loadSharedWithMe(){
+  const sh=await sb.from('bill_card_shares').select('card_id').ilike('shared_with_email',escLike(managing.email));
+  const ids=(sh.data||[]).map(x=>x.card_id); sharedWithMeCards=[];
+  if(ids.length){const r=await sb.from('bill_cards').select('*').in('id',ids); sharedWithMeCards=r.data||[];}
+}
+function usableCards(){return [...myCards,...sharedWithMeCards];}
+function cardLabel(c){const own=c.user_email.toLowerCase()===managing.email.toLowerCase();const o=appUsersDirectory.find(u=>u.email.toLowerCase()===c.user_email.toLowerCase());return '💳 '+c.card_name+(own?'':' — '+(o?o.name:c.user_email)+"'s card");}
+function planCardName(id){const c=usableCards().find(c=>c.id===id);return c?cardLabel(c).replace('💳 ',''):'—';}
+// ── party detail & card access ──
+async function openPartyDetail(id){
+  const p=myPayees.find(x=>x.id===id); if(!p) return;
+  const em=(p.party_email||'').toLowerCase(), reg=appUsersDirectory.find(u=>u.email.toLowerCase()===em);
+  let theirs=[]; if(em&&reg){const r=await sb.from('bill_cards_directory').select('*').ilike('user_email',escLike(em)); theirs=r.data||[];}
+  const given=new Set(myCardShares.filter(x=>x.shared_with_email.toLowerCase()===em).map(x=>x.card_id));
+  const es=myPayeeEntries.filter(e=>e.payee_id===id), bal=es.reduce((t,e)=>t+(e.entry_type==='paid'?-1:1)*Number(e.amount),0);
+  document.getElementById('party-detail-box').innerHTML=`<h3>🎉 ${escapeHtml(p.party_name)}</h3>
+  <div style="font-size:.74rem;color:var(--muted);margin-bottom:10px;">${em?escapeHtml(em)+(reg?' · ✅ registered on the app':' · ⚠️ not registered'):'No email — add one to share cards'}</div>
+  <div class="plan-stats"><div class="plan-stat">Ledger entries<b>${es.length}</b></div><div class="plan-stat">Net owed<b>${bal.toFixed(2)}</b></div><div class="plan-stat">Cards shared<b>${given.size}</b></div></div>
+  <div class="section-title" style="font-size:.95rem;">💳 Cards you let them use</div>
+  ${reg?(myCards.length?myCards.map(c=>`<label class="chk"><input type="checkbox" ${given.has(c.id)?'checked':''} onchange="togglePartyCard(${id},${c.id},this.checked)"> <span style="width:10px;height:10px;border-radius:50%;background:${c.color};display:inline-block"></span> ${escapeHtml(c.card_name)}</label>`).join(''):'<p style="font-size:.76rem;color:var(--muted);">You have no cards yet.</p>'):'<p style="font-size:.76rem;color:var(--muted);">Only registered users can get card access.</p>'}
+  <div class="section-title" style="font-size:.95rem;margin-top:12px;">🔗 Cards they let you use</div>
+  ${theirs.length?theirs.map(c=>`<div class="chk">💳 ${escapeHtml(c.card_name)}</div>`).join(''):'<p style="font-size:.76rem;color:var(--muted);">None shared with you.</p>'}
+  <div class="modal-actions"><button class="btn btn-primary" onclick="document.getElementById('party-detail-modal').classList.remove('open')">Done</button></div>`;
+  document.getElementById('party-detail-modal').classList.add('open');
+}
+async function togglePartyCard(pid,cardId,on){
+  const p=myPayees.find(x=>x.id===pid), em=p.party_email.toLowerCase();
+  const {error}=on?await sb.from('bill_card_shares').insert({card_id:cardId,owner_email:managing.email,shared_with_email:em}):await sb.from('bill_card_shares').delete().eq('card_id',cardId).ilike('shared_with_email',escLike(em));
+  if(error&&error.code!=='23505') toast('❌ '+error.message); else toast(on?'Access granted ✓':'Access removed');
+  await loadMyData(); openPartyDetail(pid);
+}
+// ── plans accordion ──
+let planOpen={}, planTab={};
+function togglePlan(id){planOpen[id]=!planOpen[id];renderPlans();}
+function setPlanTab(id,t){planTab[id]=t;renderPlans();}
+function planCardHtml(p){
+  const s=planStats(p), pct=Math.round(s.paidAmt/s.total*100), open=!!planOpen[p.id], tab=planTab[p.id]||'overview', today=localDateStr(new Date());
+  const pe=p.payee_id?(myPayees.find(x=>x.id===p.payee_id)||{}).party_name:'';
+  let body='';
+  if(open){
+    const tabs=`<div class="ptabs">${[['overview','📊 Overview'],['payments','💸 Payments'],['details','⚙️ Details']].map(([k,l])=>`<button class="ptab ${tab===k?'on':''}" onclick="setPlanTab(${p.id},'${k}')">${l}</button>`).join('')}</div>`;
+    if(tab==='overview') body=`<div class="plan-stats"><div class="plan-stat">Total<b>${s.total.toFixed(2)}</b></div><div class="plan-stat">Paid<b>${s.paidAmt.toFixed(2)}</b></div><div class="plan-stat">Need to pay<b>${s.remain.toFixed(2)}</b></div><div class="plan-stat">Payments done<b>${s.paidCount}/${s.ps.length}</b></div><div class="plan-stat">Months left<b>${s.left}</b></div><div class="plan-stat">Progress<b>${pct}%</b></div></div><div class="plan-bar"><i style="width:${pct}%"></i></div>`;
+    else if(tab==='payments') body=`<div class="plan-scroll"><table><thead><tr><th>#</th><th>Due</th><th>Amount</th><th>Status</th><th>Pay</th></tr></thead><tbody>${s.ps.map(x=>`<tr><td>${x.seq}</td><td>${x.due_date}</td><td>${Number(x.amount).toFixed(2)}</td><td>${x.status==='paid'?'✅ '+(x.paid_at?x.paid_at.slice(0,10):'Paid'):(x.due_date<today?'⚠️ Overdue':'⏳ Pending')}</td><td>${x.status==='paid'?`<button class="btn-tiny" onclick="togglePlanPay(${x.id},'pending')">Undo</button>`:`<input class="pp-in" id="pp-${x.id}" type="number" step="0.01" placeholder="${Number(x.amount).toFixed(2)}"> <button class="btn-tiny" onclick="payInstallment(${x.id})">Pay</button> <button class="btn-tiny" onclick="payInstallment(${x.id},true)">Full</button>`}</td></tr>`).join('')}</tbody></table></div><p style="font-size:.66rem;color:var(--muted);margin-top:6px;">Pay less than due → the rest carries to next month. Pay more → next months reduce.</p>`;
+    else body=`<div style="font-size:.78rem;line-height:1.9;">💳 ${escapeHtml(planCardName(p.card_id))}<br>📆 ${p.start_date} → ${p.end_date} · due day ${p.due_day}<br>🏷️ ${escapeHtml(p.event_name)} · ${p.plan_type.toUpperCase()} · ${LEDGER_LBL[p.ledger]}${pe?' · '+escapeHtml(pe):''}<br>${p.notes?'📝 '+escapeHtml(p.notes):''}</div><div style="display:flex;gap:8px;margin-top:10px;"><button class="btn-tiny" onclick="openPlanModal(${p.id})">✏️ Edit</button><button class="btn-tiny ghost" onclick="deletePlan(${p.id})">🗑️ Delete</button></div>`;
+    body=tabs+body;
+  }
+  return `<div class="plan-card ${open?'open':''}"><div class="plan-head" onclick="togglePlan(${p.id})"><span style="font-size:1.3rem;">${p.plan_type==='gold'?'🪙':'📱'}</span><div class="pt">${escapeHtml(p.title)}<small>${s.paidCount}/${s.ps.length} paid · ${s.remain.toFixed(2)} left</small></div><span class="plan-chev">▶</span></div>${body}</div>`;
+}
+function nextMonthDue(dateStr,dueDay){const d=new Date(dateStr+'T00:00:00');const y=d.getFullYear(),m=d.getMonth()+1,dim=new Date(y,m+1,0).getDate();return localDateStr(new Date(y,m,Math.min(dueDay,dim)));}
+async function payInstallment(id,full){
+  const row=myPlanPays.find(x=>x.id===id), plan=myPlans.find(p=>p.id===row.plan_id); if(!row||!plan) return;
+  const due=Number(row.amount); let amt=full?due:parseFloat(document.getElementById('pp-'+id).value);
+  if(!(amt>0)) return toast('Enter the amount paid');
+  const st=planStats(plan); if(amt>st.remain+0.004) return toast('Max payable is '+st.remain.toFixed(2));
+  const all=myPlanPays.filter(x=>x.plan_id===plan.id).sort((a,b)=>a.seq-b.seq), pend=all.filter(x=>x.status==='pending'&&x.seq>row.seq);
+  const q=sb.from('bill_plan_payments'); amt=r2(amt); const diff=r2(due-amt); let err;
+  ({error:err}=await q.update({amount:amt,status:'paid',paid_at:new Date().toISOString(),paid_by_email:me.email}).eq('id',id)); if(err) return toast('❌ '+err.message);
+  if(diff>0.004){
+    if(pend.length) await sb.from('bill_plan_payments').update({amount:r2(Number(pend[0].amount)+diff)}).eq('id',pend[0].id);
+    else{const nd=nextMonthDue(row.due_date,plan.due_day);
+      await sb.from('bill_plan_payments').insert({plan_id:plan.id,user_email:plan.user_email,seq:all[all.length-1].seq+1,due_date:nd,amount:diff});
+      await sb.from('bill_plans').update({installments:plan.installments+1,end_date:nd}).eq('id',plan.id);}
+  }else if(diff<-0.004){
+    let extra=-diff;
+    for(const r of pend){const take=Math.min(extra,Number(r.amount)),left=r2(Number(r.amount)-take);extra=r2(extra-take);
+      if(left<=0.004) await sb.from('bill_plan_payments').delete().eq('id',r.id); else await sb.from('bill_plan_payments').update({amount:left}).eq('id',r.id);
+      if(extra<=0.004) break;}
+  }
+  await loadPlans(); renderPlans(); toast(diff>0.004?'Paid ✓ — '+diff.toFixed(2)+' carried to next month':'Paid ✓');
+}
+// ═══ EXPENSE TRACKER module ═══
+const ET_DEF=[['Breakfast','🍳'],['Lunch','🍱'],['Dinner','🍽️'],['Diet items','🥗'],['Necessaries','🧴'],['Groceries','🛒'],['Lifestyle','✨'],['Fashion & Grooming','💇'],['Medical','💊'],['Outing','🎡'],['Travel','✈️'],['Stay','🏨'],['Shopping','🛍️'],['Gifts','🎁'],['Other','📦']];
+let etTrackers=[],etEntries=[],etCats=[],etTab='period',etOpen=null,etF={cat:'all',from:'',to:''};
+async function loadEt(){
+  const [t,c]=await Promise.all([sb.from('et_trackers').select('*').order('start_date',{ascending:false}),sb.from('et_categories').select('*').ilike('user_email',escLike(managing.email))]);
+  const mm=managing.email.toLowerCase();
+  etTrackers=(t.data||[]).filter(x=>x.user_email.toLowerCase()===mm||(x.participants||[]).includes(mm)); etCats=c.data||[];
+  const ids=etTrackers.map(x=>x.id); etEntries=[];
+  if(ids.length){const e=await sb.from('et_entries').select('*').in('tracker_id',ids).order('entry_date',{ascending:false}); etEntries=e.data||[];}
+}
+const etAllCats=()=>[...ET_DEF,...etCats.filter(c=>!ET_DEF.some(d=>d[0]===c.name)).map(c=>[c.name,c.icon])];
+const etIcon=n=>(etAllCats().find(c=>c[0]===n)||[0,'🏷️'])[1];
+const etName=e=>{if(!e)return '—';const u=appUsersDirectory.find(u=>u.email.toLowerCase()===e.toLowerCase());return u?u.name:e;};
+const etMoney=(n,c)=>c+' '+Number(n).toFixed(2);
+function etFilt(t){return etEntries.filter(e=>e.tracker_id===t.id&&(etF.cat==='all'||e.category===etF.cat)&&(!etF.from||e.entry_date>=etF.from)&&(!etF.to||e.entry_date<=etF.to));}
+function etCatTotals(es){const m={};es.forEach(e=>m[e.category]=(m[e.category]||0)+Number(e.amount));return Object.entries(m).sort((a,b)=>b[1]-a[1]);}
+function renderEt(){const r=document.getElementById('et-root');if(!r)return;const t=etOpen&&etTrackers.find(x=>x.id===etOpen);if(!t){etOpen=null;return etList(r);}etDetail(r,t);}
+function etList(r){
+  const list=etTrackers.filter(t=>t.kind===etTab);
+  r.innerHTML=`<div class="section-title">🧾 Expense Tracker</div>
+  <div class="ptabs"><button class="ptab ${etTab==='period'?'on':''}" onclick="etTab='period';renderEt()">📆 Monthly / Period</button><button class="ptab ${etTab==='occasion'?'on':''}" onclick="etTab='occasion';renderEt()">🕋 Occasions</button></div>
+  <button class="btn-add" style="margin-bottom:14px;" onclick="openEtModal()">➕ New ${etTab==='period'?'period tracker':'occasion'}</button>
+  ${list.length?list.map(t=>{const es=etEntries.filter(e=>e.tracker_id===t.id),tot=es.reduce((a,e)=>a+Number(e.amount),0);return `<div class="et-card" onclick="etOpenT(${t.id})"><div style="display:flex;justify-content:space-between;gap:8px;"><b>${t.kind==='occasion'?'🕋':'📆'} ${escapeHtml(t.title)}</b><span class="et-total">${etMoney(tot,t.currency)}</span></div><div style="font-size:.7rem;color:var(--muted);margin-top:4px;">${t.start_date} → ${t.end_date} · ${es.length} entries${(t.participants||[]).length?' · 👥 '+((t.participants||[]).length+1):' · solo'}</div></div>`;}).join(''):'<p style="text-align:center;color:var(--muted);">Nothing here yet.</p>'}`;
+}
+function etOpenT(id){etOpen=id;etF={cat:'all',from:'',to:''};renderEt();window.scrollTo(0,0);}
+function etDetail(r,t){
+  const all=etEntries.filter(e=>e.tracker_id===t.id), es=etFilt(t), tot=es.reduce((a,e)=>a+Number(e.amount),0), grand=all.reduce((a,e)=>a+Number(e.amount),0), ct=etCatTotals(all);
+  const today=localDateStr(new Date()), dflt=today<t.start_date?t.start_date:(today>t.end_date?t.end_date:today);
+  const people=[t.user_email,...(t.participants||[])];
+  const byDate={};es.forEach(e=>(byDate[e.entry_date]=byDate[e.entry_date]||[]).push(e));
+  r.innerHTML=`<button class="chip" onclick="etOpen=null;renderEt()">‹ Back</button>
+  <div class="et-card" style="cursor:default;margin-top:10px;"><b>${escapeHtml(t.title)}</b><div style="font-size:.7rem;color:var(--muted);">${t.start_date} → ${t.end_date} · ${t.currency}</div>
+  <div class="et-total">${etMoney(es.length===all.length?grand:tot,t.currency)}</div><div style="font-size:.7rem;color:var(--muted);">${etF.cat==='all'&&!etF.from&&!etF.to?'Total spent':'Filtered total'} · overall ${etMoney(grand,t.currency)}</div>
+  <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;"><button class="btn-tiny" onclick="exportEt('pdf')">📄 PDF</button><button class="btn-tiny" onclick="exportEt('xlsx')">📊 Excel</button><button class="btn-tiny ghost" onclick="deleteEt(${t.id})">🗑️ Delete</button></div></div>
+  <div class="card"><div class="section-title" style="font-size:1rem;">➕ Add expense</div>
+  <div class="et-grid fg-inline"><select id="ete-cat">${etAllCats().map(c=>`<option>${escapeHtml(c[0])}</option>`).join('')}</select><input id="ete-amt" type="number" step="0.01" placeholder="Amount (${t.currency})"><input id="ete-date" type="date" min="${t.start_date}" max="${t.end_date}" value="${dflt}"><input id="ete-note" placeholder="Note (optional)"></div>
+  ${people.length>1?`<div class="fg-inline" style="margin-top:8px;"><select id="ete-by">${people.map(e=>`<option value="${escapeHtml(e)}" ${e.toLowerCase()===me.email.toLowerCase()?'selected':''}>Spent by ${escapeHtml(etName(e))}</option>`).join('')}</select></div>`:''}
+  <button class="btn-add" style="margin-top:10px;" onclick="addEtEntry()">Add</button>
+  <div class="et-grid fg-inline" style="margin-top:10px;grid-template-columns:1fr 1fr 70px;"><input id="etc-name" placeholder="New category"><input id="etc-icon" placeholder="Emoji" maxlength="2"><button class="btn-tiny" onclick="addEtCat()">Add</button></div></div>
+  <div class="chip-row"><button class="chip ${etF.cat==='all'?'on':''}" onclick="etF.cat='all';renderEt()">All</button>${ct.map(([c,v])=>`<button class="chip ${etF.cat===c?'on':''}" onclick="etF.cat='${c.replace(/'/g,"\\'")}';renderEt()">${etIcon(c)} ${escapeHtml(c)} · ${v.toFixed(0)}</button>`).join('')}</div>
+  <div class="et-grid fg-inline" style="margin:6px 0 12px;"><input type="date" value="${etF.from}" onchange="etF.from=this.value;renderEt()" title="From"><input type="date" value="${etF.to}" onchange="etF.to=this.value;renderEt()" title="To"></div>
+  <div class="card"><div class="section-title" style="font-size:1rem;">📊 Breakdown</div>${etCatTotals(es).map(([c,v])=>`<div style="margin-bottom:9px;"><div style="display:flex;justify-content:space-between;font-size:.76rem;"><span>${etIcon(c)} ${escapeHtml(c)}</span><b>${etMoney(v,t.currency)}</b></div><div class="et-bar"><i style="width:${tot?Math.round(v/tot*100):0}%"></i></div></div>`).join('')||'<p style="color:var(--muted);font-size:.78rem;">No entries.</p>'}
+  ${people.length>1?`<div style="margin-top:8px;font-size:.76rem;"><b>By person</b>${people.map(e=>`<div class="et-row"><span style="flex:1">${escapeHtml(etName(e))}</span><b>${etMoney(es.filter(x=>(x.spent_by||t.user_email).toLowerCase()===e.toLowerCase()).reduce((a,x)=>a+Number(x.amount),0),t.currency)}</b></div>`).join('')}</div>`:''}</div>
+  <div class="card"><div class="section-title" style="font-size:1rem;">🗓️ Entries</div>${Object.keys(byDate).sort().reverse().map(d=>`<div style="font-size:.68rem;color:var(--muted);margin-top:8px;font-weight:800;">${d}</div>${byDate[d].map(e=>`<div class="et-row"><span>${etIcon(e.category)}</span><span style="flex:1;min-width:0;">${escapeHtml(e.category)}${e.note?'<small style="color:var(--muted)"> · '+escapeHtml(e.note)+'</small>':''}${people.length>1?'<small style="color:var(--muted)"> · '+escapeHtml(etName(e.spent_by||t.user_email))+'</small>':''}</span><b>${Number(e.amount).toFixed(2)}</b><button class="btn-tiny ghost" onclick="delEtEntry(${e.id})">✕</button></div>`).join('')}`).join('')||'<p style="color:var(--muted);font-size:.78rem;">No entries.</p>'}</div>`;
+}
+function etThisMonth(){const n=new Date();document.getElementById('et-start').value=localDateStr(new Date(n.getFullYear(),n.getMonth(),1));document.getElementById('et-end').value=localDateStr(new Date(n.getFullYear(),n.getMonth()+1,0));if(!document.getElementById('et-title').value)document.getElementById('et-title').value=n.toLocaleString('en',{month:'long',year:'numeric'});}
+function openEtModal(){
+  document.getElementById('et-modal-title').textContent=etTab==='period'?'📆 New period tracker':'🕋 New occasion';
+  ['et-title','et-start','et-end','et-notes'].forEach(i=>document.getElementById(i).value='');document.getElementById('et-cur').value='AED';
+  document.getElementById('et-people-wrap').style.display=etTab==='occasion'?'block':'none';
+  document.getElementById('et-people').innerHTML=appUsersDirectory.filter(u=>u.email.toLowerCase()!==managing.email.toLowerCase()).map(u=>`<label class="chk"><input type="checkbox" value="${escapeHtml(u.email.toLowerCase())}"> ${escapeHtml(u.name)} <small style="color:var(--muted)">${escapeHtml(u.email)}</small></label>`).join('');
+  if(etTab==='period') etThisMonth(); document.getElementById('et-modal').classList.add('open');
+}
+async function createEt(){
+  const g=i=>document.getElementById(i).value.trim(), title=g('et-title'), st=g('et-start'), en=g('et-end');
+  if(!title||!st||!en) return toast('Title, start and end date are required'); if(en<st) return toast('End date must be after start date');
+  const parts=etTab==='occasion'?[...document.querySelectorAll('#et-people input:checked')].map(i=>i.value):[];
+  const {error}=await sb.from('et_trackers').insert({user_email:managing.email,kind:etTab,title,currency:(g('et-cur')||'AED').toUpperCase(),start_date:st,end_date:en,participants:parts,notes:g('et-notes'),created_by_email:me.email});
+  if(error) return toast('❌ '+error.message); document.getElementById('et-modal').classList.remove('open'); await loadEt(); renderEt(); toast('Created ✓');
+}
+async function addEtEntry(){
+  const t=etTrackers.find(x=>x.id===etOpen), amt=parseFloat(document.getElementById('ete-amt').value), d=document.getElementById('ete-date').value;
+  if(!(amt>0)) return toast('Enter an amount'); if(!d||d<t.start_date||d>t.end_date) return toast('Date must be within '+t.start_date+' → '+t.end_date);
+  const by=document.getElementById('ete-by');
+  const {error}=await sb.from('et_entries').insert({tracker_id:t.id,user_email:t.user_email,category:document.getElementById('ete-cat').value,amount:amt,entry_date:d,note:document.getElementById('ete-note').value.trim(),spent_by:by?by.value:t.user_email,created_by_email:me.email});
+  if(error) return toast('❌ '+error.message); await loadEt(); renderEt(); toast('Added ✓');
+}
+async function addEtCat(){
+  const n=document.getElementById('etc-name').value.trim(); if(!n) return toast('Enter a category name');
+  const {error}=await sb.from('et_categories').insert({user_email:managing.email,name:n,icon:document.getElementById('etc-icon').value.trim()||'🏷️'});
+  if(error) return toast(error.code==='23505'?'Already exists':'❌ '+error.message); await loadEt(); renderEt();
+}
+async function delEtEntry(id){ if(!confirm('Delete this entry?')) return; const {error}=await sb.from('et_entries').delete().eq('id',id); if(error) return toast('❌ '+error.message); await loadEt(); renderEt(); }
+async function deleteEt(id){ if(!confirm('Delete this tracker and ALL its entries?')) return; const {error}=await sb.from('et_trackers').delete().eq('id',id); if(error) return toast('❌ '+error.message); etOpen=null; await loadEt(); renderEt(); }
+// ── export (PDF / Excel) ──
+function loadScript(u){return new Promise((ok,no)=>{if(document.querySelector('script[src="'+u+'"]'))return ok();const x=document.createElement('script');x.src=u;x.onload=ok;x.onerror=()=>no(new Error('Could not load '+u+' (check internet)'));document.head.appendChild(x);});}
+async function saveBlob(blob,name){
+  const C=window.Capacitor;
+  if(C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins.Filesystem&&C.Plugins.Share){
+    const b64=await new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result.split(',')[1]);f.readAsDataURL(blob);});
+    const w=await C.Plugins.Filesystem.writeFile({path:name,data:b64,directory:'CACHE'}); await C.Plugins.Share.share({title:name,url:w.uri}); return;
+  }
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);
+}
+async function exportEt(fmt){
+  try{
+    const t=etTrackers.find(x=>x.id===etOpen), es=etFilt(t).slice().sort((a,b)=>a.entry_date<b.entry_date?-1:1), tot=es.reduce((a,e)=>a+Number(e.amount),0), ct=etCatTotals(es);
+    const rows=es.map(e=>[e.entry_date,e.category,Number(e.amount).toFixed(2),e.note||'',etName(e.spent_by||t.user_email)]);
+    const head=[t.title,t.start_date+' to '+t.end_date,'Currency: '+t.currency+(etF.cat!=='all'?' · Category: '+etF.cat:'')], fn=t.title.replace(/[^\w\-]+/g,'_')+'_report';
+    if(fmt==='xlsx'){
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
+      const wb=XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([...head.map(h=>[h]),[],['Category','Total ('+t.currency+')'],...ct.map(([c,v])=>[c,+v.toFixed(2)]),['TOTAL',+tot.toFixed(2)]]),'Summary');
+      XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['Date','Category','Amount ('+t.currency+')','Note','Spent by'],...rows.map(r=>[r[0],r[1],+r[2],r[3],r[4]])]),'Entries');
+      await saveBlob(new Blob([XLSX.write(wb,{bookType:'xlsx',type:'array'})],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),fn+'.xlsx');
+    }else{
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'); await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js');
+      const doc=new window.jspdf.jsPDF(); doc.setFontSize(16); doc.text(head[0],14,16); doc.setFontSize(10); doc.text(head[1]+'   |   '+head[2],14,23);
+      doc.autoTable({startY:29,head:[['Category','Total ('+t.currency+')']],body:[...ct.map(([c,v])=>[c,v.toFixed(2)]),['TOTAL',tot.toFixed(2)]],headStyles:{fillColor:[77,150,255]}});
+      doc.autoTable({startY:doc.lastAutoTable.finalY+8,head:[['Date','Category','Amount','Note','Spent by']],body:rows,headStyles:{fillColor:[176,106,255]}});
+      await saveBlob(doc.output('blob'),fn+'.pdf');
+    }
+    toast('Report ready ✓');
+  }catch(e){toast('❌ '+e.message);}
 }
 
 function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s??''; return d.innerHTML; }
