@@ -202,6 +202,14 @@ body{background-image:radial-gradient(900px 500px at 8% -5%,rgba(77,150,255,.16)
 .et-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}.et-grid .fg{margin:0;}
 .fg-inline input,.fg-inline select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--card2);color:var(--text);}
 .chk{display:flex;align-items:center;gap:8px;padding:7px 4px;font-size:.82rem;}
+/* v7.8 */
+html,body{max-width:100vw;overflow-x:hidden;}
+.page{max-width:1020px;margin-left:auto!important;margin-right:auto!important;}
+.cards-grid{grid-template-columns:repeat(auto-fill,minmax(155px,1fr))!important;}
+.bottom-nav{left:50%!important;right:auto!important;transform:translateX(-50%);width:min(780px,calc(100% - 20px));box-sizing:border-box;}
+.app-header{box-sizing:border-box;max-width:100%;}.user-pill{flex:0 0 auto;}
+.lnk{cursor:pointer;text-decoration:underline;}
+.tap-hint{font-size:.58rem;color:var(--muted);margin-top:5px;opacity:.8;}
 .plan-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:14px;}.plan-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0;}.plan-stat{background:var(--card2);border-radius:10px;padding:8px;text-align:center;font-size:.68rem;color:var(--muted);}.plan-stat b{display:block;font-size:.9rem;color:var(--text);}.plan-scroll{overflow:auto;max-height:260px;border:1px solid var(--border);border-radius:10px;-webkit-overflow-scrolling:touch;}.plan-scroll table{border-collapse:collapse;min-width:520px;width:100%;font-size:.78rem;}.plan-scroll th{position:sticky;top:0;background:var(--card2);z-index:1;}.plan-scroll th,.plan-scroll td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}.plan-bar{height:8px;border-radius:6px;background:var(--card2);overflow:hidden;}.plan-bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--grad-pos-a),var(--grad-pos-b));}.chip-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;}.chip{flex:0 0 auto;padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-weight:800;font-size:.75rem;cursor:pointer;}.chip.on{background:var(--accent4);color:#fff;}
 .btn-admin-panel{background:linear-gradient(135deg,var(--grad-a),var(--grad-b));color:#fff;border:none;border-radius:12px;padding:7px 14px;font-family:'Fredoka One',cursive;font-size:.82rem;cursor:pointer;letter-spacing:.3px;box-shadow:0 2px 12px rgba(176,106,255,.35);}
 .btn-admin-panel:hover{transform:scale(1.03);}
@@ -883,13 +891,15 @@ body{background-image:radial-gradient(900px 500px at 8% -5%,rgba(77,150,255,.16)
 </div></div>
 <div class="modal-overlay" id="party-detail-modal" onclick="if(event.target===this)this.classList.remove('open')"><div class="modal-box wide" id="party-detail-box"></div></div>
 
+<div class="modal-overlay" id="card-menu-modal" onclick="if(event.target===this)closeCardMenu()"><div class="modal-box" id="card-menu-box"></div></div>
+
 <div class="modal-overlay" id="plan-modal"><div class="modal-box" style="max-height:90vh;overflow:auto;">
 <h3 id="pl-modal-title">📅 New payment plan</h3>
 <select class="form-input" id="pl-type"><option value="epp">EPP / Installment plan</option><option value="gold">Gold payment plan</option></select>
 <input class="form-input" id="pl-event" list="pl-events" placeholder="Event (e.g. Mobile, Gold, Laptop)"><datalist id="pl-events"></datalist>
 <input class="form-input" id="pl-title" placeholder="Title (e.g. iPhone 17 EPP)">
 <select class="form-input" id="pl-ledger" onchange="plLedgerChange()"><option value="own">💵 Own spend</option><option value="owe_admin">🏦 I owe admin</option><option value="owe_other">🤝 I owe someone</option><option value="owed_to_you">🔁 Owed to me</option></select>
-<select class="form-input" id="pl-payee" style="display:none;"></select>
+<select class="form-input" id="pl-payee" style="display:none;" onchange="plRefreshCards()"></select>
 <select class="form-input" id="pl-card"></select>
 <input class="form-input" id="pl-total" type="number" step="0.01" placeholder="Total amount (AED)">
 <input class="form-input" id="pl-n" type="number" min="1" max="120" placeholder="Number of payments" oninput="plAutoEnd()">
@@ -1018,12 +1028,18 @@ body{background-image:radial-gradient(900px 500px at 8% -5%,rgba(77,150,255,.16)
 </div>
 
 
+<div class="modal-overlay" id="manage-shares-modal" onclick="if(event.target===this)closeManageShares()">
+  <div class="modal-box">
     <h3 id="manage-shares-title">💳 Share this card</h3>
     <p style="font-size:.76rem;color:var(--muted);margin-bottom:10px;">Only people you add here can select this card when they log what they spent using it — no one else sees it, even in the payee dropdown.</p>
     <div id="manage-shares-list" style="margin-bottom:12px;"></div>
     <div class="fg">
       <label>Add a registered user by email</label>
       <select id="new-share-email" class="form-input"></select>
+    </div>
+    <div class="fg">
+      <label>…or enter an email manually</label>
+      <input type="email" id="new-share-manual" class="form-input" placeholder="their@email.com" autocomplete="off">
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeManageShares()">Done</button>
@@ -2181,16 +2197,17 @@ function renderCards(){
         <div class="due-badge ${cls}">${label}</div>
         <div style="font-size:.66rem;color:var(--muted);margin-top:4px;">${cyc.due.toLocaleDateString('en-GB',{day:'numeric',month:'short'})} · ${dhs(cyc.amount)}</div>
         ${othersNote}
-        <button class="btn-tiny" style="margin-top:6px;" onclick="openCardDetail(${c.id})">View breakdown</button>
-        ${myCardShares.filter(s=>s.card_id===c.id).length ? `<div style="font-size:.6rem;color:var(--accent4);margin-top:3px;">🔗 shared with ${myCardShares.filter(s=>s.card_id===c.id).length}</div>` : ''}`;
+        <button class="btn-tiny" style="margin-top:6px;" onclick="event.stopPropagation();openCardDetail(${c.id})">View breakdown</button>
+        ${myCardShares.filter(s=>s.card_id===c.id).length ? `<div class="lnk" onclick="event.stopPropagation();openCardMenu(${c.id})" style="font-size:.6rem;color:var(--accent4);margin-top:3px;">🔗 shared with ${myCardShares.filter(s=>s.card_id===c.id).length} — tap to see who</div>` : ''}`;
     } else {
-      badge = `<button class="btn-tiny ghost" style="margin-top:6px;" onclick="editCardDueDay(${c.id},null)">+ Set due day</button>`;
+      badge = `<button class="btn-tiny ghost" style="margin-top:6px;" onclick="event.stopPropagation();editCardDueDay(${c.id},null)">+ Set due day</button>`;
     }
-    return `<div class="card-tile">
-      <button class="cdel" onclick="deleteCard(${c.id})">✕</button>
+    return `<div class="card-tile" onclick="openCardMenu(${c.id})">
+      <button class="cdel" onclick="event.stopPropagation();deleteCard(${c.id})">✕</button>
       <div class="cdot" style="background:${c.color};"></div>
       <div class="cname">${escapeHtml(c.card_name)}</div>
       ${badge}
+      <div class="tap-hint">tap card for options</div>
     </div>`;
   }).join('') : `<div class="empty-state" style="grid-column:1/-1;"><span>💳</span>No cards yet — add one below</div>`;
 }
@@ -2307,14 +2324,17 @@ function renderShareList(){
   }).join('');
 }
 async function addCardShare(){
-  const email = document.getElementById('new-share-email').value.trim().toLowerCase();
-  if(!email){ toast('Pick a person from the list'); return; }
+  const man=document.getElementById('new-share-manual').value.trim().toLowerCase();
+  const email = man || document.getElementById('new-share-email').value.trim().toLowerCase();
+  if(!email){ toast('Pick a person or type an email'); return; }
+  if(!/^\S+@\S+\.\S+$/.test(email)){ toast('That email looks invalid'); return; }
   if(email===managing.email.toLowerCase()){ toast("That's already your own card"); return; }
   const known = appUsersDirectory.find(u=>u.email.toLowerCase()===email);
-  if(!known){ toast('That email is not a registered user on this app'); return; }
+  if(!known && !confirm(email+' is not registered yet.\nShare anyway? Access starts when they sign up with this exact email.')) return;
   const { error } = await sb.from('bill_card_shares').insert({ card_id:_sharingCardId, owner_email:managing.email, shared_with_email:email });
   if(error){ toast(error.code==='23505' ? 'Already shared with them' : 'Could not add — try again'); return; }
-  toast(`Shared with ${known.name} ✓`);
+  document.getElementById('new-share-manual').value='';
+  toast(`Shared with ${known?known.name:email} ✓`);
   await loadMyData();
   renderShareList();
 }
@@ -2486,10 +2506,13 @@ function newPartyEmailHint(){
 }
 async function addParty(){
   const name=document.getElementById('new-party-name').value.trim();
-  const partyEmail=document.getElementById('new-party-email').value.trim().toLowerCase();
+  let partyEmail=document.getElementById('new-party-email').value.trim().toLowerCase();
   if(!name){ toast('Enter a name'); return; }
+  let pname=name;
+  if(!partyEmail){ if(/^\S+@\S+\.\S+$/.test(name)) partyEmail=name.toLowerCase(); else { const u=guessUser(name); if(u&&u.name.toLowerCase()===name.toLowerCase()) partyEmail=u.email.toLowerCase(); } }
+  const ku=partyEmail&&appUsersDirectory.find(u=>u.email.toLowerCase()===partyEmail); if(ku&&pname.includes('@')) pname=ku.name;
   const color=CARD_COLORS[myPayees.length % CARD_COLORS.length];
-  const { error } = await sb.from('bill_payees').insert({ user_email:managing.email, party_name:name, party_email:partyEmail||null, color });
+  const { error } = await sb.from('bill_payees').insert({ user_email:managing.email, party_name:pname, party_email:partyEmail||null, color });
   if(error){ toast('Could not add party'); return; }
   document.getElementById('new-party-name').value=''; document.getElementById('new-party-email').value='';
   toast('Party added ✓');
@@ -3044,10 +3067,17 @@ async function openPlanModal(editId){
   if(E){ set('pl-type',E.plan_type); set('pl-event',E.event_name); set('pl-title',E.title); set('pl-ledger',E.ledger); plLedgerChange();
     if(E.payee_id) set('pl-payee',E.payee_id); set('pl-card',E.card_id||''); set('pl-total',E.total_amount); set('pl-n',E.installments);
     set('pl-start',E.start_date); set('pl-end',E.end_date); set('pl-due',E.due_day); set('pl-notes',E.notes||''); }
-  document.getElementById('plan-modal').classList.add('open'); plLedgerChange();
+  document.getElementById('plan-modal').classList.add('open'); plLedgerChange(); await plRefreshCards(); if(E) set('pl-card',E.card_id||'');
 }
 function closePlanModal(){ document.getElementById('plan-modal').classList.remove('open'); }
-function plLedgerChange(){ const l=document.getElementById('pl-ledger').value; document.getElementById('pl-payee').style.display=(l==='owe_other'||l==='owed_to_you')?'block':'none'; }
+function plLedgerChange(){ const l=document.getElementById('pl-ledger').value; document.getElementById('pl-payee').style.display=(l==='owe_other'||l==='owed_to_you')?'block':'none'; plRefreshCards(); }
+async function plRefreshCards(){
+  const sel=document.getElementById('pl-card'), keep=sel.value, l=document.getElementById('pl-ledger').value;
+  const p=(l==='owe_other'||l==='owed_to_you')&&myPayees.find(x=>x.id===+document.getElementById('pl-payee').value);
+  let extra=[]; if(p&&p.party_email){const r=await sb.from('bill_cards').select('*').ilike('user_email',escLike(p.party_email)); extra=(r.data||[]).filter(c=>!usableCards().some(u=>u.id===c.id));}
+  sel.innerHTML='<option value="">No card / cash</option>'+usableCards().map(c=>`<option value="${c.id}">${escapeHtml(cardLabel(c))}</option>`).join('')+(extra.length?`<optgroup label="${escapeHtml(p.party_name)}'s cards">`+extra.map(c=>`<option value="${c.id}">💳 ${escapeHtml(c.card_name)} — ${escapeHtml(p.party_name)}'s card</option>`).join('')+'</optgroup>':'');
+  if(keep) sel.value=keep;
+}
 function plAutoEnd(){ const n=+document.getElementById('pl-n').value, st=document.getElementById('pl-start').value; if(!n||!st) return; const d=new Date(st+'T00:00:00'); d.setMonth(d.getMonth()+n-1); document.getElementById('pl-end').value=localDateStr(d); if(!document.getElementById('pl-due').value) document.getElementById('pl-due').value=new Date(st+'T00:00:00').getDate(); }
 function planSchedule(total,n,start,due){
   const st=new Date(start+'T00:00:00'); let y=st.getFullYear(), m=st.getMonth(); const out=[]; const base=Math.floor(total/n*100)/100;
@@ -3129,23 +3159,42 @@ async function loadSharedWithMe(){
 }
 function usableCards(){return [...myCards,...sharedWithMeCards];}
 function cardLabel(c){const own=c.user_email.toLowerCase()===managing.email.toLowerCase();const o=appUsersDirectory.find(u=>u.email.toLowerCase()===c.user_email.toLowerCase());return '💳 '+c.card_name+(own?'':' — '+(o?o.name:c.user_email)+"'s card");}
-function planCardName(id){const c=usableCards().find(c=>c.id===id);return c?cardLabel(c).replace('💳 ',''):'—';}
+function planCardName(id){const c=usableCards().find(c=>c.id===id);return c?cardLabel(c).replace('💳 ',''):(id?'Party card #'+id:'—');}
 // ── party detail & card access ──
+function guessUser(name){
+  const n=(name||'').toLowerCase().trim(), norm=x=>x.toLowerCase().replace(/[^a-z0-9]/g,'');
+  const pool=appUsersDirectory.filter(u=>u.email.toLowerCase()!==managing.email.toLowerCase());
+  return pool.find(u=>u.email.toLowerCase()===n)||pool.find(u=>u.name.toLowerCase()===n)||pool.find(u=>norm(u.name)&&norm(u.name)===norm(n))||null;
+}
 async function openPartyDetail(id){
   const p=myPayees.find(x=>x.id===id); if(!p) return;
-  const em=(p.party_email||'').toLowerCase(), reg=appUsersDirectory.find(u=>u.email.toLowerCase()===em);
-  let theirs=[]; if(em&&reg){const r=await sb.from('bill_cards_directory').select('*').ilike('user_email',escLike(em)); theirs=r.data||[];}
+  const em=(p.party_email||'').toLowerCase(), reg=em&&appUsersDirectory.find(u=>u.email.toLowerCase()===em);
+  const theirs=em?sharedWithMeCards.filter(c=>c.user_email.toLowerCase()===em):[];
   const given=new Set(myCardShares.filter(x=>x.shared_with_email.toLowerCase()===em).map(x=>x.card_id));
   const es=myPayeeEntries.filter(e=>e.payee_id===id), bal=es.reduce((t,e)=>t+(e.entry_type==='paid'?-1:1)*Number(e.amount),0);
+  const g=guessUser(p.party_name), others=appUsersDirectory.filter(u=>u.email.toLowerCase()!==managing.email.toLowerCase());
+  const linkBox=`<div class="card" style="margin:0 0 10px;padding:12px;"><div style="font-size:.78rem;font-weight:800;margin-bottom:6px;">🔗 Link this party to a person</div><div style="font-size:.7rem;color:var(--muted);margin-bottom:8px;">Needed so you can share cards with them and see their cards in ledgers &amp; plans.</div>
+   <select id="pd-link-sel" class="form-input"><option value="">Select a registered person…</option>${others.map(u=>`<option value="${escapeHtml(u.email)}" ${g&&g.email===u.email?'selected':''}>${escapeHtml(u.name)} — ${escapeHtml(u.email)}</option>`).join('')}</select>
+   <input id="pd-link-man" class="form-input" type="email" placeholder="…or type an email manually" style="margin-top:6px;"><button class="btn btn-primary" style="margin-top:8px;width:100%;" onclick="linkParty(${id})">Link</button></div>`;
   document.getElementById('party-detail-box').innerHTML=`<h3>🎉 ${escapeHtml(p.party_name)}</h3>
-  <div style="font-size:.74rem;color:var(--muted);margin-bottom:10px;">${em?escapeHtml(em)+(reg?' · ✅ registered on the app':' · ⚠️ not registered'):'No email — add one to share cards'}</div>
+  <div style="font-size:.74rem;color:var(--muted);margin-bottom:10px;">${em?escapeHtml(em)+(reg?' · ✅ registered ('+escapeHtml(reg.name)+')':' · ⚠️ not registered yet'):'⚠️ No email linked yet'} ${em?`<span class="lnk" onclick="document.getElementById('pd-relink').style.display='block'">change</span>`:''}</div>
+  ${em?`<div id="pd-relink" style="display:none;">${linkBox}</div>`:linkBox}
   <div class="plan-stats"><div class="plan-stat">Ledger entries<b>${es.length}</b></div><div class="plan-stat">Net owed<b>${bal.toFixed(2)}</b></div><div class="plan-stat">Cards shared<b>${given.size}</b></div></div>
   <div class="section-title" style="font-size:.95rem;">💳 Cards you let them use</div>
-  ${reg?(myCards.length?myCards.map(c=>`<label class="chk"><input type="checkbox" ${given.has(c.id)?'checked':''} onchange="togglePartyCard(${id},${c.id},this.checked)"> <span style="width:10px;height:10px;border-radius:50%;background:${c.color};display:inline-block"></span> ${escapeHtml(c.card_name)}</label>`).join(''):'<p style="font-size:.76rem;color:var(--muted);">You have no cards yet.</p>'):'<p style="font-size:.76rem;color:var(--muted);">Only registered users can get card access.</p>'}
+  ${em?(myCards.length?myCards.map(c=>`<label class="chk"><input type="checkbox" ${given.has(c.id)?'checked':''} onchange="togglePartyCard(${id},${c.id},this.checked)"> <span style="width:10px;height:10px;border-radius:50%;background:${c.color};display:inline-block"></span> ${escapeHtml(c.card_name)}</label>`).join(''):'<p style="font-size:.76rem;color:var(--muted);">You have no cards yet.</p>'):'<p style="font-size:.76rem;color:var(--muted);">Link an email above first.</p>'}
   <div class="section-title" style="font-size:.95rem;margin-top:12px;">🔗 Cards they let you use</div>
   ${theirs.length?theirs.map(c=>`<div class="chk">💳 ${escapeHtml(c.card_name)}</div>`).join(''):'<p style="font-size:.76rem;color:var(--muted);">None shared with you.</p>'}
   <div class="modal-actions"><button class="btn btn-primary" onclick="document.getElementById('party-detail-modal').classList.remove('open')">Done</button></div>`;
   document.getElementById('party-detail-modal').classList.add('open');
+}
+async function linkParty(pid){
+  const p=myPayees.find(x=>x.id===pid), man=document.getElementById('pd-link-man').value.trim().toLowerCase(), em=man||document.getElementById('pd-link-sel').value;
+  if(!em||!/^\S+@\S+\.\S+$/.test(em)) return toast('Pick a person or type a valid email');
+  const known=appUsersDirectory.find(u=>u.email.toLowerCase()===em.toLowerCase());
+  if(!known&&!confirm(em+' is not registered yet. Link anyway?')) return;
+  const upd={party_email:em.toLowerCase()}; if(known&&(p.party_name.includes('@')||p.party_name.toLowerCase()===em.toLowerCase())) upd.party_name=known.name;
+  const {error}=await sb.from('bill_payees').update(upd).eq('id',pid); if(error) return toast('❌ '+error.message);
+  toast('Linked ✓'); await loadMyData(); openPartyDetail(pid);
 }
 async function togglePartyCard(pid,cardId,on){
   const p=myPayees.find(x=>x.id===pid), em=p.party_email.toLowerCase();
@@ -3282,13 +3331,13 @@ async function exportEt(fmt){
     const rows=es.map(e=>[e.entry_date,e.category,Number(e.amount).toFixed(2),e.note||'',etName(e.spent_by||t.user_email)]);
     const head=[t.title,t.start_date+' to '+t.end_date,'Currency: '+t.currency+(etF.cat!=='all'?' · Category: '+etF.cat:'')], fn=t.title.replace(/[^\w\-]+/g,'_')+'_report';
     if(fmt==='xlsx'){
-      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
+      if(!window.XLSX) await loadScript('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js');
       const wb=XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([...head.map(h=>[h]),[],['Category','Total ('+t.currency+')'],...ct.map(([c,v])=>[c,+v.toFixed(2)]),['TOTAL',+tot.toFixed(2)]]),'Summary');
       XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['Date','Category','Amount ('+t.currency+')','Note','Spent by'],...rows.map(r=>[r[0],r[1],+r[2],r[3],r[4]])]),'Entries');
       await saveBlob(new Blob([XLSX.write(wb,{bookType:'xlsx',type:'array'})],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),fn+'.xlsx');
     }else{
-      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'); await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js');
+      if(!window.jspdf) await loadScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js'); if(!(window.jspdf&&window.jspdf.jsPDF.API.autoTable)) await loadScript('https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf-autotable.min.js');
       const doc=new window.jspdf.jsPDF(); doc.setFontSize(16); doc.text(head[0],14,16); doc.setFontSize(10); doc.text(head[1]+'   |   '+head[2],14,23);
       doc.autoTable({startY:29,head:[['Category','Total ('+t.currency+')']],body:[...ct.map(([c,v])=>[c,v.toFixed(2)]),['TOTAL',tot.toFixed(2)]],headStyles:{fillColor:[77,150,255]}});
       doc.autoTable({startY:doc.lastAutoTable.finalY+8,head:[['Date','Category','Amount','Note','Spent by']],body:rows,headStyles:{fillColor:[176,106,255]}});
@@ -3297,6 +3346,28 @@ async function exportEt(fmt){
     toast('Report ready ✓');
   }catch(e){toast('❌ '+e.message);}
 }
+
+function closeCardMenu(){document.getElementById('card-menu-modal').classList.remove('open');}
+function openCardMenu(id){
+  const c=myCards.find(x=>x.id===id); if(!c) return;
+  const cyc=cardCycleInfo(c), sh=myCardShares.filter(x=>x.card_id===id), paid=!!cyc&&cyc.status==='paid';
+  const nm=e=>{const u=appUsersDirectory.find(u=>u.email.toLowerCase()===e.toLowerCase());return u?u.name:e;};
+  document.getElementById('card-menu-box').innerHTML=`<h3><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${c.color};margin-right:8px"></span>${escapeHtml(c.card_name)}</h3>
+  <div style="font-size:.74rem;color:var(--muted);margin-bottom:10px;">${cyc?'Due '+cyc.due.toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' · '+dhs(cyc.amount):'No due day set'}</div>
+  <div class="et-grid">
+    <button class="drawer-item" onclick="closeCardMenu();openCardDetail(${id})">📊 Breakdown</button>
+    <button class="drawer-item" onclick="closeCardMenu();openManageShares(${id})">🔗 Share access</button>
+    <button class="drawer-item" onclick="closeCardMenu();editCardDueDay(${id},${c.due_day||'null'})">📅 Due day</button>
+    ${cyc?`<button class="drawer-item" onclick="closeCardMenu();toggleCardPaid(${id},'${cyc.month}',${!paid})">${paid?'↩️ Mark unpaid':'✅ Mark paid'}</button>`:''}
+  </div>
+  <div class="section-title" style="font-size:.9rem;margin-top:8px;">👥 Who has access (${sh.length})</div>
+  ${sh.length?sh.map(x=>`<div class="et-row"><span style="flex:1;min-width:0;"><b>${escapeHtml(nm(x.shared_with_email))}</b><br><small style="color:var(--muted)">${escapeHtml(x.shared_with_email)}</small></span><button class="btn-tiny ghost" onclick="removeShareFromMenu(${x.id},${id})">Remove</button></div>`).join(''):'<p style="font-size:.76rem;color:var(--muted);">Not shared with anyone yet.</p>'}
+  <div class="modal-actions"><button class="btn btn-ghost" onclick="closeCardMenu()">Close</button><button class="btn btn-primary" onclick="closeCardMenu();openManageShares(${id})">➕ Share with someone</button></div>`;
+  document.getElementById('card-menu-modal').classList.add('open');
+}
+async function removeShareFromMenu(sid,cid){ await sb.from('bill_card_shares').delete().eq('id',sid); toast('Access removed'); await loadMyData(); openCardMenu(cid); }
+// deep links from Squad Splitter drawer (#et, #theme)
+(function(){ if(!location.hash) return; const h=location.hash; const t=setInterval(()=>{ try{ if(typeof managing!=='undefined'&&managing&&document.getElementById('screen-app')&&document.getElementById('screen-app').classList.contains('active')){ clearInterval(t); if(h==='#et') switchPage('et'); if(h==='#theme') openAppearance(); } }catch(e){} },500); setTimeout(()=>clearInterval(t),20000); })();
 
 function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s??''; return d.innerHTML; }
 </script>
