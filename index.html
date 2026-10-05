@@ -3,16 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Squad Splitter 💸</title>
+<title>iFiNeX · Squad Split</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://lznnetxeklmdrykxtsbm.supabase.co; connect-src 'self' https://lznnetxeklmdrykxtsbm.supabase.co wss://lznnetxeklmdrykxtsbm.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'">
+<meta name="referrer" content="no-referrer">
+<!-- v8.1 SECURITY: the page may only talk to its own origin + your Supabase project (https://lznnetxeklmdrykxtsbm.supabase.co); a script injected by an attacker can no longer send your session anywhere else. -->
+<meta name="theme-color" content="#0b0b18">
+<meta name="application-name" content="iFiNeX">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.9"></script>
+<script src="ifinex-alerts.js"></script>
 <style>
 :root {
   --bg:#0b0b18;--card:#13132a;--card2:#1a1a35;--border:#2a2a50;
   --accent1:#ff6b6b;--accent2:#ffd93d;--accent3:#6bcb77;--accent4:#4d96ff;--accent5:#ff922b;
   --purple:#b06aff;--text:#f0f0ff;--muted:#7777aa;--red:#ff6b6b;--green:#6bcb77;
   /* v7.4: same gradient/surface tokens as bill-tracker.html, defaulted to
-     Squad Splitter's OWN red/orange brand identity rather than Bill
+     Squad Split's OWN red/orange brand identity rather than Bill
      Tracker's blue/purple — the two apps keep their distinct look, but
      both now respond to the same theme system. */
   --grad-a:#ff6b6b;--grad-b:#ff922b;
@@ -245,7 +255,9 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .hd-title{flex:1 1 auto;min-width:0;}.hd-title h2{font-size:1.05rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.hd-title p{font-size:.64rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .app-header{gap:10px!important;box-sizing:border-box;max-width:100%;}.app-header .header-right{flex:0 0 auto!important;overflow:visible!important;gap:6px!important;margin-left:auto;}
 .uname{max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}.user-pill{flex:0 0 auto;}
-html,body{max-width:100vw;overflow-x:hidden;}
+/* v8.0: ONLY <html> clips sideways. Before, html AND body were both overflow-x:hidden, which turned <body> into a scroll
+   container and silently broke position:sticky on the app header. */
+html{max-width:100%;overflow-x:hidden;}body{max-width:100%;overflow-x:visible;}
 .drawer-scrim{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:900;}.drawer-scrim.open{display:block;}
 .drawer{position:fixed;top:0;bottom:0;left:0;width:min(290px,84vw);transform:translateX(-105%);transition:transform .25s ease;z-index:901;background:var(--card);border-right:1px solid var(--border);padding:14px;overflow-y:auto;box-shadow:12px 0 40px rgba(0,0,0,.4);}
 .drawer.open{transform:none;}.drawer-head{display:flex;justify-content:space-between;align-items:center;font-family:'Fredoka One',cursive;font-size:1.2rem;margin-bottom:10px;}
@@ -257,6 +269,9 @@ html,body{max-width:100vw;overflow-x:hidden;}
 .ntf-scrim{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:940;}.ntf-scrim.open{display:block;}
 .ntf-panel{display:none;position:fixed;top:64px;left:12px;right:12px;margin:0 auto;width:min(380px,calc(100vw - 24px));max-height:min(70vh,480px);overflow-y:auto;z-index:950;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px;box-shadow:0 16px 40px rgba(0,0,0,.45);}.ntf-panel.open{display:block;}
 .ntf-row{padding:9px 8px;border-radius:10px;margin-bottom:4px;font-size:.78rem;cursor:pointer;}.ntf-row.unread{background:rgba(77,150,255,.14);}.ntf-row small{color:var(--muted);font-size:.64rem;}
+/* v8.0 iFiNeX branding */
+.login-logo .logo-img{width:84px;height:84px;display:block;margin:0 auto 6px;filter:drop-shadow(0 6px 18px rgba(77,150,255,.35));}
+.hd-logo{width:22px;height:22px;vertical-align:-4px;margin-right:4px;}
 </style>
 </head>
 <body>
@@ -268,10 +283,10 @@ html,body{max-width:100vw;overflow-x:hidden;}
 <div id="screen-login" class="screen active">
   <div class="login-box">
     <div class="login-logo">
-      <span class="logo-icon">💸</span>
-      <h1>Squad Splitter</h1>
-      <p>Track • Split • Settle with your crew  •  🇦🇪 AED</p>
-      <p style='font-size:.65rem;color:#444466;margin-top:2px'>v4.0 — production</p>
+      <img class="logo-img" src="assets/ifinex-emblem-192.png" alt="iFiNeX" width="84" height="84">
+      <h1>iFiNeX</h1>
+      <p>Squad Split · track • split • settle with your crew  •  🇦🇪 AED</p>
+      <p style='font-size:.65rem;color:#444466;margin-top:2px'>v8.1</p>
     </div>
     <div id="step-1" class="step active">
       <label class="form-label">📧 Your Email Address</label>
@@ -279,7 +294,7 @@ html,body{max-width:100vw;overflow-x:hidden;}
       <div id="err2" class="error-msg"></div>
       <div id="succ2" class="success-msg"></div>
       <button class="btn btn-primary" id="btn-send-otp" onclick="sendOTP()">📨 Send OTP</button>
-      <p style="text-align:center;font-size:.68rem;color:var(--muted);margin-top:12px;">One login for everything — Squad Splitter and your personal Bill Tracker.</p>
+      <p style="text-align:center;font-size:.68rem;color:var(--muted);margin-top:12px;">One login for everything — Squad Split and your personal Bill Tracker.</p>
     </div>
     <div id="step-2" class="step">
       <div style="text-align:center;margin-bottom:20px;">
@@ -294,7 +309,7 @@ html,body{max-width:100vw;overflow-x:hidden;}
       <button class="btn btn-ghost" id="btn-resend" onclick="resendOTP()" disabled>🔄 Resend OTP</button>
       <button class="btn btn-ghost" onclick="showStep(1)" style="margin-top:6px;">← Use a different email</button>
       <div style="background:rgba(255,217,61,.08);border:1px solid rgba(255,217,61,.25);border-radius:12px;padding:12px 14px;margin-top:14px;font-size:.72rem;color:var(--muted);line-height:1.5;">
-        📭 <b style="color:var(--accent2);">Don't see it after a minute?</b> Check your Spam / Junk folder — look for a sender named <b>"Squad Splitter"</b>. Found it there? Tap <b>Not Spam / Not Junk</b> once — every code after that arrives much faster.
+        📭 <b style="color:var(--accent2);">Don't see it after a minute?</b> Check your Spam / Junk folder — look for a sender named <b>"iFiNeX"</b> (or <b>"Squad Splitter"</b>). Found it there? Tap <b>Not Spam / Not Junk</b> once — every code after that arrives much faster.
       </div>
     </div>
     <div id="step-3" class="step">
@@ -312,7 +327,7 @@ html,body{max-width:100vw;overflow-x:hidden;}
 <div id="screen-app" class="screen">
   <div class="app-header">
     <button class="hamb" onclick="openDrawer()" aria-label="Menu">☰</button>
-    <div class="hd-title"><h2>💸 Squad Splitter</h2><p id="header-sub">Loading...</p></div>
+    <div class="hd-title"><h2><img class="hd-logo" src="assets/ifinex-emblem-192.png" alt="" width="22" height="22"> iFiNeX</h2><p id="header-sub">Loading...</p></div>
     <div class="header-right">
       <div class="notif-wrap"><button class="notif-bell" onclick="toggleNtf()" aria-label="Notifications">🔔<span class="notif-badge" id="ntf-badge"></span></button></div>
       <div class="user-pill" onclick="logout()" title="Tap to log out">
@@ -328,11 +343,12 @@ html,body{max-width:100vw;overflow-x:hidden;}
   <aside class="drawer" id="drawer">
     <div class="drawer-head">Menu <button onclick="closeDrawer()">✕</button></div>
     <div class="drawer-sec">Modules</div>
-    <button class="drawer-item" onclick="closeDrawer()">💸 Squad Splitter</button>
+    <button class="drawer-item" onclick="closeDrawer()">💸 Squad Split</button>
     <a class="drawer-item" href="bill-tracker.html">🧾 Bill Tracker</a>
     <a class="drawer-item" href="bill-tracker.html#et">🧮 Expense Tracker</a>
     <div class="drawer-sec">Settings</div>
     <a class="drawer-item" href="bill-tracker.html#theme">🎨 Theme &amp; background</a>
+    <a class="drawer-item" href="bill-tracker.html#alerts">🔔 Alerts &amp; notifications</a>
     <button id="btn-admin-panel" class="drawer-item" onclick="closeDrawer();openAdmin()" style="display:none;">⚙️ Admin</button>
     <button class="drawer-item" onclick="closeDrawer();logout()">🚪 Log out</button>
   </aside>
@@ -531,12 +547,16 @@ let timerInterval=null;
 function localDateStr(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function localMonthStr(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
 function escLike(s){ return String(s||'').replace(/[%_\\]/g,m=>'\\'+m); }
+// v8.1 SECURITY: escape & < > " ' (the old escapeHtml left quotes alone, which is unsafe inside HTML attributes)
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+// v8.1 SECURITY: text placed inside a JS string within an inline handler, e.g. onclick="del('${esc(jsq(name))}')"
+function jsq(s){ return String(s==null?'':s).replace(/[\\'"<>&\r\n\u2028\u2029]/g,c=>'\\x'+('0'+c.charCodeAt(0).toString(16)).slice(-2)); }
 let viewMonth=localMonthStr(new Date());
 let MEMBERS=[];
 let expenses=[],prevBals=[],settlements=[];
 // If a delegate arrives here via a link from Bill Tracker while managing
 // someone else's account, that page passes ?as=<their email> so this page
-// can show THAT member's Squad Splitter view instead of the delegate's own
+// can show THAT member's Squad Split view instead of the delegate's own
 // (which usually doesn't exist as a squad member at all). Verified against
 // the database below before ever being trusted.
 const IMPERSONATE_PARAM = new URLSearchParams(location.search).get('as');
@@ -557,7 +577,7 @@ window.onload=async()=>{
       isDemoMode=false;
     }catch(e){isDemoMode=true;}
   }
-  await loadMembers();
+  try{ await loadMembers(); }catch(e){}  // v8.1: private now — this only succeeds for an already signed-in visitor
   buildOTPBoxes();
   // Security: never trust a cached "who's logged in" blob on its own — a
   // stale copy could show wrong admin status if permissions changed since.
@@ -624,9 +644,9 @@ function saveMembersLocal(){
 // ── LOGIN ───────────────────────────────────
 function renderMemberGrid(){
   document.getElementById('member-grid').innerHTML=MEMBERS.map(m=>`
-    <div class="member-option" data-id="${m.id}" onclick="pickMember('${m.id}',this)">
-      <span class="mo-emoji">${m.emoji}</span>
-      <div class="mo-name">${m.name}</div>
+    <div class="member-option" data-id="${esc(m.id)}" onclick="pickMember('${esc(jsq(m.id))}',this)">
+      <span class="mo-emoji">${esc(m.emoji)}</span>
+      <div class="mo-name">${esc(m.name)}</div>
       ${m.isAdmin?'<div><span class="admin-badge">👑 ADMIN</span></div>':''}
     </div>`).join('');
 }
@@ -687,7 +707,7 @@ async function verifyOTP(){
   }catch(e){btn.innerHTML='✅ Verify & Enter App';btn.disabled=false;showErr('err3','❌ Verification failed.');}
 }
 
-// ── ROUTE: decide Squad Splitter vs Bill Tracker vs not-registered ──
+// ── ROUTE: decide Squad Split vs Bill Tracker vs not-registered ──
 // This is the single point that turns "a verified email" into "the right
 // screen" — looked up fresh from app_users every time, never guessed.
 async function routeAfterLogin(silent){
@@ -696,6 +716,7 @@ async function routeAfterLogin(silent){
     if(selectedId)finishLogin();else if(!silent)showStep(3);
     return;
   }
+  await loadMembers(); // v8.1: the roster is only readable after sign-in, so (re)load it here
   // If a delegate arrived here via a link from Bill Tracker while managing
   // someone else's account, route using THAT account — but only once
   // verified server-side that this login really does have delegate rights
@@ -722,7 +743,7 @@ async function routeAfterLogin(silent){
     return;
   }
   if(data.group_type==='general'){
-    // Personal-only account — Squad Splitter has nothing to show them.
+    // Personal-only account — Squad Split has nothing to show them.
     sessionStorage.setItem('bt_email',currentEmail.toLowerCase());
     window.location.href='bill-tracker.html';
     return;
@@ -758,13 +779,13 @@ async function resendOTP(){
 function startTimer(){
   let s=60;const el=document.getElementById('timer-text');const rb=document.getElementById('btn-resend');
   rb.disabled=true;clearInterval(timerInterval);
-  timerInterval=setInterval(()=>{s--;el.innerHTML=`Resend in <span>${s}s</span>`;
+  timerInterval=setInterval(()=>{s--;el.innerHTML=`Resend in <span>${esc(s)}s</span>`;
     if(s<=0){clearInterval(timerInterval);el.innerHTML='';rb.disabled=false;}},1000);
 }
 function buildOTPBoxes(){
   document.getElementById('otp-grid').innerHTML=Array(6).fill(0).map((_,i)=>
-    `<input class="otp-box" maxlength="1" type="text" inputmode="numeric" id="ob${i}"
-      onkeyup="otpNav(this,${i})" oninput="this.value=this.value.replace(/[^0-9]/g,'')" />`).join('');
+    `<input class="otp-box" maxlength="1" type="text" inputmode="numeric" id="ob${esc(i)}"
+      onkeyup="otpNav(this,${esc(i)})" oninput="this.value=this.value.replace(/[^0-9]/g,'')" />`).join('');
 }
 function otpNav(el,i){
   if(el.value&&i<5)document.getElementById('ob'+(i+1)).focus();
@@ -793,6 +814,7 @@ async function enterApp(){
   initAddForm();
   document.getElementById('inp-date').value=localDateStr(new Date());
   refresh();
+  if(typeof ifxAlertsResume==='function') ifxAlertsResume(); // v8.0: bring native background alerts back after a login
 }
 
 async function loadAllData(){
@@ -824,8 +846,15 @@ async function loadAllData(){
   }
 }
 
-function logout(){
+// v8.0: the admin expense editor's split checkboxes call this, but it was never defined (a console ReferenceError on every tick).
+// The split is read from the ticked boxes when you press Save, so there is nothing to do per click.
+function updateExpSplit(){}
+// v8.0 FIX: logout used to leave the Supabase session alive, so a reload logged you straight back in. It now really signs out and,
+// in the Android app, first forgets this phone's background-alert secret while the session still exists.
+async function logout(){
   if(!confirm('Log out?'))return;
+  try{ if(typeof ifxAlertsDisable==='function') await ifxAlertsDisable(true,true); }catch(e){}
+  try{ if(sb) await sb.auth.signOut(); }catch(e){ console.warn('signOut',e); }
   sessionStorage.removeItem('sq_user');currentUser=null;
   document.getElementById('screen-app').classList.remove('active');
   document.getElementById('screen-login').classList.add('active');
@@ -865,11 +894,11 @@ function getPrevMonth(){
 // ── SQUAD ─────────────────────────────────────
 function renderSquad(){
   document.getElementById('squad-grid').innerHTML=MEMBERS.map(m=>`
-    <div class="member-card" onclick="showPersonDetail('${m.id}')">
-      <div class="av" style="background:${m.color}20;border:2px solid ${m.color}50">${m.emoji}</div>
-      <div class="mname">${m.name}</div>
+    <div class="member-card" onclick="showPersonDetail('${esc(jsq(m.id))}')">
+      <div class="av" style="background:${esc(m.color)}20;border:2px solid ${esc(m.color)}50">${esc(m.emoji)}</div>
+      <div class="mname">${esc(m.name)}</div>
       ${m.isAdmin?'<span class="admin-badge">👑 Admin</span>':''}
-      <div class="memail">${m.email||'—'}</div>
+      <div class="memail">${esc(m.email)||'—'}</div>
       <div style="margin-top:6px;font-size:.7rem;color:var(--accent4)">Tap for details →</div>
     </div>`).join('');
 }
@@ -884,9 +913,9 @@ function showPersonDetail(memberId){
   <div style="max-width:480px;margin:20px auto;background:var(--card);border-radius:20px;border:1px solid var(--border);padding:20px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
       <div style="display:flex;align-items:center;gap:12px;">
-        <div style="font-size:2.5rem">${m.emoji}</div>
-        <div><div style="font-weight:800;font-size:1.1rem;color:${m.color}">${m.name}</div>
-        <div style="font-size:.72rem;color:var(--muted)">${m.email||'No email set'}</div></div>
+        <div style="font-size:2.5rem">${esc(m.emoji)}</div>
+        <div><div style="font-weight:800;font-size:1.1rem;color:${esc(m.color)}">${esc(m.name)}</div>
+        <div style="font-size:.72rem;color:var(--muted)">${esc(m.email)||'No email set'}</div></div>
       </div>
       <button onclick="document.getElementById('person-modal').remove()" style="background:var(--card2);border:1px solid var(--border);color:var(--muted);border-radius:10px;padding:6px 14px;cursor:pointer;font-weight:700;">✕</button>
     </div>`;
@@ -896,7 +925,7 @@ function showPersonDetail(memberId){
   html+=`<div style="background:var(--card2);border-radius:14px;padding:14px;margin-bottom:16px;border:1px solid ${totalNet>=0?'rgba(107,203,119,.3)':'rgba(255,107,107,.3)'}">
     <div style="font-size:.75rem;color:var(--muted);margin-bottom:4px;">OVERALL BALANCE</div>
     <div style="font-family:'Fredoka One',cursive;font-size:1.8rem;color:${totalNet>=0?'var(--green)':'var(--red)'}">
-      ${totalNet>=0?'+':''}<span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${Math.abs(totalNet).toFixed(0)}</div>
+      ${totalNet>=0?'+':''}<span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${esc(Math.abs(totalNet).toFixed(0))}</div>
     <div style="font-size:.72rem;color:var(--muted);margin-top:2px">${totalNet>=0?'Gets back from squad':'Owes to squad'}</div>
   </div>`;
 
@@ -920,14 +949,14 @@ function showPersonDetail(memberId){
     const mLabel=new Date(y,mo-1,1).toLocaleString('default',{month:'short',year:'numeric'});
     html+=`<div style="background:var(--card2);border-radius:12px;padding:12px;margin-bottom:8px;border-left:3px solid ${net>=0?'var(--green)':'var(--red)'}">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <span style="font-weight:800;font-size:.85rem;color:var(--accent4)">${mLabel}</span>
-        <span style="font-family:'Fredoka One',cursive;color:${net>=0?'var(--green)':'var(--red)'}">${net>=0?'+':''}<span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${Math.abs(net).toFixed(0)}</span>
+        <span style="font-weight:800;font-size:.85rem;color:var(--accent4)">${esc(mLabel)}</span>
+        <span style="font-family:'Fredoka One',cursive;color:${net>=0?'var(--green)':'var(--red)'}">${net>=0?'+':''}<span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${esc(Math.abs(net).toFixed(0))}</span>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:.72rem;">
-        <div style="color:var(--green)">💰 Paid: <span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${paid.toFixed(0)}</div>
-        <div style="color:var(--red)">📊 Share: <span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${share.toFixed(0)}</div>
-        <div style="color:${prevOwed>=0?'var(--green)':'var(--red)'}">📜 Prev: ${prevOwed>=0?'+':''}<span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${Math.abs(prevOwed).toFixed(0)}</div>
-        <div style="color:${monthSettled>=0?'var(--green)':'var(--red)'}">✅ Settled: ${monthSettled>=0?'+':''}<span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${Math.abs(monthSettled).toFixed(0)}</div>
+        <div style="color:var(--green)">💰 Paid: <span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${esc(paid.toFixed(0))}</div>
+        <div style="color:var(--red)">📊 Share: <span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${esc(share.toFixed(0))}</div>
+        <div style="color:${prevOwed>=0?'var(--green)':'var(--red)'}">📜 Prev: ${prevOwed>=0?'+':''}<span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${esc(Math.abs(prevOwed).toFixed(0))}</div>
+        <div style="color:${monthSettled>=0?'var(--green)':'var(--red)'}">✅ Settled: ${monthSettled>=0?'+':''}<span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${esc(Math.abs(monthSettled).toFixed(0))}</div>
       </div>
       <div style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px;">`;
     
@@ -937,11 +966,11 @@ function showPersonDetail(memberId){
       const myShare=e.split_between.includes(memberId)?e.amount/e.split_between.length:0;
       const iPaid=e.paid_by===memberId;
       html+=`<div style="font-size:.68rem;display:flex;justify-content:space-between;padding:2px 0;color:var(--muted)">
-        <span>${CAT_ICONS[e.category]||'📦'} ${e.name}</span>
-        <span>${iPaid?`<span style="color:var(--green)">+<span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${e.amount}</span>`:''} ${myShare>0?`<span style="color:var(--red)">-<span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${myShare.toFixed(0)}</span>`:''}</span>
+        <span>${esc(CAT_ICONS[e.category])||'📦'} ${esc(e.name)}</span>
+        <span>${iPaid?`<span style="color:var(--green)">+<span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${esc(e.amount)}</span>`:''} ${myShare>0?`<span style="color:var(--red)">-<span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${esc(myShare.toFixed(0))}</span>`:''}</span>
       </div>`;
     });
-    if(myExps.length>5)html+=`<div style="font-size:.65rem;color:var(--muted);margin-top:4px">+${myExps.length-5} more expenses...</div>`;
+    if(myExps.length>5)html+=`<div style="font-size:.65rem;color:var(--muted);margin-top:4px">+${esc(myExps.length-5)} more expenses...</div>`;
     html+=`</div></div>`;
   });
 
@@ -974,10 +1003,10 @@ function getPrevMonthOf(month){
 
 // ── ADD FORM ──────────────────────────────────
 function initAddForm(){
-  document.getElementById('inp-paidby').innerHTML=MEMBERS.map(m=>`<option value="${m.id}">${m.emoji} ${m.name}</option>`).join('');
+  document.getElementById('inp-paidby').innerHTML=MEMBERS.map(m=>`<option value="${esc(m.id)}">${esc(m.emoji)} ${esc(m.name)}</option>`).join('');
   document.getElementById('inp-paidby').value=currentUser.id;
   document.getElementById('split-group').innerHTML=MEMBERS.map(m=>`
-    <div class="cb-item on" data-id="${m.id}" onclick="this.classList.toggle('on')">${m.emoji} ${m.name}</div>`).join('');
+    <div class="cb-item on" data-id="${esc(m.id)}" onclick="this.classList.toggle('on')">${esc(m.emoji)} ${esc(m.name)}</div>`).join('');
 }
 
 async function addExpense(){
@@ -1015,8 +1044,8 @@ function renderExpenses(){
     const dt=exps.reduce((s,e)=>s+e.amount,0);
     return`<div style="margin-bottom:16px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <span style="font-size:.78rem;font-weight:800;color:var(--accent4)">📅 ${dl}</span>
-        <span style="font-size:.72rem;color:var(--muted)"><span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${dt}</span>
+        <span style="font-size:.78rem;font-weight:800;color:var(--accent4)">📅 ${esc(dl)}</span>
+        <span style="font-size:.72rem;color:var(--muted)"><span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${esc(dt)}</span>
       </div>${exps.map(e=>expCard(e)).join('')}</div>`;
   }).join('');
 }
@@ -1027,16 +1056,16 @@ function expCard(e){
   const share=(e.amount/e.split_between.length).toFixed(0);
   const canEdit=currentUser?.isAdmin;
   return`<div class="exp-item-card">
-    <div style="font-size:1.5rem;margin-right:10px">${CAT_ICONS[e.category]||'📦'}</div>
+    <div style="font-size:1.5rem;margin-right:10px">${esc(CAT_ICONS[e.category])||'📦'}</div>
     <div style="flex:1">
-      <div class="exp-name">${e.name}</div>
-      <div class="exp-meta">Paid by ${payer?.emoji} ${payer?.name} • ÷${e.split_between.length}</div>
-      <div class="exp-meta" style="color:var(--accent4)">${snames.slice(0,3).join(', ')}${snames.length>3?` +${snames.length-3}`:''}</div>
+      <div class="exp-name">${esc(e.name)}</div>
+      <div class="exp-meta">Paid by ${esc(payer?.emoji)} ${esc(payer?.name)} • ÷${esc(e.split_between.length)}</div>
+      <div class="exp-meta" style="color:var(--accent4)">${esc(snames.slice(0,3).join(', '))}${snames.length>3?` +${snames.length-3}`:''}</div>
     </div>
     <div>
-      <div class="exp-amt"><span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${e.amount}</div>
-      <div class="exp-share"><span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${share}/head</div>
-      ${canEdit?`<button class="btn-del" onclick="delExp('${e.id}')">🗑️</button>`:''}
+      <div class="exp-amt"><span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${esc(e.amount)}</div>
+      <div class="exp-share"><span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${esc(share)}/head</div>
+      ${canEdit?`<button class="btn-del" onclick="delExp('${esc(jsq(e.id))}')">🗑️</button>`:''}
     </div>
   </div>`;
 }
@@ -1100,22 +1129,22 @@ function renderBalances(){
       const settled=setts.reduce((s,t)=>t.from_member===m.id?s+t.amount:t.to_member===m.id?s-t.amount:s,0);
       const n=net[m.id];
       return`<tr>
-        <td><span style="color:${m.color};font-weight:800">${m.emoji} ${m.name}</span></td>
-        <td class="tag-g"><span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${paid.toFixed(0)}</td>
-        <td class="tag-r"><span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${share.toFixed(0)}</td>
-        <td class="${prev>=0?'tag-g':'tag-r'}">${prev>=0?'+':''}<span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${Math.abs(prev).toFixed(0)}</td>
+        <td><span style="color:${esc(m.color)};font-weight:800">${esc(m.emoji)} ${esc(m.name)}</span></td>
+        <td class="tag-g"><span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${esc(paid.toFixed(0))}</td>
+        <td class="tag-r"><span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${esc(share.toFixed(0))}</td>
+        <td class="${prev>=0?'tag-g':'tag-r'}">${prev>=0?'+':''}<span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${esc(Math.abs(prev).toFixed(0))}</td>
         <td class="${settled>=0?'tag-g':'tag-r'}">${settled!==0?(settled>=0?'+':'')+'<span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>'+Math.abs(settled).toFixed(0):'—'}</td>
-        <td class="${n>=0?'tag-g':'tag-r'}" style="font-weight:800">${n>=0?'+':''}<span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${Math.abs(n).toFixed(0)}</td>
+        <td class="${n>=0?'tag-g':'tag-r'}" style="font-weight:800">${n>=0?'+':''}<span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${esc(Math.abs(n).toFixed(0))}</td>
       </tr>`;
     }).join('')}</tbody>`;
 
   document.getElementById('net-list').innerHTML=MEMBERS.map(m=>{
     const v=net[m.id];
-    return`<div class="balance-row ${v>=0?'clear':'owes'}" onclick="showPersonDetail('${m.id}')" style="cursor:pointer">
-      <div class="b-left"><div style="font-size:1.3rem">${m.emoji}</div>
-      <div><div class="b-name" style="color:${m.color}">${m.name}</div>
+    return`<div class="balance-row ${v>=0?'clear':'owes'}" onclick="showPersonDetail('${esc(jsq(m.id))}')" style="cursor:pointer">
+      <div class="b-left"><div style="font-size:1.3rem">${esc(m.emoji)}</div>
+      <div><div class="b-name" style="color:${esc(m.color)}">${esc(m.name)}</div>
       <div class="b-sub">${v>=0?'✅ Gets back':'🔴 Owes'} • tap for breakdown</div></div></div>
-      <div class="b-amt ${v>=0?'pos':'neg'}">${v>=0?'+':''}<span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${Math.abs(v).toFixed(0)}</div>
+      <div class="b-amt ${v>=0?'pos':'neg'}">${v>=0?'+':''}<span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${esc(Math.abs(v).toFixed(0))}</div>
     </div>`;
   }).join('');
 }
@@ -1132,11 +1161,11 @@ function renderSettlements(){
   el.innerHTML=txns.map(t=>{
     const f=MEMBERS.find(m=>m.id===t.from),to=MEMBERS.find(m=>m.id===t.to);
     return`<div class="settle-card">
-      <div><div class="settle-from" style="color:${f.color}">${f.emoji} ${f.name}</div>
+      <div><div class="settle-from" style="color:${esc(f.color)}">${esc(f.emoji)} ${esc(f.name)}</div>
       <div class="settle-to">needs to pay</div>
-      <div class="settle-from" style="color:${to.color}">${to.emoji} ${to.name}</div></div>
+      <div class="settle-from" style="color:${esc(to.color)}">${esc(to.emoji)} ${esc(to.name)}</div></div>
       <div style="font-size:1.5rem;color:var(--muted)">→</div>
-      <div class="settle-amt"><span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${t.amount.toFixed(0)}</div>
+      <div class="settle-amt"><span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${esc(t.amount.toFixed(0))}</div>
     </div>`;
   }).join('');
 
@@ -1148,11 +1177,11 @@ function renderSettlements(){
     const f=MEMBERS.find(m=>m.id===s.from_member),t=MEMBERS.find(m=>m.id===s.to_member);
     return`<div class="balance-row owes" style="border-color:var(--green)">
       <div class="b-left"><div style="font-size:1.2rem">✅</div>
-      <div><div class="b-name">${f?.emoji} ${f?.name} paid ${t?.emoji} ${t?.name}</div>
-      <div class="b-sub">${new Date(s.created_at||Date.now()).toLocaleDateString()}</div></div></div>
+      <div><div class="b-name">${esc(f?.emoji)} ${esc(f?.name)} paid ${esc(t?.emoji)} ${esc(t?.name)}</div>
+      <div class="b-sub">${esc(new Date(s.created_at||Date.now()).toLocaleDateString())}</div></div></div>
       <div>
-        <div class="b-amt pos"><span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${s.amount}</div>
-        ${currentUser?.isAdmin?`<button class="btn-del" onclick="delSettlement('${s.id}')">🗑️</button>`:''}
+        <div class="b-amt pos"><span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${esc(s.amount)}</div>
+        ${currentUser?.isAdmin?`<button class="btn-del" onclick="delSettlement('${esc(jsq(s.id))}')">🗑️</button>`:''}
       </div>
     </div>`;
   }).join('');
@@ -1172,7 +1201,7 @@ async function recordSettlement(){
     entry.id=Date.now();entry.created_at=new Date().toISOString();settlements.push(entry);
   }
   document.getElementById('settle-amount').value='';
-  showToast(`✅ Settlement recorded! <span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${amt} from ${MEMBERS.find(m=>m.id===from)?.name} to ${MEMBERS.find(m=>m.id===to)?.name}`);
+  showToast(`✅ Settlement recorded! <span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${esc(amt)} from ${esc(MEMBERS.find(m=>m.id===from)?.name)} to ${esc(MEMBERS.find(m=>m.id===to)?.name)}`);
   refresh();
 }
 
@@ -1201,11 +1230,11 @@ async function delSettlement(id){
 function populatePrevBalDropdowns(){
   ['pb-from','pb-to'].forEach(id=>{
     const el=document.getElementById(id);
-    if(el)el.innerHTML=MEMBERS.map(m=>`<option value="${m.id}">${m.emoji} ${m.name}</option>`).join('');
+    if(el)el.innerHTML=MEMBERS.map(m=>`<option value="${esc(m.id)}">${esc(m.emoji)} ${esc(m.name)}</option>`).join('');
   });
   ['settle-from','settle-to'].forEach(id=>{
     const el=document.getElementById(id);
-    if(el)el.innerHTML=MEMBERS.map(m=>`<option value="${m.id}">${m.emoji} ${m.name}</option>`).join('');
+    if(el)el.innerHTML=MEMBERS.map(m=>`<option value="${esc(m.id)}">${esc(m.emoji)} ${esc(m.name)}</option>`).join('');
   });
 }
 
@@ -1215,10 +1244,10 @@ function renderPrevBals(){
   el.innerHTML=prevBals.map(b=>{
     const f=MEMBERS.find(m=>m.id===b.from_member),t=MEMBERS.find(m=>m.id===b.to_member);
     return`<div class="balance-row owes">
-      <div class="b-left"><div style="font-size:1.2rem">${f?.emoji}</div>
-      <div><div class="b-name">${f?.name} → ${t?.name}</div><div class="b-sub">Month: ${b.month}</div></div></div>
-      <div><div class="b-amt neg"><span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${b.amount}</div>
-      ${currentUser?.isAdmin?`<button class="btn-del" onclick="delPrev('${b.id}')">🗑️</button>`:''}
+      <div class="b-left"><div style="font-size:1.2rem">${esc(f?.emoji)}</div>
+      <div><div class="b-name">${esc(f?.name)} → ${esc(t?.name)}</div><div class="b-sub">Month: ${esc(b.month)}</div></div></div>
+      <div><div class="b-amt neg"><span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${esc(b.amount)}</div>
+      ${currentUser?.isAdmin?`<button class="btn-del" onclick="delPrev('${esc(jsq(b.id))}')">🗑️</button>`:''}
       </div></div>`;
   }).join('');
 }
@@ -1277,24 +1306,24 @@ function renderAdminMembers(){
   ${MEMBERS.map((m,i)=>`
     <div class="member-edit-card">
       <div class="member-edit-top">
-        <div class="member-big-av" style="background:${m.color}30;border:2px solid ${m.color}60">${m.emoji}</div>
-        <div><div class="member-edit-name">${m.name}</div>
+        <div class="member-big-av" style="background:${esc(m.color)}30;border:2px solid ${esc(m.color)}60">${esc(m.emoji)}</div>
+        <div><div class="member-edit-name">${esc(m.name)}</div>
         <div class="member-edit-role">${m.isAdmin?'👑 Admin':'👤 Member'}</div></div>
       </div>
       <div class="edit-row">
-        <div><div class="edit-label">Name</div><input class="edit-inp" id="em-name-${i}" value="${m.name}" /></div>
-        <div><div class="edit-label">Email</div><input class="edit-inp" id="em-email-${i}" type="email" value="${m.email||''}" placeholder="email@gmail.com" /></div>
+        <div><div class="edit-label">Name</div><input class="edit-inp" id="em-name-${esc(i)}" value="${esc(m.name)}" /></div>
+        <div><div class="edit-label">Email</div><input class="edit-inp" id="em-email-${esc(i)}" type="email" value="${esc(m.email)||''}" placeholder="email@gmail.com" /></div>
       </div>
       <div class="edit-row">
         <div><div class="edit-label">Emoji</div>
-          <select class="edit-inp" id="em-emoji-${i}">${EMOJIS.map(e=>`<option value="${e}" ${e===m.emoji?'selected':''}>${e}</option>`).join('')}</select></div>
+          <select class="edit-inp" id="em-emoji-${esc(i)}">${EMOJIS.map(e=>`<option value="${esc(e)}" ${e===m.emoji?'selected':''}>${esc(e)}</option>`).join('')}</select></div>
         <div><div class="edit-label">Color</div>
-          <select class="edit-inp" id="em-color-${i}">${COLORS.map(c=>`<option value="${c}" ${c===m.color?'selected':''}>${c}</option>`).join('')}</select></div>
+          <select class="edit-inp" id="em-color-${esc(i)}">${COLORS.map(c=>`<option value="${esc(c)}" ${c===m.color?'selected':''}>${esc(c)}</option>`).join('')}</select></div>
       </div>
       <div style="display:flex;gap:8px;margin-top:6px;">
-        <button class="btn-save-member" onclick="saveMember(${i})" style="flex:1">💾 Save</button>
-        ${m.email?`<button onclick="adminSendSquadReport('${m.id}','${m.email}')" title="Email this member's report" style="padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-weight:800;cursor:pointer;">📧</button>`:''}
-        ${MEMBERS.length>2&&!m.isAdmin?`<button onclick="removeMember(${i})" style="padding:8px 14px;border-radius:10px;border:none;background:rgba(255,107,107,.15);color:var(--red);font-weight:800;cursor:pointer;border:1px solid rgba(255,107,107,.3)">🗑️</button>`:''}
+        <button class="btn-save-member" onclick="saveMember(${esc(i)})" style="flex:1">💾 Save</button>
+        ${m.email?`<button onclick="adminSendSquadReport('${esc(jsq(m.id))}','${esc(jsq(m.email))}')" title="Email this member's report" style="padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-weight:800;cursor:pointer;">📧</button>`:''}
+        ${MEMBERS.length>2&&!m.isAdmin?`<button onclick="removeMember(${esc(i)})" style="padding:8px 14px;border-radius:10px;border:none;background:rgba(255,107,107,.15);color:var(--red);font-weight:800;cursor:pointer;border:1px solid rgba(255,107,107,.3)">🗑️</button>`:''}
       </div>
     </div>`).join('')}
   <button onclick="addNewMember()" style="width:100%;padding:14px;border-radius:14px;border:2px dashed var(--border);background:transparent;color:var(--accent2);font-family:'Fredoka One',cursive;font-size:1rem;cursor:pointer;margin-top:8px">
@@ -1303,7 +1332,7 @@ function renderAdminMembers(){
 }
 async function adminSendSquadReport(memberId,toEmail){
   if(isDemoMode||!sb){showToast('📧 Needs the live database');return;}
-  if(!confirm(`Email ${toEmail} their Squad Splitter report now?`))return;
+  if(!confirm(`Email ${toEmail} their Squad Split report now?`))return;
   const{error}=await sb.functions.invoke('send-report',{body:{type:'combined',month:viewMonth,target_email:toEmail}});
   showToast(error?'⚠️ Send failed':`📧 Sent to ${toEmail}`);
 }
@@ -1347,25 +1376,25 @@ function renderAdminExpenses(){
   el.innerHTML=list.map(e=>{
     const splitOpts=MEMBERS.map(m=>`
       <label style="display:flex;align-items:center;gap:6px;font-size:.75rem;cursor:pointer;">
-        <input type="checkbox" value="${m.id}" ${e.split_between.includes(m.id)?'checked':''}
-          style="accent-color:var(--accent2);" onchange="updateExpSplit(this,'${e.id}')" />
-        ${m.emoji} ${m.name}</label>`).join('');
+        <input type="checkbox" value="${esc(m.id)}" ${e.split_between.includes(m.id)?'checked':''}
+          style="accent-color:var(--accent2);" onchange="updateExpSplit(this,'${esc(jsq(e.id))}')" />
+        ${esc(m.emoji)} ${esc(m.name)}</label>`).join('');
     return`<div class="exp-edit-card">
-      <div class="exp-edit-title">${CAT_ICONS[e.category]||'📦'} ${e.name} — <span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${e.amount}</div>
+      <div class="exp-edit-title">${esc(CAT_ICONS[e.category])||'📦'} ${esc(e.name)} — <span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span>${esc(e.amount)}</div>
       <div class="exp-edit-grid">
-        <div><div class="edit-label">Name</div><input class="edit-inp" id="ee-name-${e.id}" value="${e.name}" /></div>
-        <div><div class="edit-label"><span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span> Amount</div><input class="edit-inp" type="number" id="ee-amt-${e.id}" value="${e.amount}" /></div>
+        <div><div class="edit-label">Name</div><input class="edit-inp" id="ee-name-${esc(e.id)}" value="${esc(e.name)}" /></div>
+        <div><div class="edit-label"><span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span> Amount</div><input class="edit-inp" type="number" id="ee-amt-${esc(e.id)}" value="${esc(e.amount)}" /></div>
         <div><div class="edit-label">Paid By</div>
-          <select class="edit-inp" id="ee-paid-${e.id}">${MEMBERS.map(m=>`<option value="${m.id}" ${m.id===e.paid_by?'selected':''}>${m.emoji} ${m.name}</option>`).join('')}</select></div>
-        <div><div class="edit-label">Date</div><input class="edit-inp" type="date" id="ee-date-${e.id}" value="${e.date}" /></div>
+          <select class="edit-inp" id="ee-paid-${esc(e.id)}">${MEMBERS.map(m=>`<option value="${esc(m.id)}" ${m.id===e.paid_by?'selected':''}>${esc(m.emoji)} ${esc(m.name)}</option>`).join('')}</select></div>
+        <div><div class="edit-label">Date</div><input class="edit-inp" type="date" id="ee-date-${esc(e.id)}" value="${esc(e.date)}" /></div>
       </div>
       <div class="exp-edit-full"><div class="edit-label">Category</div>
-        <select class="edit-inp" id="ee-cat-${e.id}">${Object.entries(CAT_ICONS).map(([k,v])=>`<option value="${k}" ${k===e.category?'selected':''}>${v} ${k}</option>`).join('')}</select></div>
+        <select class="edit-inp" id="ee-cat-${esc(e.id)}">${Object.entries(CAT_ICONS).map(([k,v])=>`<option value="${esc(k)}" ${k===e.category?'selected':''}>${esc(v)} ${esc(k)}</option>`).join('')}</select></div>
       <div class="exp-edit-full"><div class="edit-label">Split Between</div>
-        <div style="display:flex;flex-wrap:wrap;gap:10px;padding:6px 0;" id="ee-split-${e.id}">${splitOpts}</div></div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;padding:6px 0;" id="ee-split-${esc(e.id)}">${splitOpts}</div></div>
       <div style="display:flex;gap:8px;margin-top:4px;">
-        <button class="btn-save-exp" onclick="saveExpense('${e.id}')">💾 Save</button>
-        <button class="btn-del-exp" onclick="delExp('${e.id}');renderAdminExpenses()">🗑️ Delete</button>
+        <button class="btn-save-exp" onclick="saveExpense('${esc(jsq(e.id))}')">💾 Save</button>
+        <button class="btn-del-exp" onclick="delExp('${esc(jsq(e.id))}');renderAdminExpenses()">🗑️ Delete</button>
       </div>
     </div>`;
   }).join('');
@@ -1394,24 +1423,24 @@ async function saveExpense(id){
 function renderAdminBalances(){
   const el=document.getElementById('admin-balance-list');
   ['apb-from','apb-to'].forEach(id=>{
-    document.getElementById(id).innerHTML=MEMBERS.map(m=>`<option value="${m.id}">${m.emoji} ${m.name}</option>`).join('');
+    document.getElementById(id).innerHTML=MEMBERS.map(m=>`<option value="${esc(m.id)}">${esc(m.emoji)} ${esc(m.name)}</option>`).join('');
   });
   if(!prevBals.length){el.innerHTML=`<div style="text-align:center;color:var(--muted);padding:20px">No previous balances yet</div>`;return;}
   el.innerHTML=prevBals.map(b=>{
     const f=MEMBERS.find(m=>m.id===b.from_member),t=MEMBERS.find(m=>m.id===b.to_member);
     return`<div class="exp-edit-card">
-      <div class="exp-edit-title">${f?.emoji} ${f?.name} → ${t?.emoji} ${t?.name}</div>
+      <div class="exp-edit-title">${esc(f?.emoji)} ${esc(f?.name)} → ${esc(t?.emoji)} ${esc(t?.name)}</div>
       <div class="exp-edit-grid">
         <div><div class="edit-label">From</div>
-          <select class="edit-inp" id="ab-from-${b.id}">${MEMBERS.map(m=>`<option value="${m.id}" ${m.id===b.from_member?'selected':''}>${m.emoji} ${m.name}</option>`).join('')}</select></div>
+          <select class="edit-inp" id="ab-from-${esc(b.id)}">${MEMBERS.map(m=>`<option value="${esc(m.id)}" ${m.id===b.from_member?'selected':''}>${esc(m.emoji)} ${esc(m.name)}</option>`).join('')}</select></div>
         <div><div class="edit-label">To</div>
-          <select class="edit-inp" id="ab-to-${b.id}">${MEMBERS.map(m=>`<option value="${m.id}" ${m.id===b.to_member?'selected':''}>${m.emoji} ${m.name}</option>`).join('')}</select></div>
+          <select class="edit-inp" id="ab-to-${esc(b.id)}">${MEMBERS.map(m=>`<option value="${esc(m.id)}" ${m.id===b.to_member?'selected':''}>${esc(m.emoji)} ${esc(m.name)}</option>`).join('')}</select></div>
       </div>
       <div style="margin-bottom:8px;"><div class="edit-label"><span class="dhs"><svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><path d="M5,5 L5,115 L45,115 C80,115 100,90 100,60 C100,30 80,5 45,5 Z M20,20 L43,20 C68,20 82,35 82,60 C82,85 68,100 43,100 L20,100 Z"/><rect x="0" y="42" width="72" height="10" rx="2"/><rect x="0" y="62" width="72" height="10" rx="2"/></svg></span> Amount</div>
-        <input class="edit-inp" type="number" id="ab-amt-${b.id}" value="${b.amount}" style="width:100%;" /></div>
+        <input class="edit-inp" type="number" id="ab-amt-${esc(b.id)}" value="${esc(b.amount)}" style="width:100%;" /></div>
       <div style="display:flex;gap:8px;">
-        <button class="btn-save-exp" onclick="savePrevBal('${b.id}')">💾 Save</button>
-        <button class="btn-del-exp" onclick="delPrev('${b.id}');renderAdminBalances()">🗑️ Delete</button>
+        <button class="btn-save-exp" onclick="savePrevBal('${esc(jsq(b.id))}')">💾 Save</button>
+        <button class="btn-del-exp" onclick="delPrev('${esc(jsq(b.id))}');renderAdminBalances()">🗑️ Delete</button>
       </div>
     </div>`;
   }).join('');
@@ -1459,13 +1488,13 @@ function showToast(msg){
 // ── v7.8 drawer + notification bell ──
 function openDrawer(){document.getElementById('drawer').classList.add('open');document.getElementById('drawer-scrim').classList.add('open');}
 function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('drawer-scrim').classList.remove('open');}
-const _e=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const _e=esc;
 let ntfs=[];
 async function loadNtf(){
   if(isDemoMode||!sb||!currentUser||!currentEmail) return;
   const {data}=await sb.from('bill_notifications').select('*').eq('recipient_email',currentEmail.toLowerCase()).order('created_at',{ascending:false}).limit(40);
   ntfs=data||[]; const n=ntfs.filter(x=>!x.is_read).length, b=document.getElementById('ntf-badge'); b.textContent=n>99?'99+':n; b.style.display=n?'flex':'none';
-  document.getElementById('ntf-list').innerHTML=ntfs.length?ntfs.map(x=>`<div class="ntf-row ${x.is_read?'':'unread'}" onclick="readNtf(${x.id})"><b>${_e(x.title)}</b><div>${_e(x.message)}</div><small>${new Date(x.created_at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</small></div>`).join(''):'<p style="text-align:center;color:var(--muted);font-size:.8rem;">No notifications</p>';
+  document.getElementById('ntf-list').innerHTML=ntfs.length?ntfs.map(x=>`<div class="ntf-row ${x.is_read?'':'unread'}" onclick="readNtf(${esc(x.id)})"><b>${_e(x.title)}</b><div>${_e(x.message)}</div><small>${esc(new Date(x.created_at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}))}</small></div>`).join(''):'<p style="text-align:center;color:var(--muted);font-size:.8rem;">No notifications</p>';
 }
 async function readNtf(id){ await sb.from('bill_notifications').update({is_read:true}).eq('id',id); loadNtf(); }
 async function readAllNtf(){ await sb.from('bill_notifications').update({is_read:true}).eq('recipient_email',currentEmail.toLowerCase()).eq('is_read',false); loadNtf(); }
