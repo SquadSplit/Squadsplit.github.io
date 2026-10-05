@@ -1,4 +1,4 @@
-// sw.js — Bill Tracker service worker
+// sw.js — iFiNeX service worker (v8.0) — browser/PWA push only; the Android app uses its own native alert checker
 // Only job: receive a push message from the browser's push service and
 // show it as a notification. Registered by bill-tracker.html on load;
 // actual permission + subscription only happens when the user taps
@@ -14,12 +14,12 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('push', (event) => {
   let data = {};
-  try { data = event.data ? event.data.json() : {}; } catch (e) { data = { title: 'Bill Tracker', body: event.data ? event.data.text() : '' }; }
-  const title = data.title || 'Bill Tracker';
+  try { data = event.data ? event.data.json() : {}; } catch (e) { data = { title: 'iFiNeX', body: event.data ? event.data.text() : '' }; }
+  const title = data.title || 'iFiNeX';
   const options = {
     body: data.body || '',
-    icon: data.icon || 'https://cdn.jsdelivr.net/npm/twemoji@14.0.2/assets/72x72/1f9fe.png', // receipt emoji, generic fallback
-    badge: data.icon || undefined,
+    icon: data.icon || './assets/notif-large-192.png', // iFiNeX logo served from this site (GitHub Pages) — no third-party CDN
+    badge: data.badge || './assets/badge-96.png', // monochrome glyph for the status bar
     data: { url: data.url || './bill-tracker.html' },
     tag: data.tag || 'bill-tracker-notice', // same tag replaces older un-clicked notifications instead of stacking
   };
