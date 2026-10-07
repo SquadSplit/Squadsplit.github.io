@@ -1634,7 +1634,7 @@ async function openAlerts(){ document.getElementById('alerts-modal').classList.a
 function closeAlerts(){ document.getElementById('alerts-modal').classList.remove('open'); refreshPushUI(); }
 async function renderAlerts(){
   const box = document.getElementById('alerts-body'); if(!box) return;
-  const row = (label, val, btn) => `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--border);"><div><div style="font-weight:800;">${esc(label)}</div><div style="font-size:.72rem;color:var(--muted);margin-top:2px;">${esc(val)}</div></div><span style="flex-shrink:0;white-space:nowrap;">${esc(btn)||''}</span></div>`;
+  const row = (label, valHtml, btnHtml) => `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--border);"><div><div style="font-weight:800;">${esc(label)}</div><div style="font-size:.72rem;color:var(--muted);margin-top:2px;">${valHtml}</div></div><span style="flex-shrink:0;white-space:nowrap;">${btnHtml||''}</span></div>`;
   if(!nativeIsApp()){
     box.innerHTML = `<p style="margin:0 0 8px;">You're on the website. Browser notifications use the <b>Enable</b> banner on Home (your browser must allow them).</p>
       <p style="margin:0;color:var(--muted);font-size:.74rem;">Alerts that arrive while the app is closed are a feature of the <b>iFiNeX Android app</b>.</p>`;
@@ -2068,8 +2068,8 @@ async function gatherReportData(email, fromDate, toDate){
 }
 
 function renderReportHTML(data){
-  const sec = (title,inner)=>`<div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;">
-    <div style="font-weight:800;margin-bottom:8px;">${esc(title)}</div>${esc(inner)}</div>`;
+  const sec = (title,innerHtml)=>`<div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;">
+    <div style="font-weight:800;margin-bottom:8px;">${esc(title)}</div>${innerHtml}</div>`;
   const tbl = (headers,rowsHtml)=>`<table style="width:100%;border-collapse:collapse;font-size:.78rem;">
     <tr style="color:var(--muted);text-align:left;">${headers.map(h=>`<th style="padding:4px 0;">${esc(h)}</th>`).join('')}</tr>
     ${rowsHtml || `<tr><td colspan="${esc(headers.length)}" style="padding:8px 0;color:var(--muted);">Nothing in this period.</td></tr>`}</table>`;
