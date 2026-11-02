@@ -1,58 +1,56 @@
-# iFiNeX · Squad Split — Website (GitHub Pages)
+<div align="center">
 
-Bills, expenses, plans, budget and Squad Split in one static web app. Backend = **Supabase**. Hosting = **GitHub Pages**.
-The Android app is built from a second repository and re-uses this website.
+# iFiNeX
 
-| What | Official value |
+**Plan · Track · Save · Grow** — bills, cards, shared expenses, trackers and budgets in one app.
+
+[![Live Demo](https://img.shields.io/badge/▶_Live_Demo-open-4d96ff?style=for-the-badge)](https://squadsplit.github.io/iFiNeX-Demo/)
+[![Website](https://img.shields.io/badge/Website-squadsplit.github.io-1a1c33?style=for-the-badge)](https://squadsplit.github.io)
+[![Android app](https://img.shields.io/badge/Android-app-3ddc84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/SquadSplit/iFiNeX-Mobile/releases/latest)
+
+[**Live demo**](https://squadsplit.github.io/iFiNeX-Demo/) · [Website](https://squadsplit.github.io) · [Android app](https://github.com/SquadSplit/iFiNeX-Mobile) · [Privacy](https://squadsplit.github.io/privacy.html) · [Terms](https://squadsplit.github.io/terms.html)
+
+</div>
+
+## Try it now — no sign-up
+
+[![Try the live demo](iFiNeX-Demo/img/demo-landing.png)](https://squadsplit.github.io/iFiNeX-Demo/)
+
+Open the **[live demo](https://squadsplit.github.io/iFiNeX-Demo/)**. The first screen lets you choose:
+
+| Option | What you get |
 |---|---|
-| Live website | https://squadsplit.github.io |
-| This repo (website) | https://github.com/SquadSplit/Squadsplit.github.io |
-| App repo (Android/iOS wrapper, APK releases) | https://github.com/SquadSplit/iFiNeX-Mobile |
+| 🖥️ **Website** | The full web app on a desktop-size screen (you are *Alex*, the admin) |
+| 📱 **Mobile app** | The Android app experience in a phone frame (you are *Priya*, a member) |
+| ↔ **Both at once** | Website and phone side by side with a realtime activity feed |
 
----
+It is more than a preview — it is a complete guide to the app:
 
-## Forking / cloning? Change these things (and only these)
+- **17 guided walkthroughs** (spend, cards, party ledger, admin, delegate access, plans, trips, budget, squads, import/export, backup, Google Drive, themes…)
+- **Request Inspector** — see every database call the app makes and why the database allows it
+- **Searchable guide to every option and function** (77 entries) and a **database explorer** (34 tables)
+- Roles table, key flows, and honest limits
 
-| # | What | File | What to change |
-|---|---|---|---|
-| 1 | **Your website address** | `ifinex-config.json` → `"site"` | `https://YOURUSER.github.io` (or your custom domain) |
-| 2 | **Your Supabase URL** | `ifinex-config.json` → `"supabaseUrl"` | `https://YOURPROJECT.supabase.co` (Supabase → Project Settings → API) |
-| 3 | **Your Supabase key** | `ifinex-config.json` → `"supabaseKey"` | the **anon / publishable** key. **NEVER the `service_role` key** — that one is a master key and must never be in a public repo |
-| 4 | App name shown in the UI | `ifinex-config.json` → `"name"` | any text |
-| 5 | Web-push key (optional) | `bill-tracker.html` → `const VAPID_PUBLIC_KEY = '…'` (search for it, around line 1123) | your own VAPID **public** key |
-| 6 | Link to the Android app repo (optional instant sync) | `.github/workflows/notify-app.yml` → `--repo SquadSplit/iFiNeX-Mobile` | `--repo YOURUSER/YOUR-APP-REPO` |
+Everything uses fictional people and fake data and runs only in your browser. Nothing is stored or sent anywhere, and reloading resets it.
 
-`ifinex-config.json` looks like this:
+<p align="center">
+<a href="https://squadsplit.github.io/iFiNeX-Demo/"><img src="iFiNeX-Demo/img/demo-web.png" width="46%" alt="Website walkthrough"></a>
+<a href="https://squadsplit.github.io/iFiNeX-Demo/"><img src="iFiNeX-Demo/img/demo-inspector.png" width="46%" alt="Request inspector"></a>
+</p>
+<p align="center">
+<a href="https://squadsplit.github.io/iFiNeX-Demo/"><img src="iFiNeX-Demo/img/demo-mobile.png" width="30%" alt="Mobile app demo"></a>
+<a href="https://squadsplit.github.io/iFiNeX-Demo/"><img src="iFiNeX-Demo/img/demo-guide.png" width="60%" alt="Searchable feature guide"></a>
+</p>
 
-```json
-{
-  "format": "ifinex-server",
-  "version": 1,
-  "name": "My Hub",
-  "site": "https://YOURUSER.github.io",
-  "supabaseUrl": "https://YOURPROJECT.supabase.co",
-  "supabaseKey": "YOUR-ANON-OR-PUBLISHABLE-KEY"
-}
-```
+## What is inside
 
-The website reads this file when it starts. Nothing else in the HTML/JS needs the Supabase address.
+- **Bill Tracker** — cards, payees, plans, reminders, who owes whom
+- **Expense Tracker** — monthly, events, trips and custom types
+- **Squad Split** — several squads, each with its own people, expenses and settlements
+- **Budget & Salary Planner** — income, budget lines, savings goals
+- **Backup & Restore** — file export/import and optional Google Drive scheduled backup
+- **Android app** — same app, with alerts and in-app updates
 
-### Setup in 8 steps
-1. **Fork** this repo (or upload the files to a new **public** repo named `YOURUSER.github.io`).
-2. Edit `ifinex-config.json` (table above, rows 1–4). Commit.
-3. Repo → **Settings → Pages** → Source: *Deploy from a branch* → `main` / `(root)` → Save. Wait ~1 minute.
-4. Create a Supabase project. **SQL Editor** → run `Database FULL (no data).sql` (from the project's `sql/` folder). Never publish a *with data* SQL file on GitHub.
-5. Create the first admin: run the *SELF-HOST first-admin* SQL (same folder) with your e-mail.
-6. Supabase → **Authentication → URL Configuration**: *Site URL* = your website address. **Authentication → Email Templates → Magic Link / Confirm**: the mail must contain the 6-digit code `{{ .Token }}` (login is by e-mail code).
-7. Supabase → **Authentication → SMTP**: set your own SMTP, otherwise the free mail limit is very low.
-8. Open your website, log in with the admin e-mail.
+## Run your own
 
-### Optional: web push
-Generate a VAPID key pair, put the **public** key in `bill-tracker.html` (row 5), and set these **Edge Function secrets** in Supabase: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_CONTACT_EMAIL`, `CRON_SECRET`. Deploy the `send-push` function. Never commit the private key.
-
-### Optional: instant app sync
-Without it the app repo checks this website every 30 minutes by itself. For instant sync: copy `.github/workflows/notify-app.yml` (row 6), then create a fine-grained token (only your app repo, *Actions: Read and write*) and save it here as the secret `APP_REPO_TOKEN`.
-
-### Security rules
-* Only the **anon/publishable** key belongs in this repo. Security is enforced by Supabase Row Level Security, not by hiding the key.
-* Turn on **2FA** for your GitHub account and **branch protection** for `main`: whoever can push here can ship code to every phone.
+The code is open for self-hosting (website on GitHub Pages, database on Supabase). See the setup guides in the open-source repository.
