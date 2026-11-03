@@ -26,7 +26,7 @@ Open the **[live demo](https://squadsplit.github.io/iFiNeX-Demo/)**. The first s
 
 It is more than a preview — it is a complete guide to the app:
 
-- **17 guided walkthroughs** (spend, cards, party ledger, admin, delegate access, plans, trips, budget, squads, import/export, backup, Google Drive, themes…)
+- **18 guided walkthroughs** (spend, cards, party ledger, admin, delegate access, plans, trips, budget, squads, import/export, backup, Google Drive, themes…)
 - **Request Inspector** — see every database call the app makes and why the database allows it
 - **Searchable guide to every option and function** (77 entries) and a **database explorer** (34 tables)
 - Roles table, key flows, and honest limits
