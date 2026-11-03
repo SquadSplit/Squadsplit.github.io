@@ -1,3 +1,2 @@
-v9.9 changed/new web files: NEW ifinex-reports.js | CHANGED ifinex-tools.js (safe download), bill-tracker.html, squad.html, ifinex-update.js, ifinex-version.json
-Demo: whole iFiNeX-Demo folder (v9.9)
-Upload everything: safe even if the live site is older.
+v9.10 web: CHANGED ifinex-update.js (in-app update dialog restored + browser fallback), ifinex-version.json, bill-tracker.html (version label). Demo folder rebuilt.
+Upload everything: safe.
