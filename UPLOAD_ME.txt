@@ -1,5 +1,1 @@
-iFiNeX web 10.0 — ONLY the files that changed since the v9.5 pack (your site repo: SquadSplit/Squadsplit.github.io).
-Upload all files and the iFiNeX-Demo folder into the repo root (same names, replace when asked).
-NEW: ifinex-fast.js, ifinex-lifecycle.js, ifinex-reports.js
-CHANGED: bill-tracker.html, squad.html, ifinex-budget.js, ifinex-config.js, ifinex-tools.js, ifinex-update.js, ifinex-version.json, README.md, iFiNeX-Demo/ (whole folder)
-Your ifinex-config.json, privacy.html, terms.html, assets, vendor are NOT included (unchanged).
+iFiNeX web 11.0 / app 4.0.0 — ONLY files changed since the v9.5 pack / app 2.11. Copy each file to the same path (replace). Your ifinex-config.json, privacy.html, terms.html, assets, vendor are not included (unchanged). App: build a new APK and install it once by hand.
