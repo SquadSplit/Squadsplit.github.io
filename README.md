@@ -55,6 +55,9 @@ Everything uses fictional people and fake data and runs only in your browser. No
 
 The code is open for self-hosting (website on GitHub Pages, database on Supabase). See the setup guides in the open-source repository.
 
+## What's new in v13.1 (web 13.1 / app 6.0.1) — GitHub build fix
+* **Fixed `npm ci` failing in GitHub Actions** ("lock file's minipass@6.0.0 does not satisfy minipass@5.0.0"). My version-bump command since v12.1 also rewrote one dependency (`tar`'s `minipass`) that happened to have the same version number as the app. `package-lock.json` is restored; it was the ONLY dependency touched. Version bumps are now done on the root version only, and the build script runs `npm ci --dry-run` before packaging.
+
 ## What's new in v13.0 (web 13.0 / app 6.0.0) — choose who, direction and report type
 * **With whom:** pick Everyone or tick specific people (e.g. only Kaatuva, or Kaatuva + Naina) for the statement of the chosen account(s).
 * **Direction:** tick "what they owe the account" and/or "what the account owes them".
