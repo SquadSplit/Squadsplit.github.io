@@ -17,7 +17,7 @@ window.IFX_DB = [
  ['Bill Tracker','bill_report_log','Which reminder was already sent','user_email, kind, sent_on','Server jobs only.','Reminder job'],
  ['Plans','bill_plans','EPP & Gold instalment plans','plan_type, title, total_amount, installments, start_date, end_date, due_day, card_id, payee_id, status, completed_at, auto_complete (v9.8)','Owner / delegate.','Plans'],
  ['Plans','bill_plan_payments','One row per instalment','plan_id, seq, due_date, amount, status, paid_at, paid_by_email','Follows the plan owner.','Plans → mark paid'],
- ['Expense Tracker','et_trackers','Period / trip / occasion trackers','kind, title, currency, start_date, end_date, participants, status, completed_at, auto_complete (v9.8)','Owner + participants.','Expense Tracker'],
+ ['Expense Tracker','et_trackers','Period / trip / occasion trackers','kind, title, currency, start_date, end_date, participants, status, completed_at, auto_complete (v9.8), categories + cat_set (v10.0)','Owner + participants.','Expense Tracker'],
  ['Expense Tracker','et_entries','Spend lines in a tracker','tracker_id, category, amount, entry_date, note, spent_by','Owner + participants.','Add entry'],
  ['Expense Tracker','et_categories','Your own categories','name, icon (15 defaults are built in)','Owner.','Categories'],
  ['Expense Tracker','et_kinds','Custom tracker kinds','name, icon','Owner.','Tracker kinds'],

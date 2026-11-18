@@ -12,11 +12,22 @@
 
 </div>
 
-## Try it now — no sign-up
+## ▶ Try it now — live demo, no sign-up
 
-[![Try the live demo](iFiNeX-Demo/img/demo-landing.png)](https://squadsplit.github.io/iFiNeX-Demo/)
+[![iFiNeX live demo — click to open it](iFiNeX-Demo/img/demo-preview.gif)](https://squadsplit.github.io/iFiNeX-Demo/)
 
-Open the **[live demo](https://squadsplit.github.io/iFiNeX-Demo/)**. The first screen lets you choose:
+<p align="center">
+<a href="https://squadsplit.github.io/iFiNeX-Demo/"><b>▶ Open the live demo</b></a> &nbsp;·&nbsp;
+<a href="https://squadsplit.github.io/iFiNeX-Demo/play.html?device=web&user=alex">🖥️ Website as admin</a> &nbsp;·&nbsp;
+<a href="https://squadsplit.github.io/iFiNeX-Demo/play.html?device=mobile">📱 Mobile app</a> &nbsp;·&nbsp;
+<a href="https://squadsplit.github.io/iFiNeX-Demo/play.html?scenario=reports">📊 Statements &amp; reports</a> &nbsp;·&nbsp;
+<a href="https://squadsplit.github.io/iFiNeX-Demo/play.html?scenario=compare">🔀 Compare periods</a> &nbsp;·&nbsp;
+<a href="https://squadsplit.github.io/iFiNeX-Demo/standalone.html">☁️ Standalone + Google backup</a>
+</p>
+
+GitHub does not allow a running app inside a README (scripts and iframes are removed), so the animation above is a recording and every link opens the **real interactive demo** on GitHub Pages — the same way the repo's *Website* link in the right-hand sidebar does.
+
+The first screen lets you choose:
 
 | Option | What you get |
 |---|---|
@@ -26,20 +37,37 @@ Open the **[live demo](https://squadsplit.github.io/iFiNeX-Demo/)**. The first s
 
 It is more than a preview — it is a complete guide to the app:
 
-- **18 guided walkthroughs** (spend, cards, party ledger, admin, delegate access, plans, trips, budget, squads, import/export, backup, Google Drive, themes…)
+- **21 guided walkthroughs** (spend, cards, party ledger, admin, delegate access, plans, trips, budget, squads, import/export, backup, Google Drive, statements & reports, **period comparison, tracker clone, category sets**, themes…)
 - **Request Inspector** — see every database call the app makes and why the database allows it
-- **Searchable guide to every option and function** (77 entries) and a **database explorer** (34 tables)
+- **Searchable guide to every option and function** (82 entries) and a **database explorer** (34 tables)
 - Roles table, key flows, and honest limits
 
 Everything uses fictional people and fake data and runs only in your browser. Nothing is stored or sent anywhere, and reloading resets it.
 
 <p align="center">
-<a href="https://squadsplit.github.io/iFiNeX-Demo/"><img src="iFiNeX-Demo/img/demo-web.png" width="46%" alt="Website walkthrough"></a>
+<a href="https://squadsplit.github.io/iFiNeX-Demo/play.html?device=web&user=alex"><img src="iFiNeX-Demo/img/demo-web.png" width="46%" alt="Website demo"></a>
+<a href="https://squadsplit.github.io/iFiNeX-Demo/play.html?scenario=reports"><img src="iFiNeX-Demo/img/demo-statement.png" width="46%" alt="Statements and reports"></a>
+</p>
+<p align="center">
+<a href="https://squadsplit.github.io/iFiNeX-Demo/play.html?device=mobile"><img src="iFiNeX-Demo/img/demo-mobile.png" width="46%" alt="Mobile app demo"></a>
 <a href="https://squadsplit.github.io/iFiNeX-Demo/"><img src="iFiNeX-Demo/img/demo-inspector.png" width="46%" alt="Request inspector"></a>
 </p>
 <p align="center">
-<a href="https://squadsplit.github.io/iFiNeX-Demo/"><img src="iFiNeX-Demo/img/demo-mobile.png" width="30%" alt="Mobile app demo"></a>
-<a href="https://squadsplit.github.io/iFiNeX-Demo/"><img src="iFiNeX-Demo/img/demo-guide.png" width="60%" alt="Searchable feature guide"></a>
+<a href="https://squadsplit.github.io/iFiNeX-Demo/#guide"><img src="iFiNeX-Demo/img/demo-guide.png" width="60%" alt="Searchable feature guide"></a>
+</p>
+
+### New in v14.0 — try each one in the demo
+
+| | What | Demo |
+|---|---|---|
+| 🔀 | **Compare 2 · 3 · 4 … periods** (months or custom dates) for Bill Tracker, Expense trackers and Budget — PDF · Excel · CSV | [Compare periods](https://squadsplit.github.io/iFiNeX-Demo/play.html?scenario=compare) |
+| 📑 | **Clone** an expense tracker or a budget month for next month (asks name + duration) | [Clone](https://squadsplit.github.io/iFiNeX-Demo/play.html?scenario=clone) |
+| 🏷️ | **Categories per tracker type** — Mess = meals only, Groceries = no meals, 11 sets | [Categories](https://squadsplit.github.io/iFiNeX-Demo/play.html?scenario=cats) |
+| ☁️ | **Standalone app**: sign in with Google, **nightly 12:00 AM backup**, restore the latest backup on a new phone | [Standalone demo](https://squadsplit.github.io/iFiNeX-Demo/standalone.html) |
+
+<p align="center">
+<a href="https://squadsplit.github.io/iFiNeX-Demo/play.html?scenario=compare"><img src="iFiNeX-Demo/img/demo-compare.png" width="46%" alt="Period comparison"></a>
+<a href="https://squadsplit.github.io/iFiNeX-Demo/standalone.html"><img src="iFiNeX-Demo/img/demo-standalone.png" width="46%" alt="Standalone Google backup demo"></a>
 </p>
 
 ## What is inside
@@ -55,8 +83,18 @@ Everything uses fictional people and fake data and runs only in your browser. No
 
 The code is open for self-hosting (website on GitHub Pages, database on Supabase). See the setup guides in the open-source repository.
 
-## What's new in v13.1 (web 13.1 / app 6.0.1) — GitHub build fix
-* **Fixed `npm ci` failing in GitHub Actions** ("lock file's minipass@6.0.0 does not satisfy minipass@5.0.0"). My version-bump command since v12.1 also rewrote one dependency (`tar`'s `minipass`) that happened to have the same version number as the app. `package-lock.json` is restored; it was the ONLY dependency touched. Version bumps are now done on the root version only, and the build script runs `npm ci --dry-run` before packaging.
+## What's new in v14.0 (web 14.0 / app 7.0.0 / database v10.0)
+
+* **Comparison reports** — 2, 3, 4 … periods side by side (months or custom dates) for Bill Tracker, Expense / Event / Trip trackers and the Budget planner; download PDF, Excel (Summary + one sheet per section) or CSV.
+* **Clone** an expense tracker (name + duration, optionally with entries) and a budget month.
+* **Category sets per tracker type** (Mess = meals only, Groceries = no meals, …) — stored in `et_trackers.categories` / `cat_set` (run the v10.0 SQL once).
+* **Standalone**: Google sign-in on first start (restore the latest backup or start fresh), **nightly 12:00 AM backup** to the user's own Google Drive (Android job works with the app closed), "Restore my latest Google backup" any time.
+* **Supabase disk-IO**: `poll_notifications` now writes `last_seen_at` at most every 6 h (was every poll); Android polls every 5 min instead of 2.
+* **GitHub build fix**: regenerated `package-lock.json` and an `npm ci` → `npm install` fallback in the workflow.
+
+## What's new in v13.1 (demo / README only — web 13.0 and app 6.0.0 unchanged)
+* README now opens with an animated recording of the live demo and one-click links (website, mobile, statements). Fixed the screenshots, which pointed to a folder that was missing.
+* Demo screenshots re-recorded from v13.0, including the new Statements & reports window.
 
 ## What's new in v13.0 (web 13.0 / app 6.0.0) — choose who, direction and report type
 * **With whom:** pick Everyone or tick specific people (e.g. only Kaatuva, or Kaatuva + Naina) for the statement of the chosen account(s).
