@@ -1,17 +1,17 @@
-# iFiNeX v14.1 — Setup guide (no technical knowledge needed)
+# iFiNeX v14.2 — Setup guide (no technical knowledge needed)
 
 ## Step 1 — Database (Supabase) — usually already done
 Your live database is already upgraded (done by Claude). Only needed if you ever rebuild: open supabase.com → your project → **SQL Editor** → New query → paste file `1 - ... UPGRADE` → **Run**. For a brand-new project use file `2 - ... FULL (no data)`. File `3 - WITH DATA` is private: never upload it to GitHub.
 
 ## Step 2 — Website (GitHub)
-1. Unzip `iFiNeX_v14.1_ONLY_UPDATED_A_WEBSITE_REPO.zip`.
+1. Unzip `iFiNeX_v14.2_ONLY_UPDATED_A_WEBSITE_REPO.zip`.
 2. Open https://github.com/SquadSplit/Squadsplit.github.io → **Add file → Upload files**.
 3. Drag everything inside the unzipped folder in (keep folder `iFiNeX-Demo` and its sub-folders). Do NOT upload your own `ifinex-config.json`.
 4. **Commit changes**. Wait 2 minutes. Open the site, hard-refresh. Settings should show web 14.0.
 5. Demo: https://squadsplit.github.io/iFiNeX-Demo/ (new "Standalone" demo included).
 
 ## Step 3 — App (builds the APK)
-1. Unzip `iFiNeX_v14.1_ONLY_UPDATED_B_APP_REPO.zip`.
+1. Unzip `iFiNeX_v14.2_ONLY_UPDATED_B_APP_REPO.zip`.
 2. Open https://github.com/SquadSplit/iFiNeX-Mobile → **Add file → Upload files**. Drag everything in (includes hidden folder `.github`; if your browser hides it, drag the `.github` folder separately). Commit.
 3. Click **Actions** tab → the build starts → wait ~10 min → download the APK from the run's **Artifacts** / Releases.
 4. If the build fails, open the red run, copy the first red error line and send it to Claude.
@@ -40,7 +40,27 @@ Dashboard → Reports → Database (look at Disk IO). Settings → Compute and D
 Sideloaded APKs can show "unrecognized app". Tap *More details → Install anyway*. Permanent fix = publish via Google Play.
 
 ---
-## v14.1 additions
+## v14.2 additions
 **Where the Google key goes:** open `ifinex-config.json`. After the `"supabaseKey"` line add a comma, then `"google": { "clientId": "....apps.googleusercontent.com", "clientSecret": "GOCSPX-..." }`. Do this in the website repo AND in the app repo (`www/ifinex-config.json`), then let GitHub build a new APK. Never upload the COMPLETE zip's config over yours.
 **Google consent screen:** click **Publish app -> In production**. In Testing mode nightly backups stop after 7 days.
-**Play Protect:** v14.1 removes the "install other apps" permission; updates now open in the browser. If Android still blocks: More details -> Install anyway. Permanent fix = Google Play.
+**Play Protect:** v14.2 removes the "install other apps" permission; updates now open in the browser. If Android still blocks: More details -> Install anyway. Permanent fix = Google Play.
+
+---
+## v14.2 — "Continue with Google" like a normal app (one-time owner setup, 10 minutes)
+You need a NEW Google key of type **Web application** (the old "TVs and Limited Input" key cannot do account-chooser sign-in; keep it, nothing breaks).
+1. https://console.cloud.google.com → your project → **APIs & Services → Credentials** → **Create credentials → OAuth client ID**.
+2. Application type: **Web application**. Name: `iFiNeX sign-in`.
+3. Under **Authorized redirect URIs** click **Add URI** and paste exactly: `https://squadsplit.github.io/gdrive-return.html` → **Create**.
+4. Copy the **Client ID** and **Client secret** shown.
+5. Open `ifinex-config.json`. Replace your old `"google"` block with (keep the comma after the line above it):
+```
+  "google": {
+    "clientId": "PASTE-CLIENT-ID.apps.googleusercontent.com",
+    "clientSecret": "PASTE-SECRET",
+    "redirect": "https://squadsplit.github.io/gdrive-return.html"
+  }
+```
+6. Upload that file to the **website repo** AND to the **app repo** (`www/ifinex-config.json`). Also upload `gdrive-return.html` to the website repo root (it is inside zip A). Build the new APK (zip B) and install it.
+7. Consent screen must be **In production** (not Testing).
+**What users see:** Standalone → Continue with Google → their Google account list → Allow → back in iFiNeX → "Restore latest backup / Start fresh". Backup then runs nightly around 12:00 AM.
+**If it fails:** the message names the problem. `redirect_uri_mismatch` = step 3 address is not exactly the same. `invalid_client` = wrong id/secret.

@@ -1,0 +1,10 @@
+Paste into ifinex-config.json (replace the old "google" block; keep a comma after the line above it).
+Use a Google OAuth client of type "Web application" with redirect URI https://squadsplit.github.io/gdrive-return.html
+
+  "google": {
+    "clientId": "PASTE-CLIENT-ID.apps.googleusercontent.com",
+    "clientSecret": "PASTE-SECRET",
+    "redirect": "https://squadsplit.github.io/gdrive-return.html"
+  }
+
+Do this in the website repo AND in the app repo (www/ifinex-config.json). Full steps: Setup guide, section "v14.2".
