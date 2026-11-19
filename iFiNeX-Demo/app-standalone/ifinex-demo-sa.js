@@ -6,12 +6,22 @@
   'use strict';
   try { localStorage.setItem('ifx_mode', 'standalone'); } catch (e) { }
   var cfg;
-  Object.defineProperty(window, 'IFX_CFG', { configurable: true, get: function () { return cfg; }, set: function (v) { v.google = { clientId: 'demo-client.apps.googleusercontent.com', clientSecret: 'demo-secret' }; cfg = v; } });
+  Object.defineProperty(window, 'IFX_CFG', { configurable: true, get: function () { return cfg; }, set: function (v) { v.google = { clientId: 'demo-client.apps.googleusercontent.com', clientSecret: 'demo-secret', redirect: 'https://squadsplit.github.io/gdrive-return.html' }; cfg = v; } });
   var T = window.top, D = T.__SA_DRIVE = T.__SA_DRIVE || { files: [], n: 0, polls: 0, log: [] };
   var b64 = function (o) { return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
   var ID = 'x.' + b64({ email: 'demo.user@gmail.example' }) + '.y';
   function J(o, s) { return new Response(JSON.stringify(o), { status: s || 200, headers: { 'Content-Type': 'application/json' } }); }
   function note(t) { D.log.unshift(new Date().toLocaleTimeString() + '  ' + t); D.log.length = Math.min(D.log.length, 40); }
+  // the normal Google sign-in: the real code opens accounts.google.com; the demo plays the "choose account -> Allow -> back to the app" part after 2 s
+  var realOpen = window.open ? window.open.bind(window) : null;
+  window.open = function (u) {
+    u = String(u || '');
+    if (/^https:\/\/accounts\.google\.com\/o\/oauth2\/v2\/auth\?/.test(u)) {
+      var st = decodeURIComponent((/[?&]state=([^&]+)/.exec(u) || [])[1] || ''); note('Google: account chooser shown -> demo.user@gmail.example -> Allow');
+      setTimeout(function () { try { localStorage.setItem('ifx_gd_ret', '?code=DEMO-CODE&state=' + encodeURIComponent(st)); } catch (e) { } }, 2000); return null;
+    }
+    return realOpen ? realOpen.apply(window, arguments) : null;
+  };
   var real = window.fetch.bind(window);
   window.fetch = async function (u, o) {
     u = String((u && u.url) || u); o = o || {};
